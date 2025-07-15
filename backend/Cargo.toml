@@ -2,16 +2,42 @@
 name = "Spectra"
 version = "0.1.0"
 edition = "2024"
+build = "build.rs"
 
 [dependencies]
 axum = "0.7"
 tokio = { version = "1.0", features = ["full"] }
-tower-http = { version = "0.5.0", features = ["cors", "fs"] }
+tower-http = { version = "0.5.0", features = [
+  "cors",
+  "fs",
+  "trace",
+  "compression-zstd",
+  "compression-br",
+  "compression-gzip",
+  "compression-deflate",
+] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 axum-reverse-proxy = "0.6.0"
+clap = { version = "4.5.40", features = ["cargo", "wrap_help"] }
+shadow-rs = "1.2.0"
+toml = "0.8.23"
+tower = "0.5.2"
+ron = "0.10.1"
+sqlx = { version = "0.8", features = [
+  "sqlite",
+  "runtime-tokio",
+  "macros",
+  "chrono",
+] }
+uuid = { version = "1", features = ["v4", "serde"] }
+anyhow = "1.0.98"
+chrono = { version = "0.4.41", features = ["serde"] }
+
+[build-dependencies]
+shadow-rs = "1.2.0"
 
 [dev-dependencies]
 axum-reverse-proxy = "0.6.0"

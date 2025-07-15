@@ -46,3 +46,10 @@ dist-ssr
 *.sw?
 
 zellij_layout.kdl
+
+# SQLx
+.sqlx
+data.db
+
+# dotenv
+.env
