@@ -1,7 +1,9 @@
 use anyhow::{Context, Result};
-use sqlx::types::chrono::{NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
+use sqlx::types::chrono::{NaiveDateTime, Utc};
 use sqlx::{Pool, Sqlite, sqlite::SqlitePoolOptions};
+use std::path::PathBuf;
+use tokio_util::io::ReaderStream;
 use uuid::Uuid;
 
 // 项目类型枚举
@@ -32,7 +34,7 @@ pub enum OperationType {
     Set,
 }
 
-impl From<String> for OperationType{
+impl From<String> for OperationType {
     fn from(s: String) -> Self {
         match s.as_str() {
             "get" => Self::Get,
@@ -81,10 +83,10 @@ impl DatabaseAccessor {
             .connect(db_url)
             .await
             .context("Failed to connect to database")?;
-    
+
         // 执行sqlx迁移
         sqlx::migrate!("../migrations").run(&pool).await?;
-    
+
         Ok(Self { pool })
     }
 
@@ -98,7 +100,7 @@ impl DatabaseAccessor {
         password_hash: Option<String>,
     ) -> anyhow::Result<Item> {
         let id = Uuid::new_v4().to_string();
-                    let now = Utc::now().naive_utc();
+        let now = Utc::now().naive_utc();
         let item = sqlx::query_as!(
             Item,
             r#"
@@ -115,7 +117,7 @@ impl DatabaseAccessor {
             password_hash,
             now,
         )
-        .fetch_one(&self.pool) 
+        .fetch_one(&self.pool)
         .await?;
 
         Ok(item)
@@ -159,8 +161,9 @@ impl DatabaseAccessor {
         ip_address: &str,
     ) -> anyhow::Result<AccessLog> {
         let id = Uuid::new_v4().to_string();
-        let now=Utc::now().naive_utc();
-        let log = sqlx::query_as!(AccessLog, 
+        let now = Utc::now().naive_utc();
+        let log = sqlx::query_as!(
+            AccessLog,
             r#"
             INSERT INTO access_logs (id, item_id, accessed_at, path, operation, success, ip_address)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -176,7 +179,7 @@ impl DatabaseAccessor {
         )
         .fetch_one(&self.pool)
         .await?;
-    
+
         Ok(log)
     }
 
@@ -196,5 +199,36 @@ impl DatabaseAccessor {
         .await?;
 
         Ok(logs)
+    }
+}
+
+#[derive(Clone)]
+pub struct FileAccessor {
+    data_dir: PathBuf,
+}
+impl FileAccessor {
+    pub fn new(data_dir: String) -> Self {
+        Self {
+            data_dir: PathBuf::from(data_dir),
+        }
+    }
+    pub async fn get_string(&self, path: String) -> Option<String> {
+        let path = self.data_dir.join(path);
+        if path.exists() {
+            let content = tokio::fs::read_to_string(path).await.unwrap();
+            Some(content)
+        } else {
+            None
+        }
+    }
+    pub async fn get_stream(&self, path: String) -> Option<ReaderStream<tokio::fs::File>> {
+        let path = self.data_dir.join(path);
+        if path.exists() {
+            let file = tokio::fs::File::open(path).await.unwrap();
+            let stream = ReaderStream::new(file);
+            Some(stream)
+        } else {
+            None
+        }
     }
 }

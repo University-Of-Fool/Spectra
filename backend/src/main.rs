@@ -1,3 +1,4 @@
+use axum::body::Body;
 use axum::{
     Router,
     extract::{Request, State},
@@ -5,6 +6,7 @@ use axum::{
     response::Response,
 };
 use clap::{Command, arg, crate_version, value_parser};
+use http_body_util::BodyExt;
 use shadow_rs::shadow;
 use std::fs::{self, read_to_string};
 use std::net::{IpAddr, SocketAddr};
@@ -18,7 +20,8 @@ use tracing::{error, info, warn};
 #[cfg(debug_assertions)]
 use axum_reverse_proxy::ReverseProxy;
 
-// 对于 release 使用文件服务器
+use crate::data::{DatabaseAccessor, FileAccessor};
+
 #[cfg(not(debug_assertions))]
 use tower_http::services::{ServeDir, ServeFile};
 
@@ -30,7 +33,8 @@ const DEFAULT_CONFIG_FILE: &[u8] = include_bytes!("../assets/config_example.toml
 
 #[derive(Clone)]
 struct AppState {
-    database_accessor: data::DatabaseAccessor,
+    database_accessor: DatabaseAccessor,
+    file_accessor: FileAccessor,
 }
 
 #[tokio::main]
@@ -71,8 +75,8 @@ async fn main() {
         )
         .get_matches();
 
-    if let Some(("init", subm)) = matches.subcommand() {
-        let config = subm.get_one::<PathBuf>("PATH").unwrap();
+    if let Some(("init", subcommand)) = matches.subcommand() {
+        let config = subcommand.get_one::<PathBuf>("PATH").unwrap();
         fs::write(&config, DEFAULT_CONFIG_FILE).unwrap_or_else(|e| {
             error!("Error happened during writing to config file: {:?}", e);
             std::process::exit(1);
@@ -88,7 +92,7 @@ async fn main() {
         warn!("The specified configuration file does not exist, using the default values...");
         String::from_utf8_lossy(DEFAULT_CONFIG_FILE)
             .parse::<toml::Table>()
-            .unwrap() // 默认的配置文件一定是 TOML 字符串，所以这里略过错误处理
+            .unwrap() // 默认的配置文件一定是有效的 TOML 字符串，所以这里略过错误处理
     } else {
         match read_to_string(config_path) {
             Ok(config_content) => match config_content.parse::<toml::Table>() {
@@ -113,12 +117,44 @@ async fn main() {
         }
     };
 
-    let state = AppState {
-        database_accessor: data::DatabaseAccessor::new(
-            format!("sqlite:{}/data.db", &config["service"]["data_path"],).as_str(),
-        )
-        .await
-        .unwrap(),
+    let state = {
+        // 检查 service 键是否存在
+        let service_table = match config.get("service") {
+            Some(service) => match service.as_table() {
+                Some(table) => table,
+                None => {
+                    error!("'service' key in config is not a table");
+                    std::process::exit(1);
+                }
+            },
+            None => {
+                error!("'service' key not found in config");
+                std::process::exit(1);
+            }
+        };
+
+        // 检查 data_dir 键是否存在
+        let data_dir = match service_table.get("data_dir") {
+            Some(dir) => match dir.as_str() {
+                Some(s) => s,
+                None => {
+                    error!("'data_dir' in config is not a string");
+                    std::process::exit(1);
+                }
+            },
+            None => {
+                error!("'data_dir' key not found in 'service' table");
+                std::process::exit(1);
+            }
+        };
+        AppState {
+            database_accessor: DatabaseAccessor::new(
+                service_table.get("db_url").unwrap().as_str().unwrap(),
+            )
+            .await
+            .unwrap(),
+            file_accessor: FileAccessor::new(data_dir.to_string()),
+        }
     };
 
     // 前端路由，开发环境是对 Vite 的反向代理，生产环境是文件系统
@@ -161,9 +197,77 @@ fn make_frontend_router() -> Router<AppState> {
 }
 
 async fn main_service(State(state): State<AppState>, request: Request, next: Next) -> Response {
-    let response = next.run(request).await;
-    if response.status() != 200 {
-        // 说明不是前端，进入后端处理逻辑
+    let resp_404 = || Response::builder().status(404).body(Body::empty()).unwrap();
+    if request.uri().path().starts_with("/api") {
+        match request.uri().path() {
+            _ => resp_404(),
+        }
+    } else if request.uri().path() == "/" {
+        let req = Request::builder()
+            .method("GET")
+            .uri("TODO") // TODO
+            .body(Body::empty())
+            .unwrap();
+        next.run(req).await
+    } else if request.uri().path().ends_with(".js")
+        || request.uri().path().ends_with(".css")
+        || request.uri().path().ends_with(".html")
+    {
+        next.run(request).await
+    } else {
+        let item = state
+            .database_accessor
+            .get_item(request.uri().path().trim_start_matches('/'))
+            .await
+            .unwrap();
+        if let Some(item) = item {
+            match item.item_type {
+                data::ItemType::Link => Response::builder()
+                    .status(302)
+                    .header("Location", item.data)
+                    .body(Body::empty())
+                    .unwrap(),
+                data::ItemType::Code => {
+                    if let Some(code_content) = state.file_accessor.get_string(item.data).await {
+                        let next_req = Request::builder()
+                            .method("GET")
+                            .uri("TODO") // TODO
+                            .body(Body::empty())
+                            .unwrap();
+                        let orig_response = next.run(next_req).await;
+                        let body = String::from_utf8(
+                            orig_response
+                                .into_body()
+                                .collect()
+                                .await
+                                .unwrap()
+                                .to_bytes()
+                                .to_vec(),
+                        )
+                        .unwrap()
+                        .replace("{{{#code#}}}", &code_content);
+                        Response::builder()
+                            .status(200)
+                            .body(Body::from(body))
+                            .unwrap()
+                    } else {
+                        resp_404()
+                    }
+                }
+                data::ItemType::File => {
+                    if let Some(stream) = state.file_accessor.get_stream(item.data).await {
+                        Response::builder()
+                            .status(200)
+                            .body(Body::from_stream(stream))
+                            .unwrap()
+                            .into()
+                    } else {
+                        resp_404()
+                    }
+                }
+            }
+        } else {
+            resp_404()
+        }
     }
-    response
 }
