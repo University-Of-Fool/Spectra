@@ -1,9 +1,8 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use sqlx::types::chrono::{NaiveDateTime, Utc};
-use sqlx::{Pool, Sqlite, sqlite::SqlitePoolOptions};
+use sqlx::{sqlite::SqlitePoolOptions, Pool, Sqlite};
 use std::path::PathBuf;
-use tokio_util::io::ReaderStream;
 use uuid::Uuid;
 
 // 项目类型枚举
@@ -56,6 +55,7 @@ pub struct Item {
     pub visits: i64,
     pub password_hash: Option<String>,
     pub created_at: NaiveDateTime, // 将DateTime<Utc>改为NaiveDateTime
+    pub download_filename: Option<String>,
 }
 
 // 访问日志结构
@@ -98,14 +98,15 @@ impl DatabaseAccessor {
         expires_at: Option<NaiveDateTime>,
         max_visits: Option<i64>,
         password_hash: Option<String>,
+        download_filename: Option<String>,
     ) -> anyhow::Result<Item> {
         let id = Uuid::new_v4().to_string();
         let now = Utc::now().naive_utc();
         let item = sqlx::query_as!(
             Item,
             r#"
-            INSERT INTO items (id, short_path, item_type, data, expires_at, max_visits, visits, password_hash, created_at)
-            VALUES ($1, $2, $3, $4, $5, $6, 0, $7, $8)
+            INSERT INTO items (id, short_path, item_type, data, expires_at, max_visits, visits, password_hash, created_at, download_filename)
+            VALUES ($1, $2, $3, $4, $5, $6, 0, $7, $8, $9)
             RETURNING *
             "#,
             id,
@@ -116,6 +117,7 @@ impl DatabaseAccessor {
             max_visits,
             password_hash,
             now,
+            download_filename,
         )
         .fetch_one(&self.pool)
         .await?;
@@ -136,22 +138,6 @@ impl DatabaseAccessor {
         .await?;
         Ok(item)
     }
-
-    pub async fn increment_visits(&self, short_path: &str) -> anyhow::Result<()> {
-        sqlx::query!(
-            r#"
-            UPDATE items
-            SET visits = visits + 1
-            WHERE short_path = $1
-            "#,
-            short_path
-        )
-        .execute(&self.pool)
-        .await?;
-
-        Ok(())
-    }
-
     pub async fn log_access(
         &self,
         item_id: String,
@@ -178,6 +164,16 @@ impl DatabaseAccessor {
             ip_address
         )
         .fetch_one(&self.pool)
+        .await?;
+        sqlx::query!(
+            r#"
+            UPDATE items
+            SET visits = visits + 1
+            WHERE short_path = $1
+            "#,
+            path
+        )
+        .execute(&self.pool)
         .await?;
 
         Ok(log)
@@ -221,12 +217,11 @@ impl FileAccessor {
             None
         }
     }
-    pub async fn get_stream(&self, path: String) -> Option<ReaderStream<tokio::fs::File>> {
+    pub async fn get_file(&self, path: String) -> Option<tokio::fs::File> {
         let path = self.data_dir.join(path);
         if path.exists() {
             let file = tokio::fs::File::open(path).await.unwrap();
-            let stream = ReaderStream::new(file);
-            Some(stream)
+            Some(file)
         } else {
             None
         }

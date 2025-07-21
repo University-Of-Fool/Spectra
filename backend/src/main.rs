@@ -1,26 +1,29 @@
 use axum::body::Body;
 use axum::{
-    Router,
     extract::{Request, State},
     middleware::Next,
     response::Response,
+    Router,
 };
-use clap::{Command, arg, crate_version, value_parser};
+use clap::{arg, crate_version, value_parser, Command};
+use futures_util::stream::StreamExt;
 use http_body_util::BodyExt;
 use shadow_rs::shadow;
 use std::fs::{self, read_to_string};
 use std::net::{IpAddr, SocketAddr};
 use std::path::PathBuf;
+use tokio::io::AsyncSeekExt;
 use tower_http::compression::CompressionLayer;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use tracing::{error, info, warn};
 
 // 对于 debug 反向代理
+use crate::data::{DatabaseAccessor, FileAccessor};
 #[cfg(debug_assertions)]
 use axum_reverse_proxy::ReverseProxy;
-
-use crate::data::{DatabaseAccessor, FileAccessor};
+use sha2::Digest;
+use tokio_util::io::ReaderStream;
 
 #[cfg(not(debug_assertions))]
 use tower_http::services::{ServeDir, ServeFile};
@@ -147,9 +150,23 @@ async fn main() {
                 std::process::exit(1);
             }
         };
+        // 确保数据目录存在
+        if let Err(e) = fs::create_dir_all(data_dir) {
+            error!("Failed to create data directory '{}': {}", data_dir, e);
+            std::process::exit(1);
+        }
+        let database_path = std::path::Path::new(data_dir).join("data.db");
+        // 检查数据库文件是否可以访问，不存在则创建
+        if !database_path.exists() {
+            info!("Database file does not exist, creating...");
+            fs::write(&database_path, &[]).unwrap_or_else(|e| {
+                error!("Error happened during writing to database file: {:?}", e);
+                std::process::exit(1);
+            });
+        }
         AppState {
             database_accessor: DatabaseAccessor::new(
-                service_table.get("db_url").unwrap().as_str().unwrap(),
+                format!("sqlite:{}", database_path.to_str().unwrap()).as_str(),
             )
             .await
             .unwrap(),
@@ -198,76 +215,157 @@ fn make_frontend_router() -> Router<AppState> {
 
 async fn main_service(State(state): State<AppState>, request: Request, next: Next) -> Response {
     let resp_404 = || Response::builder().status(404).body(Body::empty()).unwrap();
+    let to_frontend =
+        async |next: Next, frontend_path: &str, pattern: &str, replace_with: String| {
+            let next_req = Request::builder()
+                .method("GET")
+                .uri(frontend_path)
+                .body(Body::empty())
+                .unwrap();
+            let orig_response = next.run(next_req).await;
+            let body = String::from_utf8(
+                orig_response
+                    .into_body()
+                    .collect()
+                    .await
+                    .unwrap()
+                    .to_bytes()
+                    .to_vec(),
+            )
+            .unwrap()
+            .replace(pattern, &replace_with);
+            Response::builder()
+                .status(200)
+                .body(Body::from(body))
+                .unwrap()
+        };
     if request.uri().path().starts_with("/api") {
-        match request.uri().path() {
+        return match request.uri().path() {
             _ => resp_404(),
-        }
-    } else if request.uri().path() == "/" {
-        let req = Request::builder()
-            .method("GET")
-            .uri("TODO") // TODO
-            .body(Body::empty())
-            .unwrap();
-        next.run(req).await
-    } else if request.uri().path().ends_with(".js")
-        || request.uri().path().ends_with(".css")
-        || request.uri().path().ends_with(".html")
-    {
-        next.run(request).await
-    } else {
-        let item = state
+        };
+    }
+    let item = state
+        .database_accessor
+        .get_item(request.uri().path().trim_start_matches('/'))
+        .await
+        .unwrap();
+    if let Some(item) = item {
+        if let Err(e) = state
             .database_accessor
-            .get_item(request.uri().path().trim_start_matches('/'))
+            .log_access(
+                item.id,
+                request.uri().path(),
+                data::OperationType::Get,
+                true,
+                request
+                    .extensions()
+                    .get::<SocketAddr>()
+                    .cloned()
+                    .map_or("unknown".to_string(), |addr| addr.to_string())
+                    .as_str(),
+            )
             .await
-            .unwrap();
-        if let Some(item) = item {
-            match item.item_type {
-                data::ItemType::Link => Response::builder()
-                    .status(302)
-                    .header("Location", item.data)
-                    .body(Body::empty())
-                    .unwrap(),
-                data::ItemType::Code => {
-                    if let Some(code_content) = state.file_accessor.get_string(item.data).await {
-                        let next_req = Request::builder()
-                            .method("GET")
-                            .uri("TODO") // TODO
-                            .body(Body::empty())
-                            .unwrap();
-                        let orig_response = next.run(next_req).await;
-                        let body = String::from_utf8(
-                            orig_response
-                                .into_body()
-                                .collect()
-                                .await
-                                .unwrap()
-                                .to_bytes()
-                                .to_vec(),
-                        )
-                        .unwrap()
-                        .replace("{{{#code#}}}", &code_content);
-                        Response::builder()
-                            .status(200)
-                            .body(Body::from(body))
-                            .unwrap()
-                    } else {
-                        resp_404()
-                    }
-                }
-                data::ItemType::File => {
-                    if let Some(stream) = state.file_accessor.get_stream(item.data).await {
-                        Response::builder()
-                            .status(200)
-                            .body(Body::from_stream(stream))
-                            .unwrap()
-                            .into()
-                    } else {
-                        resp_404()
-                    }
+        {
+            error!("Failed to log access: {:?}", e);
+        }
+        if let Some(password) = item.password_hash {
+            // 取出 password 参数并对其进行 SHA-256 哈希，校验是否和数据库中相符
+            let password = request
+                .uri()
+                .query()
+                .and_then(|q| q.split('&').find(|s| s.starts_with("password=")))
+                .map(|s| s.split('=').nth(1).unwrap())
+                .and_then(|s| s.parse::<String>().ok())
+                .map(|s| format!("{:x}", sha2::Sha256::digest(s)))
+                .unwrap_or("".to_string());
+            if password != password {
+                // TODO
+                return to_frontend(next, "TODO", "TODO", "TODO".to_string()).await;
+            }
+        }
+        match item.item_type {
+            data::ItemType::Link => Response::builder()
+                .status(302)
+                .header("Location", item.data)
+                .body(Body::empty())
+                .unwrap(),
+            data::ItemType::Code => {
+                if let Some(code_content) = state.file_accessor.get_string(item.data).await {
+                    to_frontend(next, "TODO", "{{{#CODE#}}}", code_content).await
+                } else {
+                    resp_404()
                 }
             }
-        } else {
-            resp_404()
+            data::ItemType::File => {
+                if let Some(mut file) = state.file_accessor.get_file(item.data).await {
+                    // 获取文件大小用于范围请求处理
+                    let file_size = file.metadata().await.unwrap().len();
+
+                    // 解析Range请求头
+                    let range_header = request.headers().get("Range").and_then(|h| h.to_str().ok());
+
+                    // 处理范围请求
+                    let (start, end) = if let Some(range) = range_header {
+                        if range.starts_with("bytes=") {
+                            let parts: Vec<&str> = range[6..].split('-').collect();
+                            let start = parts[0].parse::<u64>().unwrap_or(0);
+                            let end = if parts.len() > 1 && !parts[1].is_empty() {
+                                parts[1].parse().unwrap_or(file_size - 1)
+                            } else {
+                                file_size - 1
+                            };
+                            (start.min(file_size - 1), end.min(file_size - 1))
+                        } else {
+                            (0, file_size - 1)
+                        }
+                    } else {
+                        (0, file_size - 1)
+                    };
+
+                    // 定位到请求的起始位置
+                    let _ = file.seek(std::io::SeekFrom::Start(start)).await;
+
+                    // 计算要发送的内容长度
+                    let content_length = end - start + 1;
+
+                    // 构建响应
+                    let response_builder = Response::builder()
+                        .header(
+                            "Content-Disposition",
+                            if let Some(filename) = &item.download_filename {
+                                format!("attachment; filename=\"{}\"", filename)
+                            } else {
+                                "attachment".to_string()
+                            },
+                        )
+                        .header("Content-Length", content_length.to_string())
+                        .header("Accept-Ranges", "bytes");
+
+                    let response = if range_header.is_some() {
+                        response_builder
+                            .status(206)
+                            .header(
+                                "Content-Range",
+                                format!("bytes {}-{}/{}", start, end, file_size),
+                            )
+                            .body(Body::from_stream(
+                                ReaderStream::new(file).take(content_length as usize),
+                            ))
+                            .unwrap()
+                    } else {
+                        response_builder
+                            .status(200)
+                            .body(Body::from_stream(ReaderStream::new(file)))
+                            .unwrap()
+                    };
+                    response
+                } else {
+                    resp_404()
+                }
+            }
         }
+    } else {
+        // 既不是 API，也在数据库里不存在，于是将项目路由给前端
+        next.run(request).await
     }
 }
