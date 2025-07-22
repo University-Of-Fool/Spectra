@@ -3,9 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <script id="spectra-data" type="application/json">
+        "{{{#JSON#}}}"
+    </script>
 </head>
 <body>
-<h1>Hello World</h1>
+<h1>Please provide password to access <span id="path_name"></span></h1>
+<div id="wrong"></div>
+<form id="form">
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password">
+    <input type="submit" value="Submit">
+</form>
 </body>
-<script src="./main.ts" type="module"></script>
+<script src="/password/main.ts" type="module"></script>
 </html>

@@ -9,28 +9,31 @@ use axum::{
 use clap::{arg, crate_version, value_parser, Command};
 use futures_util::stream::StreamExt;
 use http_body_util::BodyExt;
+use serde::Deserialize;
+use sha2::{Digest, Sha256};
 use shadow_rs::shadow;
 use std::fs::{self, read_to_string};
 use std::net::{IpAddr, SocketAddr};
 use std::path::PathBuf;
 use tokio::io::AsyncSeekExt;
+use tokio_util::io::ReaderStream;
 use tower_http::compression::CompressionLayer;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use tracing::{error, info, warn};
 
-// 对于 debug 反向代理
-use crate::data::{DatabaseAccessor, FileAccessor};
+#[cfg(not(debug_assertions))]
+use axum::http::HeaderMap;
+#[cfg(not(debug_assertions))]
+use axum::routing::get;
+#[cfg(not(debug_assertions))]
+use rust_embed::RustEmbed;
+
 #[cfg(debug_assertions)]
 use axum_reverse_proxy::ReverseProxy;
-use serde::Deserialize;
-use sha2::{Digest, Sha256};
-use tokio_util::io::ReaderStream;
-
-#[cfg(not(debug_assertions))]
-use tower_http::services::{ServeDir, ServeFile};
 
 mod data;
+use crate::data::{DatabaseAccessor, FileAccessor};
 
 shadow!(shadow);
 
@@ -212,36 +215,144 @@ fn make_frontend_router() -> Router<AppState> {
 
 #[cfg(not(debug_assertions))]
 fn make_frontend_router() -> Router<AppState> {
-    // TODO
+    #[derive(RustEmbed)]
+    #[folder = "../web/dist"]
+    struct StaticAssets;
+
+    async fn serve_static(req: Request<Body>) -> Response {
+        use axum::http::{header, HeaderValue, StatusCode};
+        use mime_guess::from_path;
+
+        let path = req.uri().path().trim_start_matches('/');
+        // 修改为 String 类型，以便能拥有所有权
+        let mut asset_path = if path.is_empty() {
+            "index.html".to_string()
+        } else {
+            path.to_string()
+        };
+
+        // 检查路径是否为文件夹
+        if !asset_path.contains('.') {
+            let folder_path = if asset_path.ends_with('/') {
+                asset_path.clone()
+            } else {
+                format!("{}/", asset_path)
+            };
+            let index_path = format!("{}index.html", folder_path);
+
+            let has_index = StaticAssets::iter().any(|p| p.as_ref() == index_path);
+
+            if has_index {
+                asset_path = index_path;
+            }
+        }
+
+        let asset_exists = StaticAssets::get(asset_path.as_str()).is_some();
+        let content = StaticAssets::get(asset_path.as_str())
+            .unwrap_or(StaticAssets::get("not_found/index.html").unwrap());
+        let mime = from_path(asset_path).first_or_octet_stream();
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            header::CONTENT_TYPE,
+            HeaderValue::from_str(if asset_exists {
+                mime.as_ref()
+            } else {
+                "text/html"
+            })
+            .unwrap(),
+        );
+        headers.insert(
+            header::CACHE_CONTROL,
+            HeaderValue::from_static("public, max-age=3600"),
+        );
+
+        // Range 支持
+        if let Some(range_header) = req.headers().get(header::RANGE) {
+            if let Ok(range_str) = range_header.to_str() {
+                if let Some((start, end)) = parse_range(range_str, content.data.len()) {
+                    let slice = &content.data[start..end];
+                    headers.insert(
+                        header::CONTENT_RANGE,
+                        HeaderValue::from_str(&format!(
+                            "bytes {}-{}/{}",
+                            start,
+                            end - 1,
+                            content.data.len()
+                        ))
+                        .unwrap(),
+                    );
+                    let mut builder = Response::builder().status(StatusCode::PARTIAL_CONTENT);
+                    {
+                        let builder_headers = builder.headers_mut().unwrap();
+                        builder_headers.extend(headers);
+                    }
+                    return builder.body(Body::from(slice.to_vec())).unwrap();
+                }
+            }
+        }
+
+        let body = Body::from(content.data);
+
+        let mut builder = Response::builder().status(if asset_exists {
+            StatusCode::OK
+        } else {
+            StatusCode::NOT_FOUND
+        });
+        {
+            let builder_headers = builder.headers_mut().unwrap();
+            builder_headers.extend(headers);
+        }
+        builder.body(body).unwrap()
+    }
+
+    fn parse_range(range: &str, total_len: usize) -> Option<(usize, usize)> {
+        if !range.starts_with("bytes=") {
+            return None;
+        }
+        let parts: Vec<&str> = range[6..].split('-').collect();
+        if parts.len() != 2 {
+            return None;
+        }
+        let start = parts[0].parse::<usize>().ok()?;
+        let end = parts[1].parse::<usize>().ok().unwrap_or(total_len - 1);
+        if start >= total_len || end >= total_len || start > end {
+            return None;
+        }
+        Some((start, end + 1))
+    }
+
+    Router::new().fallback(get(serve_static))
 }
 
 async fn main_service(State(state): State<AppState>, request: Request, next: Next) -> Response {
-    let resp_404 = || Response::builder().status(404).body(Body::empty()).unwrap();
+    fn resp_404() -> Response<Body> {
+        Response::builder().status(404).body(Body::empty()).unwrap()
+    }
     let to_frontend =
-        async |next: Next, frontend_path: &str, pattern: &str, replace_with: String| {
-            // let next_req = Request::builder()
-            //     .method("GET")
-            //     .uri(frontend_path)
-            //     .body(Body::empty())
-            //     .unwrap();
-            // let orig_response = next.run(next_req).await;
-            // let body = String::from_utf8(
-            //     orig_response
-            //         .into_body()
-            //         .collect()
-            //         .await
-            //         .unwrap()
-            //         .to_bytes()
-            //         .to_vec(),
-            // )
-            // .unwrap()
-            // .replace(pattern, &replace_with);
-            // Response::builder()
-            //     .status(200)
-            //     .body(Body::from(body))
-            //     .unwrap()
-
-            Response::builder().status(418).body(Body::from("I'm a teapot")).unwrap()
+        async |next: Next, frontend_path: &str, replace_patterns: Vec<(&str, String)>| {
+            let next_req = Request::builder()
+                .method("GET")
+                .uri(frontend_path)
+                .body(Body::empty())
+                .unwrap();
+            let orig_response = next.run(next_req).await;
+            let mut body = String::from_utf8(
+                orig_response
+                    .into_body()
+                    .collect()
+                    .await
+                    .unwrap()
+                    .to_bytes()
+                    .to_vec(),
+            )
+            .unwrap();
+            for (pattern, replacement) in replace_patterns {
+                body = body.replace(&pattern, &replacement);
+            }
+            Response::builder()
+                .status(200)
+                .body(Body::from(body))
+                .unwrap()
         };
     if request.uri().path().starts_with("/api") {
         return match request.uri().path() {
@@ -268,13 +379,37 @@ async fn main_service(State(state): State<AppState>, request: Request, next: Nex
 
             if let Ok(form) = query {
                 let input_password = form.0.password;
-                if !input_password.is_some_and(|x| format!("{:x}", Sha256::digest(x)) == password) {
-                    // 密码错误
-                    return to_frontend(next, "TODO", "TODO", "TODO".to_string()).await;
+                if !input_password.is_some() {
+                    // 密码未提供
+                    return to_frontend(
+                        next,
+                        "/password/",
+                        vec![(
+                            "\"{{{#JSON#}}}\"",
+                            serde_json::to_string(&data::PasswordInformation {
+                                error: false,
+                                path_name: item.short_path,
+                            })
+                            .unwrap_or("{}".to_string()),
+                        )],
+                    )
+                    .await;
+                } else if format!("{:x}", Sha256::digest(input_password.unwrap())) != password {
+                    // 如果上面跳到了这里的 else，说明密码已提供，但不正确
+                    return to_frontend(
+                        next,
+                        "/password/",
+                        vec![(
+                            "\"{{{#JSON#}}}\"",
+                            serde_json::to_string(&data::PasswordInformation {
+                                error: true,
+                                path_name: item.short_path,
+                            })
+                            .unwrap_or("{}".to_string()),
+                        )],
+                    )
+                    .await;
                 }
-            } else {
-                // 密码未提供
-                return to_frontend(next, "TODO", "TODO", "TODO".to_string()).await;
             }
             // 如果密码正确则进入下一步
             Request::from_parts(parts, body)
@@ -309,7 +444,21 @@ async fn main_service(State(state): State<AppState>, request: Request, next: Nex
                 .unwrap(),
             data::ItemType::Code => {
                 if let Some(code_content) = state.file_accessor.get_string(item.data).await {
-                    to_frontend(next, "TODO", "{{{#CODE#}}}", code_content).await
+                    to_frontend(
+                        next,
+                        "/code/",
+                        vec![
+                            ("\"{{{#CODE#}}}\"", code_content),
+                            (
+                                "\"{{{#JSON#}}}\"",
+                                serde_json::to_string(&data::CodeInformation {
+                                    language: item.extra_data.unwrap_or("text".to_string()),
+                                })
+                                .unwrap_or("{}".to_string()),
+                            ),
+                        ],
+                    )
+                    .await
                 } else {
                     resp_404()
                 }
@@ -350,7 +499,7 @@ async fn main_service(State(state): State<AppState>, request: Request, next: Nex
                     let response_builder = Response::builder()
                         .header(
                             "Content-Disposition",
-                            if let Some(filename) = &item.download_filename {
+                            if let Some(filename) = &item.extra_data {
                                 format!("attachment; filename=\"{}\"", filename)
                             } else {
                                 "attachment".to_string()

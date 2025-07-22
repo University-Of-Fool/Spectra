@@ -17,4 +17,9 @@ export default {
             },
         },
     },
+    server: {
+        hmr: {
+            port: 5174
+        }
+    }
 }

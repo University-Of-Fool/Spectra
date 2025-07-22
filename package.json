@@ -14,5 +14,8 @@
         "@biomejs/biome": "2.0.6",
         "typescript": "~5.8.3",
         "vite": "^7.0.0"
+    },
+    "dependencies": {
+        "highlight.js": "^11.11.1"
     }
 }

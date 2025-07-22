@@ -1,9 +1,22 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use sqlx::types::chrono::{NaiveDateTime, Utc};
-use sqlx::{sqlite::SqlitePoolOptions, Pool, Sqlite};
+use sqlx::{Pool, Sqlite, sqlite::SqlitePoolOptions};
 use std::path::PathBuf;
 use uuid::Uuid;
+
+// 给 Code 页面注入的信息
+#[derive(Serialize)]
+pub struct CodeInformation {
+    pub language: String,
+}
+
+// 给 Password 页面注入的信息
+#[derive(Serialize)]
+pub struct PasswordInformation {
+    pub error: bool,
+    pub path_name: String,
+}
 
 // 项目类型枚举
 #[derive(Debug, Clone, Copy, PartialEq, Eq, sqlx::Type, Serialize, Deserialize)]
@@ -55,7 +68,7 @@ pub struct Item {
     pub visits: i64,
     pub password_hash: Option<String>,
     pub created_at: NaiveDateTime,
-    pub download_filename: Option<String>,
+    pub extra_data: Option<String>,
 }
 
 // 访问日志结构
@@ -98,14 +111,14 @@ impl DatabaseAccessor {
         expires_at: Option<NaiveDateTime>,
         max_visits: Option<i64>,
         password_hash: Option<String>,
-        download_filename: Option<String>,
+        extra_data: Option<String>,
     ) -> anyhow::Result<Item> {
         let id = Uuid::new_v4().to_string();
         let now = Utc::now().naive_utc();
         let item = sqlx::query_as!(
             Item,
             r#"
-            INSERT INTO items (id, short_path, item_type, data, expires_at, max_visits, visits, password_hash, created_at, download_filename)
+            INSERT INTO items (id, short_path, item_type, data, expires_at, max_visits, visits, password_hash, created_at, extra_data)
             VALUES ($1, $2, $3, $4, $5, $6, 0, $7, $8, $9)
             RETURNING *
             "#,
@@ -117,7 +130,7 @@ impl DatabaseAccessor {
             max_visits,
             password_hash,
             now,
-            download_filename,
+            extra_data,
         )
         .fetch_one(&self.pool)
         .await?;
