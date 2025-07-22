@@ -1,87 +1,10 @@
 use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
 use sqlx::types::chrono::{NaiveDateTime, Utc};
 use sqlx::{Pool, Sqlite, sqlite::SqlitePoolOptions};
 use std::path::PathBuf;
 use uuid::Uuid;
 
-// 给 Code 页面注入的信息
-#[derive(Serialize)]
-pub struct CodeInformation {
-    pub language: String,
-}
-
-// 给 Password 页面注入的信息
-#[derive(Serialize)]
-pub struct PasswordInformation {
-    pub error: bool,
-    pub path_name: String,
-}
-
-// 项目类型枚举
-#[derive(Debug, Clone, Copy, PartialEq, Eq, sqlx::Type, Serialize, Deserialize)]
-#[sqlx(type_name = "item_type", rename_all = "snake_case")]
-pub enum ItemType {
-    Link,
-    Code,
-    File,
-}
-
-impl From<String> for ItemType {
-    fn from(s: String) -> Self {
-        match s.as_str() {
-            "link" => Self::Link,
-            "code" => Self::Code,
-            "file" => Self::File,
-            _ => panic!("Invalid item type: {}", s),
-        }
-    }
-}
-
-// 修改后
-#[derive(Debug, Clone, Copy, PartialEq, Eq, sqlx::Type, Serialize, Deserialize)]
-#[sqlx(type_name = "operation_type", rename_all = "snake_case")]
-pub enum OperationType {
-    Get,
-    Set,
-}
-
-impl From<String> for OperationType {
-    fn from(s: String) -> Self {
-        match s.as_str() {
-            "get" => Self::Get,
-            "set" => Self::Set,
-            _ => panic!("Invalid operation type: {}", s),
-        }
-    }
-}
-
-// 项目结构
-#[derive(Debug, sqlx::FromRow, Serialize, Deserialize)]
-pub struct Item {
-    pub id: String,
-    pub short_path: String,
-    pub item_type: ItemType,
-    pub data: String,
-    pub expires_at: Option<NaiveDateTime>,
-    pub max_visits: Option<i64>,
-    pub visits: i64,
-    pub password_hash: Option<String>,
-    pub created_at: NaiveDateTime,
-    pub extra_data: Option<String>,
-}
-
-// 访问日志结构
-#[derive(Debug, sqlx::FromRow, Serialize, Deserialize)]
-pub struct AccessLog {
-    pub id: String,
-    pub item_id: String,
-    pub accessed_at: NaiveDateTime,
-    pub path: String,
-    pub operation: OperationType,
-    pub success: bool,
-    pub ip_address: String,
-}
+use crate::types::*;
 
 // 数据库访问器
 #[derive(Clone)]
@@ -103,6 +26,78 @@ impl DatabaseAccessor {
         Ok(Self { pool })
     }
 
+    pub async fn create_user(
+        &self,
+        id: &str,
+        name: &str,
+        email: &str,
+        password: &str,
+        descriptor: i64,
+    ) -> Result<User> {
+        let now = Utc::now().naive_utc();
+        let user = sqlx::query_as!(
+            User,
+            r#"
+            INSERT INTO users (id, name, email, password, created_at, descriptor)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING *
+            "#,
+            id,
+            name,
+            email,
+            password,
+            now,
+            descriptor
+        )
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(user)
+    }
+    pub async fn admin_user_exists(&self) -> Result<bool> {
+        let user = sqlx::query_as!(
+            User,
+            r#"
+            SELECT * FROM users
+            WHERE id = $1
+            "#,
+            "00000000-0000-0000-0000-000000000000"
+        )
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(user.is_some())
+    }
+    pub async fn change_user_password(&self, id: &str, password: &str) -> Result<User> {
+        let user = sqlx::query_as!(
+            User,
+            r#"
+            UPDATE users
+            SET password = $1
+            WHERE id = $2
+            RETURNING *
+            "#,
+            password,
+            id
+        )
+        .fetch_one(&self.pool)
+        .await?;
+        Ok(user)
+    }
+
+    pub async fn get_user_by_id(&self, id: &str) -> Result<User> {
+        let user = sqlx::query_as!(
+            User,
+            r#"
+            SELECT * FROM users
+            WHERE id = $1
+            "#,
+            id
+        )
+        .fetch_one(&self.pool)
+        .await?;
+        Ok(user)
+    }
+
     pub async fn create_item(
         &self,
         short_path: &str,
@@ -110,16 +105,17 @@ impl DatabaseAccessor {
         data: &str,
         expires_at: Option<NaiveDateTime>,
         max_visits: Option<i64>,
-        password_hash: Option<String>,
-        extra_data: Option<String>,
+        password_hash: Option<&str>,
+        extra_data: Option<&str>,
+        creator: Option<&str>,
     ) -> anyhow::Result<Item> {
         let id = Uuid::new_v4().to_string();
         let now = Utc::now().naive_utc();
         let item = sqlx::query_as!(
             Item,
             r#"
-            INSERT INTO items (id, short_path, item_type, data, expires_at, max_visits, visits, password_hash, created_at, extra_data)
-            VALUES ($1, $2, $3, $4, $5, $6, 0, $7, $8, $9)
+            INSERT INTO items (id, short_path, item_type, data, expires_at, max_visits, visits, password_hash, created_at, extra_data, creator)
+            VALUES ($1, $2, $3, $4, $5, $6, 0, $7, $8, $9, $10)
             RETURNING *
             "#,
             id,
@@ -131,6 +127,7 @@ impl DatabaseAccessor {
             password_hash,
             now,
             extra_data,
+            creator
         )
         .fetch_one(&self.pool)
         .await?;
@@ -153,19 +150,20 @@ impl DatabaseAccessor {
     }
     pub async fn log_access(
         &self,
-        item_id: String,
+        item_id: &str,
         path: &str,
         operation: OperationType,
         success: bool,
         ip_address: &str,
+        initiator: Option<&str>,
     ) -> anyhow::Result<AccessLog> {
         let id = Uuid::new_v4().to_string();
         let now = Utc::now().naive_utc();
         let log = sqlx::query_as!(
             AccessLog,
             r#"
-            INSERT INTO access_logs (id, item_id, accessed_at, path, operation, success, ip_address)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            INSERT INTO access_logs (id, item_id, accessed_at, path, operation, success, ip_address, initiator)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING *
             "#,
             id,
@@ -174,7 +172,8 @@ impl DatabaseAccessor {
             path,
             operation,
             success,
-            ip_address
+            ip_address,
+            initiator
         )
         .fetch_one(&self.pool)
         .await?;
