@@ -24,6 +24,8 @@
     "noUncheckedSideEffectImports": true
   },
   "include": [
-    "web/src"
+    "web/**/*.ts",
+    "web/**/*.tsx",
+    "web/**/*.vue"
   ]
 }

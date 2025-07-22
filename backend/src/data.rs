@@ -50,11 +50,11 @@ pub struct Item {
     pub short_path: String,
     pub item_type: ItemType,
     pub data: String,
-    pub expires_at: Option<NaiveDateTime>, // 将DateTime<Utc>改为NaiveDateTime
+    pub expires_at: Option<NaiveDateTime>,
     pub max_visits: Option<i64>,
     pub visits: i64,
     pub password_hash: Option<String>,
-    pub created_at: NaiveDateTime, // 将DateTime<Utc>改为NaiveDateTime
+    pub created_at: NaiveDateTime,
     pub download_filename: Option<String>,
 }
 
@@ -63,7 +63,7 @@ pub struct Item {
 pub struct AccessLog {
     pub id: String,
     pub item_id: String,
-    pub accessed_at: NaiveDateTime, // 将DateTime<Utc>改为NaiveDateTime
+    pub accessed_at: NaiveDateTime,
     pub path: String,
     pub operation: OperationType,
     pub success: bool,

@@ -1,4 +1,5 @@
 use axum::body::Body;
+use axum::extract::FromRequestParts;
 use axum::{
     extract::{Request, State},
     middleware::Next,
@@ -22,7 +23,8 @@ use tracing::{error, info, warn};
 use crate::data::{DatabaseAccessor, FileAccessor};
 #[cfg(debug_assertions)]
 use axum_reverse_proxy::ReverseProxy;
-use sha2::Digest;
+use serde::Deserialize;
+use sha2::{Digest, Sha256};
 use tokio_util::io::ReaderStream;
 
 #[cfg(not(debug_assertions))]
@@ -217,27 +219,29 @@ async fn main_service(State(state): State<AppState>, request: Request, next: Nex
     let resp_404 = || Response::builder().status(404).body(Body::empty()).unwrap();
     let to_frontend =
         async |next: Next, frontend_path: &str, pattern: &str, replace_with: String| {
-            let next_req = Request::builder()
-                .method("GET")
-                .uri(frontend_path)
-                .body(Body::empty())
-                .unwrap();
-            let orig_response = next.run(next_req).await;
-            let body = String::from_utf8(
-                orig_response
-                    .into_body()
-                    .collect()
-                    .await
-                    .unwrap()
-                    .to_bytes()
-                    .to_vec(),
-            )
-            .unwrap()
-            .replace(pattern, &replace_with);
-            Response::builder()
-                .status(200)
-                .body(Body::from(body))
-                .unwrap()
+            // let next_req = Request::builder()
+            //     .method("GET")
+            //     .uri(frontend_path)
+            //     .body(Body::empty())
+            //     .unwrap();
+            // let orig_response = next.run(next_req).await;
+            // let body = String::from_utf8(
+            //     orig_response
+            //         .into_body()
+            //         .collect()
+            //         .await
+            //         .unwrap()
+            //         .to_bytes()
+            //         .to_vec(),
+            // )
+            // .unwrap()
+            // .replace(pattern, &replace_with);
+            // Response::builder()
+            //     .status(200)
+            //     .body(Body::from(body))
+            //     .unwrap()
+
+            Response::builder().status(418).body(Body::from("I'm a teapot")).unwrap()
         };
     if request.uri().path().starts_with("/api") {
         return match request.uri().path() {
@@ -250,6 +254,34 @@ async fn main_service(State(state): State<AppState>, request: Request, next: Nex
         .await
         .unwrap();
     if let Some(item) = item {
+        // 将下面被解析参数消耗了的 request 恢复
+        let request = if let Some(password) = item.password_hash {
+            #[derive(Deserialize)]
+            struct PasswordForm {
+                password: Option<String>,
+            }
+
+            // 使用 from_request_parts 提取密码
+            let (mut parts, body) = request.into_parts();
+            let query =
+                axum::extract::Query::<PasswordForm>::from_request_parts(&mut parts, &()).await;
+
+            if let Ok(form) = query {
+                let input_password = form.0.password;
+                if !input_password.is_some_and(|x| format!("{:x}", Sha256::digest(x)) == password) {
+                    // 密码错误
+                    return to_frontend(next, "TODO", "TODO", "TODO".to_string()).await;
+                }
+            } else {
+                // 密码未提供
+                return to_frontend(next, "TODO", "TODO", "TODO".to_string()).await;
+            }
+            // 如果密码正确则进入下一步
+            Request::from_parts(parts, body)
+        } else {
+            request
+        };
+
         if let Err(e) = state
             .database_accessor
             .log_access(
@@ -268,21 +300,7 @@ async fn main_service(State(state): State<AppState>, request: Request, next: Nex
         {
             error!("Failed to log access: {:?}", e);
         }
-        if let Some(password) = item.password_hash {
-            // 取出 password 参数并对其进行 SHA-256 哈希，校验是否和数据库中相符
-            let password = request
-                .uri()
-                .query()
-                .and_then(|q| q.split('&').find(|s| s.starts_with("password=")))
-                .map(|s| s.split('=').nth(1).unwrap())
-                .and_then(|s| s.parse::<String>().ok())
-                .map(|s| format!("{:x}", sha2::Sha256::digest(s)))
-                .unwrap_or("".to_string());
-            if password != password {
-                // TODO
-                return to_frontend(next, "TODO", "TODO", "TODO".to_string()).await;
-            }
-        }
+
         match item.item_type {
             data::ItemType::Link => Response::builder()
                 .status(302)
