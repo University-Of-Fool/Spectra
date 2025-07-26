@@ -94,17 +94,17 @@ layout {
         await runCommand("wt", [
             "new-tab",
             "-d",
-            ".\\backend",
-            "bacon.exe",
-            "run",
-            ";",
-            "split-pane",
-            "-V",
-            "-d",
             ".",
             "pnpm.cmd",
             "vite",
             "dev",
+            ";",
+            "new-tab",
+            "-d",
+            ".\\backend",
+            "bacon.exe",
+            "run",
+
         ]);
     }
 })();

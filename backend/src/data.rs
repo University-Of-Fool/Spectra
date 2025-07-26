@@ -1,7 +1,8 @@
 use anyhow::{Context, Result};
 use sqlx::types::chrono::{NaiveDateTime, Utc};
-use sqlx::{Pool, Sqlite, sqlite::SqlitePoolOptions};
+use sqlx::{sqlite::SqlitePoolOptions, Pool, Sqlite};
 use std::path::PathBuf;
+use tracing::debug;
 use uuid::Uuid;
 
 use crate::types::*;
@@ -10,6 +11,12 @@ use crate::types::*;
 #[derive(Clone)]
 pub struct DatabaseAccessor {
     pool: Pool<Sqlite>,
+}
+impl std::fmt::Debug for DatabaseAccessor {
+    // 输出空字符串
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "A.N.D.A.") // A Normal Database Accessor
+    }
 }
 
 impl DatabaseAccessor {
@@ -23,6 +30,8 @@ impl DatabaseAccessor {
         // 执行sqlx迁移
         sqlx::migrate!("../migrations").run(&pool).await?;
 
+        debug!("Successfully initialized database pool at: {}", db_url);
+
         Ok(Self { pool })
     }
 
@@ -33,13 +42,14 @@ impl DatabaseAccessor {
         email: &str,
         password: &str,
         descriptor: i64,
+        avatar: Option<String>,
     ) -> Result<User> {
-        let now = Utc::now().naive_utc();
+        let now = Utc::now().naive_local();
         let user = sqlx::query_as!(
             User,
             r#"
-            INSERT INTO users (id, name, email, password, created_at, descriptor)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO users (id, name, email, password, created_at, descriptor, avatar)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *
             "#,
             id,
@@ -47,7 +57,8 @@ impl DatabaseAccessor {
             email,
             password,
             now,
-            descriptor
+            descriptor,
+            avatar
         )
         .fetch_one(&self.pool)
         .await?;
@@ -98,6 +109,20 @@ impl DatabaseAccessor {
         Ok(user)
     }
 
+    pub async fn get_user_by_email(&self, email: &str) -> Result<User> {
+        let user = sqlx::query_as!(
+            User,
+            r#"
+            SELECT * FROM users
+            WHERE email = $1
+            "#,
+            email
+        )
+        .fetch_one(&self.pool)
+        .await?;
+        Ok(user)
+    }
+
     pub async fn create_item(
         &self,
         short_path: &str,
@@ -110,7 +135,7 @@ impl DatabaseAccessor {
         creator: Option<&str>,
     ) -> anyhow::Result<Item> {
         let id = Uuid::new_v4().to_string();
-        let now = Utc::now().naive_utc();
+        let now = Utc::now().naive_local();
         let item = sqlx::query_as!(
             Item,
             r#"
@@ -148,6 +173,20 @@ impl DatabaseAccessor {
         .await?;
         Ok(item)
     }
+
+    pub async fn remove_item(&self, id: &str) -> anyhow::Result<()> {
+        sqlx::query!(
+            r#"
+            DELETE FROM items
+            WHERE id = $1
+            "#,
+            id
+        )
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
     pub async fn log_access(
         &self,
         item_id: &str,
@@ -158,7 +197,7 @@ impl DatabaseAccessor {
         initiator: Option<&str>,
     ) -> anyhow::Result<AccessLog> {
         let id = Uuid::new_v4().to_string();
-        let now = Utc::now().naive_utc();
+        let now = Utc::now().naive_local();
         let log = sqlx::query_as!(
             AccessLog,
             r#"
@@ -177,17 +216,19 @@ impl DatabaseAccessor {
         )
         .fetch_one(&self.pool)
         .await?;
-        sqlx::query!(
-            r#"
+        if success {
+            let path = path.trim_start_matches('/');
+            sqlx::query!(
+                r#"
             UPDATE items
             SET visits = visits + 1
             WHERE short_path = $1
             "#,
-            path
-        )
-        .execute(&self.pool)
-        .await?;
-
+                path
+            )
+            .execute(&self.pool)
+            .await?;
+        }
         Ok(log)
     }
 
@@ -210,12 +251,13 @@ impl DatabaseAccessor {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct FileAccessor {
     data_dir: PathBuf,
 }
 impl FileAccessor {
     pub fn new(data_dir: String) -> Self {
+        debug!("Successfully initialized file accessor at: {}", &data_dir);
         Self {
             data_dir: PathBuf::from(data_dir),
         }

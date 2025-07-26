@@ -1,13 +1,27 @@
+use axum::extract::FromRef;
+use axum_extra::extract::cookie::Key;
+use chrono::Utc;
+use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use sqlx::types::chrono::NaiveDateTime;
+use std::sync::Arc;
 use strum::IntoEnumIterator;
-use strum_macros::EnumIter;
+use strum_macros::{Display, EnumIter};
 
 // 应用状态
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct AppState {
     pub database_accessor: crate::data::DatabaseAccessor,
     pub file_accessor: crate::data::FileAccessor,
+    pub user_tokens: Arc<DashMap<String, Token>>,
+    pub cookie_key: Key,
+}
+
+// this impl tells `PrivateCookieJar` how to access the key from our state
+impl FromRef<AppState> for Key {
+    fn from_ref(state: &AppState) -> Self {
+        state.cookie_key.clone()
+    }
 }
 
 // 给 Code 页面注入的信息
@@ -23,10 +37,31 @@ pub struct PasswordInformation {
     pub path_name: String,
 }
 
+// 用户令牌，令牌的实际表示由 State 中的哈希表键名决定
+#[derive(Debug, Clone)]
+pub struct Token {
+    pub user_id: String,
+    pub expires_at: NaiveDateTime,
+}
+
+impl Token {
+    pub fn new(user_id: String) -> Self {
+        let expires_at = Utc::now().naive_local() + chrono::Duration::minutes(10);
+        Self {
+            user_id,
+            expires_at,
+        }
+    }
+
+    pub fn is_expired(&self) -> bool {
+        self.expires_at < Utc::now().naive_local()
+    }
+}
+
 // 用户权限，以一个数字存储。
 // 下面枚举后注释中的数字是代表该权限的二进制位（从低到高）
 // 如 3 -> 0100 （从低到高第三位）
-#[derive(Debug, Clone, PartialEq, EnumIter)]
+#[derive(Serialize, Debug, Clone, PartialEq, EnumIter)]
 pub enum UserPermission {
     Manage, // 1
     Link,   // 2
@@ -59,6 +94,7 @@ impl UserPermission {
         result
     }
 }
+
 pub trait ToPermission {
     fn contains(self, permission: UserPermission) -> bool;
 }
@@ -74,13 +110,15 @@ pub struct User {
     pub name: String,
     pub email: String,
     pub password: String,
+    pub avatar: Option<String>,
     pub created_at: NaiveDateTime,
     pub descriptor: i64,
 }
 
 // 项目类型枚举
-#[derive(Debug, Clone, Copy, PartialEq, Eq, sqlx::Type, Serialize, Deserialize)]
+#[derive(Display, Clone, Copy, PartialEq, Eq, sqlx::Type, Serialize, Deserialize, Debug)]
 #[sqlx(type_name = "item_type", rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
 pub enum ItemType {
     Link,
     Code,
@@ -117,7 +155,7 @@ impl From<String> for OperationType {
 }
 
 // 项目结构
-#[derive(Debug, sqlx::FromRow, Serialize, Deserialize)]
+#[derive(Debug, sqlx::FromRow, Serialize, Deserialize, Clone)]
 pub struct Item {
     pub id: String,
     pub short_path: String,

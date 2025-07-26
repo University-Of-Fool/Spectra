@@ -25,8 +25,7 @@ And run the command below:
 ```bash
 pnpm install
 cargo install sqlx-cli
-sqlx database create
-sqlx migrate run
+sqlx database setup
 ```
 
 Finally run the command below to run the project under development mode:

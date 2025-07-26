@@ -1,23 +1,11 @@
 use crate::types::AppState;
 use axum::Router;
-#[cfg(not(debug_assertions))]
-use axum::body::Body;
-#[cfg(not(debug_assertions))]
-use axum::extract::Request;
-#[cfg(not(debug_assertions))]
-use axum::http::HeaderMap;
-#[cfg(not(debug_assertions))]
-use axum::response::Response;
-#[cfg(not(debug_assertions))]
-use axum::routing::get;
-#[cfg(not(debug_assertions))]
-use rust_embed::RustEmbed;
-
-#[cfg(debug_assertions)]
-use axum_reverse_proxy::ReverseProxy;
 
 #[cfg(debug_assertions)]
 pub fn make_frontend_router() -> Router<AppState> {
+    use axum_reverse_proxy::ReverseProxy;
+    use tracing::info;
+
     // 开发模式：反向代理到 Vite 开发服务器
     let vite_dev_server_url = "http://localhost:5173";
     info!(
@@ -29,12 +17,19 @@ pub fn make_frontend_router() -> Router<AppState> {
 
 #[cfg(not(debug_assertions))]
 pub fn make_frontend_router() -> Router<AppState> {
+    use axum::body::Body;
+    use axum::extract::Request;
+    use axum::http::HeaderMap;
+    use axum::response::Response;
+    use axum::routing::get;
+    use rust_embed::RustEmbed;
+
     #[derive(RustEmbed)]
     #[folder = "../web/dist"]
     struct StaticAssets;
 
     async fn serve_static(req: Request<Body>) -> Response {
-        use axum::http::{HeaderValue, StatusCode, header};
+        use axum::http::{header, HeaderValue, StatusCode};
         use mime_guess::from_path;
 
         let path = req.uri().path().trim_start_matches('/');

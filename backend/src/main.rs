@@ -1,13 +1,19 @@
-use clap::{Command, arg, crate_version, value_parser};
+use axum_extra::extract::cookie::Key;
+use clap::{arg, crate_version, value_parser, Command};
+use dashmap::DashMap;
 use sha2::{Digest, Sha256};
 use shadow_rs::shadow;
 use std::fs::{self, read_to_string};
 use std::net::{IpAddr, SocketAddr};
 use std::path::PathBuf;
+use std::sync::Arc;
+use tokio_cron_scheduler::{Job, JobScheduler};
 use tower_http::compression::CompressionLayer;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
-use tracing::{error, info, warn};
+use tracing::{debug, error, info, warn};
+use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::EnvFilter;
 
 mod data;
 mod service;
@@ -20,15 +26,12 @@ use crate::service::main::main_service;
 use crate::types::AppState;
 
 shadow!(shadow);
-const DEFAULT_CONFIG_FILE: &[u8] = include_bytes!("../assets/config_example.toml");
+const DEFAULT_CONFIG_FILE: &str = include_str!("../assets/config_example.toml");
 
 #[tokio::main]
 async fn main() {
-    // 初始化日志
-    tracing_subscriber::fmt::init();
-
     // 解析命令行参数
-    let matches = Command::new("Spectra")
+    let mut cmd_builder = Command::new("Spectra")
         .version(crate_version!())
         .long_version(shadow::CLAP_LONG_VERSION)
         .author("University of Fool")
@@ -52,21 +55,72 @@ async fn main() {
                 .required(false)
                 .default_value("127.0.0.1"),
         )
-        .arg(arg!(-v --verbose "Enable more detailed output"))
+        .arg(arg!(-v --verbose "Enable more detailed output"));
+    #[cfg(debug_assertions)]
+    {
+        cmd_builder = cmd_builder.arg(arg!(-d --debug "Enable debug output"));
+    }
+    cmd_builder = cmd_builder
         .subcommand(
             Command::new("init")
                 .about("Write the default configuration file to the specified path")
-                .arg(arg!(<PATH>).value_parser(value_parser!(PathBuf))),
+                .arg(
+                    arg!([PATH])
+                        .value_parser(value_parser!(PathBuf))
+                        .default_value("config.toml"),
+                ),
         )
         .subcommand(Command::new("reset-admin-password").about("Reset the admin password"))
-        .get_matches();
+        .subcommand(
+            Command::new("generate-cookie-key")
+                .about("Generate a random string appropriate to use as cookie key"),
+        );
+    let matches = cmd_builder.get_matches();
+
+    let filter = std::env::var("RUST_LOG").unwrap_or(
+        // 默认情况下，只允许Spectra自身输出日志
+        format!(
+            "{crate_name}={log_level}",
+            crate_name = env!("CARGO_PKG_NAME"),
+            log_level = if matches.get_flag("verbose") {
+                "info"
+            } else if matches.get_flag("debug") {
+                "debug"
+            } else {
+                "warn"
+            }
+        ),
+    );
+    let env_filter = EnvFilter::new(filter);
+    let subscriber = tracing_subscriber::fmt().with_env_filter(env_filter);
+    if matches.get_flag("debug") {
+        subscriber.with_file(true).pretty().finish().init();
+    } else {
+        subscriber.finish().init();
+    }
 
     if let Some(("init", subcommand)) = matches.subcommand() {
         let config = subcommand.get_one::<PathBuf>("PATH").unwrap();
-        fs::write(&config, DEFAULT_CONFIG_FILE).unwrap_or_else(|e| {
+        fs::write(
+            &config,
+            DEFAULT_CONFIG_FILE.replace(
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                &util::random_string(64),
+            ),
+        )
+        .unwrap_or_else(|e| {
             error!("Error happened during writing to config file: {:?}", e);
             std::process::exit(1);
         });
+        std::process::exit(0);
+    }
+
+    if let Some(("generate-cookie-key", _)) = matches.subcommand() {
+        eprintln!("New cookie key generated below:\n");
+        println!("{}", util::random_string(64));
+        eprintln!(
+            "\nNote that this command did not modify the configuration.\nYou may need to manually edit the file to use the new key."
+        );
         std::process::exit(0);
     }
 
@@ -76,7 +130,12 @@ async fn main() {
 
     let config = if !config_path.exists() {
         warn!("The specified configuration file does not exist, using the default values...");
-        String::from_utf8_lossy(DEFAULT_CONFIG_FILE)
+        warn!("Warning: a NEW cookie key is being generated...");
+        DEFAULT_CONFIG_FILE
+            .replace(
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                &util::random_string(64),
+            )
             .parse::<toml::Table>()
             .unwrap() // 默认的配置文件一定是有效的 TOML 字符串，所以这里略过错误处理
     } else {
@@ -147,6 +206,29 @@ async fn main() {
                 std::process::exit(1);
             });
         }
+        // 检查 service.cookie_key 是否存在；若存在，是否长度不小于 64 字节
+        let cookie_key = match service_table.get("cookie_key") {
+            Some(key) => match key.as_str() {
+                Some(s) => s,
+                None => {
+                    error!("'cookie_key' in config is not a string");
+                    error!("hint: you can use 'spectra generate-cookie-key' to generate a new key");
+                    std::process::exit(1);
+                }
+            },
+            None => {
+                error!("'cookie_key' key not found in 'service' table");
+                error!("hint: you can use 'spectra generate-cookie-key' to generate a new key");
+                std::process::exit(1);
+            }
+        };
+        if cookie_key.len() < 64 {
+            error!("The length of 'cookie_key' must be at least 64 bytes");
+            error!(
+                "hint: you can use 'spectra generate-cookie-key' to generate a new appropriate key"
+            );
+            std::process::exit(1);
+        }
         AppState {
             database_accessor: DatabaseAccessor::new(
                 format!("sqlite:{}", database_path.to_str().unwrap()).as_str(),
@@ -154,10 +236,19 @@ async fn main() {
             .await
             .unwrap(),
             file_accessor: FileAccessor::new(data_dir.to_string()),
+            user_tokens: Arc::new(DashMap::new()),
+            cookie_key: Key::from(cookie_key.as_bytes()),
         }
     };
 
-    if !state.database_accessor.admin_user_exists().await.unwrap() {
+    info!("Successfully initialized application state");
+
+    if state
+        .database_accessor
+        .admin_user_exists()
+        .await
+        .is_ok_and(|x| !x)
+    {
         let new_password = util::random_password();
         println!("[!] Generating new admin password: {}", new_password);
         let _ = state
@@ -168,6 +259,7 @@ async fn main() {
                 "admin@example.com",
                 format!("{:x}", Sha256::digest(new_password.as_bytes())).as_str(),
                 9223372036854775807,
+                None,
             )
             .await
             .is_err_and(|e| {
@@ -191,11 +283,29 @@ async fn main() {
         std::process::exit(0);
     }
 
+    if let Ok(scheduler) = JobScheduler::new().await {
+        let outer_tokens = Arc::clone(&state.user_tokens);
+        let _ = scheduler.add(
+            Job::new_async("0 0/30 * * * ?", move |_, _| {
+                let inner_tokens = Arc::clone(&outer_tokens);
+                Box::pin(async move {
+                    service::scheduled::clear_expired_token(inner_tokens).await;
+                })
+            })
+            .unwrap(),
+        );
+
+        if let Err(e) = scheduler.start().await {
+            error!("Failed to start scheduler: {}", e);
+        }
+    }
+
     let app = make_frontend_router()
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
             main_service,
         ))
+        .nest("/api", service::api::make_router())
         .layer(CompressionLayer::new())
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())

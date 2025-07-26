@@ -1,10 +1,14 @@
+use crate::data::DatabaseAccessor;
+use crate::types::AppState;
 use axum::body::Body;
 use axum::extract::FromRequestParts;
+use axum::http::request::Parts;
 use axum::{
     extract::{Request, State},
     middleware::Next,
     response::Response,
 };
+use chrono::Utc;
 use futures_util::stream::StreamExt;
 use http_body_util::BodyExt;
 use serde::Deserialize;
@@ -12,53 +16,108 @@ use sha2::{Digest, Sha256};
 use std::net::SocketAddr;
 use tokio::io::AsyncSeekExt;
 use tokio_util::io::ReaderStream;
-use tracing::error;
+use tracing::{debug, error, info, instrument};
 
-use crate::types::AppState;
-
-pub async fn main_service(State(state): State<AppState>, request: Request, next: Next) -> Response {
-    fn resp_404() -> Response<Body> {
-        Response::builder().status(404).body(Body::empty()).unwrap()
+async fn to_frontend(
+    next: Next,
+    frontend_path: &str,
+    replace_patterns: Vec<(&str, String)>,
+) -> Response {
+    let next_req = Request::builder()
+        .method("GET")
+        .uri(frontend_path)
+        .body(Body::empty())
+        .unwrap();
+    let orig_response = next.run(next_req).await;
+    let mut body = String::from_utf8(
+        orig_response
+            .into_body()
+            .collect()
+            .await
+            .unwrap()
+            .to_bytes()
+            .to_vec(),
+    )
+    .unwrap();
+    for (pattern, replacement) in replace_patterns {
+        body = body.replace(&pattern, &replacement);
     }
-    let to_frontend =
-        async |next: Next, frontend_path: &str, replace_patterns: Vec<(&str, String)>| {
-            let next_req = Request::builder()
+    Response::builder()
+        .status(200)
+        .body(Body::from(body))
+        .unwrap()
+}
+
+async fn resp_404(next: Next) -> Response {
+    let mut resp = next
+        .run(
+            Request::builder()
                 .method("GET")
-                .uri(frontend_path)
+                .uri("/not_found/index.html")
                 .body(Body::empty())
-                .unwrap();
-            let orig_response = next.run(next_req).await;
-            let mut body = String::from_utf8(
-                orig_response
-                    .into_body()
-                    .collect()
-                    .await
-                    .unwrap()
-                    .to_bytes()
-                    .to_vec(),
-            )
-            .unwrap();
-            for (pattern, replacement) in replace_patterns {
-                body = body.replace(&pattern, &replacement);
-            }
-            Response::builder()
-                .status(200)
-                .body(Body::from(body))
-                .unwrap()
-        };
-    if request.uri().path().starts_with("/api") {
-        return match request.uri().path() {
-            _ => resp_404(),
-        };
+                .unwrap(),
+        )
+        .await;
+    *resp.status_mut() = axum::http::status::StatusCode::NOT_FOUND;
+    resp
+}
+
+async fn log_access(
+    da: DatabaseAccessor,
+    item_id: String,
+    (parts, body): (Parts, Body),
+    success: bool,
+) -> Request<Body> {
+    let db_res = da
+        .log_access(
+            &item_id,
+            parts.uri.path(),
+            crate::types::OperationType::Get,
+            success,
+            &parts
+                .extensions
+                .get::<SocketAddr>()
+                .cloned()
+                .map_or("unknown".to_string(), |addr| addr.ip().to_string()),
+            None,
+        )
+        .await;
+    let request = Request::from_parts(parts, body);
+    if db_res.is_err() {
+        error!("Failed to log access: {:?}", db_res.err());
     }
+    request
+}
+#[async_recursion::async_recursion]
+#[instrument(skip(state, request, next))]
+pub async fn main_service(
+    State(state): State<AppState>,
+    request: Request<Body>,
+    next: Next,
+) -> Response {
     let item = state
         .database_accessor
         .get_item(request.uri().path().trim_start_matches('/'))
         .await
         .unwrap();
     if let Some(item) = item {
+        debug!("Item {} queried from the database: {:?}", item.id, item);
+        let item_id_clone = item.id.clone();
+        let da_clone = state.database_accessor.clone();
+        // 检查项目是否过期
+        if item.expires_at.is_some() && item.expires_at.unwrap() < Utc::now().naive_utc()
+            || item.max_visits.is_some() && item.visits >= item.max_visits.unwrap()
+        {
+            let item_id = item.id.clone();
+            info!("Item {} is expired. Removing...", item_id);
+            let da = state.database_accessor.clone();
+            // 移除的结果不重要，因为如果移除失败了的话也不会对“过期”的事实有影响
+            tokio::spawn(async move { da.remove_item(&item_id).await });
+            return resp_404(next).await;
+        }
+
         // 将下面被解析参数消耗了的 request 恢复
-        let request = if let Some(password) = item.password_hash {
+        let request = if let Some(password) = item.password_hash.clone() {
             #[derive(Deserialize)]
             struct PasswordForm {
                 password: Option<String>,
@@ -73,6 +132,7 @@ pub async fn main_service(State(state): State<AppState>, request: Request, next:
                 let input_password = form.0.password;
                 if !input_password.is_some() {
                     // 密码未提供
+                    debug!("No password provided for a protected item {}", item.id);
                     return to_frontend(
                         next,
                         "/password/",
@@ -88,6 +148,8 @@ pub async fn main_service(State(state): State<AppState>, request: Request, next:
                     .await;
                 } else if format!("{:x}", Sha256::digest(input_password.unwrap())) != password {
                     // 如果上面跳到了这里的 else，说明密码已提供，但不正确
+                    debug!("Incorrect password provided for item {}", item.id,);
+                    log_access(da_clone, item_id_clone, (parts, body), false).await;
                     return to_frontend(
                         next,
                         "/password/",
@@ -104,30 +166,13 @@ pub async fn main_service(State(state): State<AppState>, request: Request, next:
                 }
             }
             // 如果密码正确则进入下一步
+            debug!("Password authentication passed for {}", item.id);
             Request::from_parts(parts, body)
         } else {
             request
         };
-
-        if let Err(e) = state
-            .database_accessor
-            .log_access(
-                item.id.as_str(),
-                request.uri().path(),
-                crate::types::OperationType::Get,
-                true,
-                &request
-                    .extensions()
-                    .get::<SocketAddr>()
-                    .cloned()
-                    .map_or("unknown".to_string(), |addr| addr.ip().to_string()),
-                None,
-            )
-            .await
-        {
-            error!("Failed to log access: {:?}", e);
-        }
-
+        let request = log_access(da_clone, item_id_clone, request.into_parts(), true).await;
+        debug!("Incoming request to {} {}", item.item_type, item.id);
         match item.item_type {
             crate::types::ItemType::Link => Response::builder()
                 .status(302)
@@ -152,7 +197,7 @@ pub async fn main_service(State(state): State<AppState>, request: Request, next:
                     )
                     .await
                 } else {
-                    resp_404()
+                    resp_404(next).await
                 }
             }
             crate::types::ItemType::File => {
@@ -219,7 +264,7 @@ pub async fn main_service(State(state): State<AppState>, request: Request, next:
                     };
                     response
                 } else {
-                    resp_404()
+                    resp_404(next).await
                 }
             }
         }
