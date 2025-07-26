@@ -1,7 +1,7 @@
+use crate::data::{DatabaseAccessor, FileAccessor};
 use crate::types::{Item, ItemType, User, UserPermission};
 use chrono::NaiveDateTime;
 use serde::Serialize;
-use crate::data::{DatabaseAccessor, FileAccessor};
 
 #[derive(Serialize)]
 pub struct ItemSimplified {
@@ -51,20 +51,24 @@ impl From<User> for ApiUser {
 
 #[derive(Serialize)]
 pub struct ApiCode {
-    pub id:String,
-    pub path:String,
-    pub content:String,
-    pub language:Option<String>
+    pub id: String,
+    pub path: String,
+    pub content: String,
+    pub language: Option<String>,
 }
 
-impl ApiCode{
-    pub async fn read_from(item:Item, fa:FileAccessor)->Self{
-        let content=fa.get_string(item.data).await.unwrap_or("null".to_string()).into();
-        Self{
-            id:item.id,
-            path:item.short_path,
+impl ApiCode {
+    pub async fn read_from(item: Item, fa: FileAccessor) -> Self {
+        let content = fa
+            .get_string(item.data)
+            .await
+            .unwrap_or("null".to_string())
+            .into();
+        Self {
+            id: item.id,
+            path: item.short_path,
             content,
-            language:item.extra_data
+            language: item.extra_data,
         }
     }
 }

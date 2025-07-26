@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use sqlx::types::chrono::{NaiveDateTime, Utc};
-use sqlx::{sqlite::SqlitePoolOptions, Pool, Sqlite};
+use sqlx::{Pool, Sqlite, sqlite::SqlitePoolOptions};
 use std::path::PathBuf;
 use tracing::debug;
 use uuid::Uuid;

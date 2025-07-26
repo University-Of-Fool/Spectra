@@ -29,7 +29,7 @@ pub fn make_frontend_router() -> Router<AppState> {
     struct StaticAssets;
 
     async fn serve_static(req: Request<Body>) -> Response {
-        use axum::http::{header, HeaderValue, StatusCode};
+        use axum::http::{HeaderValue, StatusCode, header};
         use mime_guess::from_path;
 
         let path = req.uri().path().trim_start_matches('/');

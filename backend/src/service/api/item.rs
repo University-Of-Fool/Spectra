@@ -34,7 +34,10 @@ pub async fn get_item(
     let item_clone = item.clone();
     let user_auth = jar.get("token").is_some_and(|token| {
         let auth_result = state.user_tokens.get(token.value()).is_some_and(|user| {
-            !user.is_expired() && item.creator.is_some_and(|creator| creator == user.user_id)
+            !user.is_expired()
+                && (item.creator.is_some_and(|creator| creator == user.user_id)
+                    || &user.user_id == "00000000-0000-0000-0000-000000000000")
+            // 空 UUID 是管理员用户，有访问所有项目的权限
         });
         // 记录用户认证结果
         tracing::debug!(
@@ -92,7 +95,8 @@ pub async fn get_code(
     let item_clone = item.clone();
     let user_auth = jar.get("token").is_some_and(|token| {
         state.user_tokens.get(token.value()).is_some_and(|user| {
-            !user.is_expired() && item.creator.is_some_and(|creator| creator == user.user_id)
+            !user.is_expired() && (item.creator.is_some_and(|creator| creator == user.user_id)
+                || &user.user_id == "00000000-0000-0000-0000-000000000000")
         })
     });
     let password_auth = if !user_auth {
