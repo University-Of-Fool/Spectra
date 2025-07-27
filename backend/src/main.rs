@@ -11,7 +11,7 @@ use tokio_cron_scheduler::{Job, JobScheduler};
 use tower_http::compression::CompressionLayer;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
-use tracing::{debug, error, info, warn};
+use tracing::{error, info, warn};
 use tracing_subscriber::EnvFilter;
 use tracing_subscriber::util::SubscriberInitExt;
 
@@ -249,7 +249,12 @@ async fn main() {
         .await
         .is_ok_and(|x| !x)
     {
-        let new_password = util::random_password();
+        // 使用固定密码，方便自动化 API 测试
+        let new_password = if cfg!(debug_assertions) {
+            "1234567890".to_string()
+        } else {
+            util::random_password()
+        };
         println!("[!] Generating new admin password: {}", new_password);
         let _ = state
             .database_accessor
@@ -267,7 +272,11 @@ async fn main() {
                 std::process::exit(1);
             });
     } else if let Some(("reset-admin-password", _)) = matches.subcommand() {
-        let new_password = util::random_password();
+        let new_password = if cfg!(debug_assertions) {
+            "1234567890".to_string()
+        } else {
+            util::random_password()
+        };
         println!("[!] Generating new admin password: {}", new_password);
         let _ = state
             .database_accessor

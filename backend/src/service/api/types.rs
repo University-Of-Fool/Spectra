@@ -1,7 +1,7 @@
-use crate::data::{DatabaseAccessor, FileAccessor};
+use crate::data::FileAccessor;
 use crate::types::{Item, ItemType, User, UserPermission};
-use chrono::NaiveDateTime;
-use serde::Serialize;
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize)]
 pub struct ItemSimplified {
@@ -9,7 +9,7 @@ pub struct ItemSimplified {
     pub short_path: String,
     pub item_type: ItemType,
     pub visits: i64,
-    pub created_at: NaiveDateTime,
+    pub created_at: DateTime<Utc>,
     pub creator: Option<String>,
 }
 
@@ -20,7 +20,7 @@ impl From<Item> for ItemSimplified {
             short_path: item.short_path,
             item_type: item.item_type,
             visits: item.visits,
-            created_at: item.created_at,
+            created_at: item.created_at.and_utc(),
             creator: item.creator,
         }
     }
@@ -32,7 +32,7 @@ pub struct ApiUser {
     pub name: String,
     pub email: String,
     pub avatar: Option<String>,
-    pub created_at: NaiveDateTime,
+    pub created_at: DateTime<Utc>,
     pub descriptor: Vec<UserPermission>,
 }
 
@@ -43,7 +43,7 @@ impl From<User> for ApiUser {
             name: user.name,
             email: user.email,
             avatar: user.avatar,
-            created_at: user.created_at,
+            created_at: user.created_at.and_utc(),
             descriptor: UserPermission::from_i64(user.descriptor),
         }
     }
@@ -72,3 +72,24 @@ impl ApiCode {
         }
     }
 }
+
+#[derive(Deserialize, Debug)]
+pub struct ApiItemUpload {
+    pub data: String,
+    pub expires_at: Option<String>,
+    pub extra_data: Option<String>,
+    pub item_type: ItemType,
+    pub max_visits: Option<i64>,
+    pub password: Option<String>,
+}
+//
+// /// 将 NaiveDateTime（本地时间）转换为 UTC 时间
+// pub fn to_utc(naive: NaiveDateTime) -> DateTime<Utc> {
+//     let local_dt = Local.from_local_datetime(&naive).unwrap();
+//     local_dt.with_timezone(&Utc)
+// }
+//
+// /// 将 UTC 时间转换为当前系统时区下的 NaiveDateTime
+// pub fn from_utc(utc: DateTime<Utc>) -> NaiveDateTime {
+//     utc.with_timezone(&Local).naive_local()
+// }

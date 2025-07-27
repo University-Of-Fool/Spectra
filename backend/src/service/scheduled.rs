@@ -7,7 +7,7 @@ use tracing::{debug, info, instrument};
 #[instrument]
 pub async fn clear_expired_token(map: Arc<DashMap<String, Token>>) -> () {
     info!("Clearing expired tokens...");
-    let now = chrono::Utc::now().naive_local();
+    let now = chrono::Local::now().naive_local();
     map.retain(|_, v| v.expires_at > now);
     debug!("{} token(s) remaining", map.len());
 }

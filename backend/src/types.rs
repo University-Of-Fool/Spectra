@@ -1,6 +1,6 @@
 use axum::extract::FromRef;
 use axum_extra::extract::cookie::Key;
-use chrono::Utc;
+use chrono::Local;
 use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use sqlx::types::chrono::NaiveDateTime;
@@ -46,7 +46,7 @@ pub struct Token {
 
 impl Token {
     pub fn new(user_id: String) -> Self {
-        let expires_at = Utc::now().naive_local() + chrono::Duration::minutes(10);
+        let expires_at = Local::now().naive_local() + chrono::Duration::minutes(10);
         Self {
             user_id,
             expires_at,
@@ -54,7 +54,7 @@ impl Token {
     }
 
     pub fn is_expired(&self) -> bool {
-        self.expires_at < Utc::now().naive_local()
+        self.expires_at < Local::now().naive_local()
     }
 }
 

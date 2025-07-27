@@ -89,8 +89,7 @@ layout {
         // 启动 Zellij 会话
         await runCommand("zellij", ["--layout", zellijLayoutPath]);
     } else {
-        // Windows 系统: 使用 Windows Terminal 分屏
-        console.warn("[!] 启动 Windows Terminal 分屏...");
+        console.warn("[!] 启动 Windows Terminal...");
         await runCommand("wt", [
             "new-tab",
             "-d",

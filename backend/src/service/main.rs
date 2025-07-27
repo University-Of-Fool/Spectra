@@ -8,7 +8,7 @@ use axum::{
     middleware::Next,
     response::Response,
 };
-use chrono::Utc;
+use chrono::Local;
 use futures_util::stream::StreamExt;
 use http_body_util::BodyExt;
 use serde::Deserialize;
@@ -105,7 +105,7 @@ pub async fn main_service(
         let item_id_clone = item.id.clone();
         let da_clone = state.database_accessor.clone();
         // 检查项目是否过期
-        if item.expires_at.is_some() && item.expires_at.unwrap() < Utc::now().naive_utc()
+        if item.expires_at.is_some() && item.expires_at.unwrap() < Local::now().naive_local()
             || item.max_visits.is_some() && item.visits >= item.max_visits.unwrap()
         {
             let item_id = item.id.clone();
@@ -201,7 +201,9 @@ pub async fn main_service(
                 }
             }
             crate::types::ItemType::File => {
-                if let Some(mut file) = state.file_accessor.get_file(item.data).await {
+                let item_data_clone = item.data.clone();
+                if let Some(mut file) = state.file_accessor.get_file(item_data_clone.clone()).await
+                {
                     // 获取文件大小用于范围请求处理
                     let file_size = file.metadata().await.unwrap().len();
 
@@ -232,6 +234,9 @@ pub async fn main_service(
                     // 计算要发送的内容长度
                     let content_length = end - start + 1;
 
+                    let mime = mime_guess::from_path(&item_data_clone)
+                        .first_or(mime_guess::mime::APPLICATION_OCTET_STREAM);
+
                     // 构建响应
                     let response_builder = Response::builder()
                         .header(
@@ -239,11 +244,13 @@ pub async fn main_service(
                             if let Some(filename) = &item.extra_data {
                                 format!("attachment; filename=\"{}\"", filename)
                             } else {
-                                "attachment".to_string()
+                                // 不设置文件名时，比如说，如果是图片，也有可能不想被下载
+                                "inline".to_string()
                             },
                         )
                         .header("Content-Length", content_length.to_string())
-                        .header("Accept-Ranges", "bytes");
+                        .header("Accept-Ranges", "bytes")
+                        .header("Content-Type", mime.to_string());
 
                     let response = if range_header.is_some() {
                         response_builder

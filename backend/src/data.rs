@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
-use sqlx::types::chrono::{NaiveDateTime, Utc};
+use chrono::Local;
+use sqlx::types::chrono::NaiveDateTime;
 use sqlx::{Pool, Sqlite, sqlite::SqlitePoolOptions};
 use std::path::PathBuf;
 use tracing::debug;
@@ -44,7 +45,7 @@ impl DatabaseAccessor {
         descriptor: i64,
         avatar: Option<String>,
     ) -> Result<User> {
-        let now = Utc::now().naive_local();
+        let now = Local::now().naive_local();
         let user = sqlx::query_as!(
             User,
             r#"
@@ -65,6 +66,7 @@ impl DatabaseAccessor {
 
         Ok(user)
     }
+
     pub async fn admin_user_exists(&self) -> Result<bool> {
         let user = sqlx::query_as!(
             User,
@@ -95,7 +97,7 @@ impl DatabaseAccessor {
         Ok(user)
     }
 
-    pub async fn get_user_by_id(&self, id: &str) -> Result<User> {
+    pub async fn get_user_by_id(&self, id: &str) -> Result<Option<User>> {
         let user = sqlx::query_as!(
             User,
             r#"
@@ -104,12 +106,12 @@ impl DatabaseAccessor {
             "#,
             id
         )
-        .fetch_one(&self.pool)
+        .fetch_optional(&self.pool)
         .await?;
         Ok(user)
     }
 
-    pub async fn get_user_by_email(&self, email: &str) -> Result<User> {
+    pub async fn get_user_by_email(&self, email: &str) -> Result<Option<User>> {
         let user = sqlx::query_as!(
             User,
             r#"
@@ -118,7 +120,7 @@ impl DatabaseAccessor {
             "#,
             email
         )
-        .fetch_one(&self.pool)
+        .fetch_optional(&self.pool)
         .await?;
         Ok(user)
     }
@@ -134,8 +136,9 @@ impl DatabaseAccessor {
         extra_data: Option<&str>,
         creator: Option<&str>,
     ) -> anyhow::Result<Item> {
-        let id = Uuid::new_v4().to_string();
-        let now = Utc::now().naive_local();
+        // 因为 Spectra 不是分布式的，使用 UUID v7 是一个十分经济、完全保证唯一并且有序的选择
+        let id = Uuid::now_v7().to_string();
+        let now = Local::now().naive_local();
         let item = sqlx::query_as!(
             Item,
             r#"
@@ -174,12 +177,41 @@ impl DatabaseAccessor {
         Ok(item)
     }
 
+    pub async fn item_exists(&self, path: &str) -> Result<bool> {
+        let item = sqlx::query_as!(
+            Item,
+            r#"
+            SELECT * FROM items
+            WHERE short_path = $1
+            "#,
+            path
+        )
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(item.is_some())
+    }
+
     pub async fn remove_item(&self, id: &str) -> anyhow::Result<()> {
         sqlx::query!(
             r#"
             DELETE FROM items
             WHERE id = $1
             "#,
+            id
+        )
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn update_item_data(&self, id: &str, data: &str) -> anyhow::Result<()> {
+        sqlx::query!(
+            r#"
+            UPDATE items
+            SET data = $1
+            WHERE id = $2
+            "#,
+            data,
             id
         )
         .execute(&self.pool)
@@ -196,8 +228,8 @@ impl DatabaseAccessor {
         ip_address: &str,
         initiator: Option<&str>,
     ) -> anyhow::Result<AccessLog> {
-        let id = Uuid::new_v4().to_string();
-        let now = Utc::now().naive_local();
+        let id = Uuid::now_v7().to_string();
+        let now = Local::now().naive_local();
         let log = sqlx::query_as!(
             AccessLog,
             r#"
@@ -258,10 +290,17 @@ pub struct FileAccessor {
 impl FileAccessor {
     pub fn new(data_dir: String) -> Self {
         debug!("Successfully initialized file accessor at: {}", &data_dir);
+        let path = PathBuf::from(&data_dir).join("dummy_file.txt");
+        if !path.exists() {
+            debug!("dummy_file.txt not found, creating...");
+            // 这里用 std 而不是 tokio 的 fs 模块是因为目前服务器还没有启动，不需要异步执行
+            std::fs::write(path, "This file is not uploaded yet, please wait!").unwrap();
+        }
         Self {
             data_dir: PathBuf::from(data_dir),
         }
     }
+
     pub async fn get_string(&self, path: String) -> Option<String> {
         let path = self.data_dir.join(path);
         if path.exists() {
@@ -271,6 +310,7 @@ impl FileAccessor {
             None
         }
     }
+
     pub async fn get_file(&self, path: String) -> Option<tokio::fs::File> {
         let path = self.data_dir.join(path);
         if path.exists() {
@@ -279,5 +319,12 @@ impl FileAccessor {
         } else {
             None
         }
+    }
+
+    pub async fn write_file(&self, path: String, content: &[u8]) -> anyhow::Result<()> {
+        let path = self.data_dir.join(path);
+        let mut file = tokio::fs::File::create(path).await?;
+        tokio::io::AsyncWriteExt::write_all(&mut file, content).await?;
+        Ok(())
     }
 }
