@@ -8,6 +8,13 @@ use std::sync::Arc;
 use strum::IntoEnumIterator;
 use strum_macros::{Display, EnumIter};
 
+#[derive(Clone, Debug)]
+pub struct TurnstileConfig {
+    pub enabled: bool,
+    pub site_key: String,
+    pub secret_key: String,
+}
+
 // 应用状态
 #[derive(Clone, Debug)]
 pub struct AppState {
@@ -15,6 +22,7 @@ pub struct AppState {
     pub file_accessor: crate::data::FileAccessor,
     pub user_tokens: Arc<DashMap<String, Token>>,
     pub cookie_key: Key,
+    pub turnstile: TurnstileConfig,
 }
 
 // this impl tells `PrivateCookieJar` how to access the key from our state
@@ -42,14 +50,16 @@ pub struct PasswordInformation {
 pub struct Token {
     pub user_id: String,
     pub expires_at: NaiveDateTime,
+    pub temporary: bool, // 临时令牌：用于游客通过 Turnstile 正确验证后上传文件的操作
 }
 
 impl Token {
-    pub fn new(user_id: String) -> Self {
+    pub fn new(user_id: String, temporary: bool) -> Self {
         let expires_at = Local::now().naive_local() + chrono::Duration::minutes(10);
         Self {
             user_id,
             expires_at,
+            temporary,
         }
     }
 

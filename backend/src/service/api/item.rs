@@ -1,10 +1,12 @@
 use crate::service::api::result::{ApiError, ApiResult};
 use crate::service::api::types::{ApiCode, ApiItemFull, ApiItemUpload, ItemSimplified};
 use crate::success;
-use crate::types::{AppState, ItemType, ToPermission, User, UserPermission};
+use crate::types::{AppState, ItemType, ToPermission, Token, User, UserPermission};
 use axum::extract::{Multipart, Path, Query, State};
 use axum::Json;
 use axum_extra::extract::PrivateCookieJar;
+use cookie::time::Duration;
+use cookie::Cookie;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use tracing::{debug, info, instrument};
@@ -140,6 +142,7 @@ pub async fn create_item(
     Path(path): Path<String>,
     State(state): State<AppState>,
     jar: PrivateCookieJar,
+    Query(query): Query<HashMap<String, String>>,
     Json(body): Json<ApiItemUpload>,
 ) -> ApiResult {
     info!("Attempting to create item at path: {}", path);
@@ -160,30 +163,48 @@ pub async fn create_item(
         return Err(ApiError::new(409, "Item already exists".to_string()));
     }
 
+    // 如果 Turnstile 结果已提供且验证出错会直接返回；此值为 false 说明需要用户验证
+    let turnstile = if state.turnstile.enabled {
+        if let Some(token) = query.get("turnstile-token") {
+            let resp = crate::util::check_turnstile(&state.turnstile.secret_key, token).await?;
+            if resp.0 {
+                true
+            } else {
+                return Err(ApiError::new(403, resp.1.join(", ")));
+            }
+        } else {
+            false
+        }
+    } else {
+        false
+    };
+
     let user = try_get_user(&state, &jar).await;
-    if user.is_none() {
+    if user.is_none() && !turnstile {
         return Err(ApiError::new(401, "Unauthorized".to_string()));
     }
-    let user = user.unwrap();
-    info!(
-        "User {} is attempting to create item at path: {}",
-        user.id, path
-    );
-    // 权限鉴定，如果不符合条件会直接返回 Err
-    if !user.descriptor.contains(UserPermission::Manage) {
-        fn check_permission(user: &User, item_type: ItemType) -> Result<(), ApiError> {
-            let required_permission = match item_type {
-                ItemType::Code => UserPermission::Code,
-                ItemType::File => UserPermission::File,
-                ItemType::Link => UserPermission::Link,
-            };
+    let user_id_clone = user.as_ref().map(|user| user.id.clone());
+    if let Some(user) = user {
+        info!(
+            "User {} is attempting to create item at path: {}",
+            user.id, path
+        );
+        // 权限鉴定，如果不符合条件会直接返回 Err
+        if !user.descriptor.contains(UserPermission::Manage) {
+            fn check_permission(user: &User, item_type: ItemType) -> Result<(), ApiError> {
+                let required_permission = match item_type {
+                    ItemType::Code => UserPermission::Code,
+                    ItemType::File => UserPermission::File,
+                    ItemType::Link => UserPermission::Link,
+                };
 
-            if !user.descriptor.contains(required_permission) {
-                return Err(ApiError::new(403, "Forbidden".to_string()));
+                if !user.descriptor.contains(required_permission) {
+                    return Err(ApiError::new(403, "Forbidden".to_string()));
+                }
+                Ok(())
             }
-            Ok(())
+            check_permission(&user, body.item_type)?;
         }
-        check_permission(&user, body.item_type)?;
     }
 
     // 权限鉴定通过，继续处理创建逻辑
@@ -213,6 +234,12 @@ pub async fn create_item(
             body.data
         }
     };
+    let id = if turnstile {
+        format!("guest-{}", Uuid::now_v7().as_hyphenated().to_string())
+    } else {
+        user_id_clone.unwrap()
+    };
+
     let item = state
         .database_accessor
         .create_item(
@@ -225,10 +252,25 @@ pub async fn create_item(
                 .map(|x| format!("{:x}", Sha256::digest(x.as_bytes())))
                 .as_deref(),
             body.extra_data.as_deref(),
-            Some(&user.id),
+            Some(&id),
         )
         .await?;
-    Ok(success!(ItemSimplified::from(item)))
+
+    if turnstile && body.item_type == ItemType::File {
+        let token = crate::util::random_password();
+        let _ = state
+            .user_tokens
+            .insert(token.clone(), Token::new(id, true));
+        let jar = jar.remove("token").add(
+            Cookie::build(("token", token.clone()))
+                .max_age(Duration::new(600, 0))
+                .http_only(true)
+                .build(),
+        );
+        Ok(success!(ItemSimplified::from(item), jar))
+    } else {
+        Ok(success!(ItemSimplified::from(item)))
+    }
 }
 
 #[instrument(skip(state, jar, multipart))]
@@ -246,55 +288,91 @@ pub async fn upload_file(
     }
     let item = item.unwrap();
 
-    let user = try_get_user(&state, &jar).await;
-    if user.is_none() {
+    let token = if let Some(x) = jar.get("token") {
+        x.value().to_string()
+    } else {
         return Err(ApiError::new(401, "Unauthorized".to_string()));
-    }
-    let user = user.unwrap();
-    info!(
-        "User {} is attempting to upload file to path: {}",
-        user.id, path
-    );
+    };
 
-    if !user.descriptor.contains(UserPermission::Manage)
-        && !item.creator.clone().is_some_and(|x| user.id == x)
-    {
+    // 显式限制 user_token（which 是从哈希表里取出的）的作用域以避免产生互锁
+    let token_temporary = {
+        let user_token = state.user_tokens.get(&token);
+        if user_token.is_none() {
+            return Err(ApiError::new(401, "Unauthorized".to_string()));
+        }
+        let user_token = user_token.unwrap();
+        let info = if !user_token.temporary {
+            let user = state
+                .database_accessor
+                .get_user_by_id(&user_token.user_id)
+                .await?;
+            if user.is_none() {
+                return Err(ApiError::new(401, "Unauthorized".to_string()));
+            }
+            let user = user.unwrap();
+            (user.descriptor, user.id, false)
+        } else {
+            (0_i64, user_token.user_id.clone(), true)
+        };
+
         info!(
-            "User {} has no sufficient permission to upload file to path: {}",
-            user.id, path
+            "User {} is attempting to upload file to path: {}",
+            info.1, path
         );
-        return Err(ApiError::new(403, "No sufficient permission".to_string()));
-    }
+
+        if !info.0.contains(UserPermission::Manage)
+            && !item.creator.clone().is_some_and(|x| info.1 == x)
+        {
+            info!(
+                "User {} has no sufficient permission to upload file to path: {}",
+                info.1, path
+            );
+            return Err(ApiError::new(403, "No sufficient permission".to_string()));
+        }
+
+        info.2
+    };
 
     let item_type_clone = item.item_type.clone();
     if item_type_clone != ItemType::File {
         debug!("Item at path {} is not a File, upload failed", path);
         return Err(ApiError::new(409, "Item is not a File".to_string()));
     }
-
-    while let Some(field) = multipart.next_field().await? {
-        if field.name().unwrap().to_string() == "file" {
-            let filename_id = Uuid::now_v7().as_hyphenated().to_string();
-            let fa_clone = state.file_accessor.clone();
-            let data = Box::new(field.bytes().await?);
-            let ext = infer::get(&data).map(|x| x.extension()).unwrap_or("bin");
-            let filename = format!("{}.{}", filename_id, ext);
-            let filename_clone = filename.clone();
-            info!("File uploaded successfully to item at path: {}", path);
-            tokio::spawn(async move { fa_clone.write_file(filename_clone, &data).await });
-            state
-                .database_accessor
-                .update_item_data(&item.id, &filename)
-                .await?;
-            // 因为能到这里已经保证 item 存在，所以unwrap 是安全的
-            return Ok(success!(ItemSimplified::from(item)));
+    let mut field = None;
+    while let Some(inner_field) = multipart.next_field().await? {
+        if inner_field.name().unwrap_or("").to_string() != "file" {
+            continue;
         }
+        field = Some(inner_field.bytes().await?);
     }
-    info!("No part named 'file' uploaded to item at path: {}", path);
-    Err(ApiError::new(
-        400,
-        "No part named 'file' uploaded".to_string(),
-    ))
+    if field.is_none() {
+        info!("No part named 'file' uploaded to item at path: {}", path);
+        return Err(ApiError::new(
+            400,
+            "No part named 'file' uploaded".to_string(),
+        ));
+    }
+    let data = Box::new(field.unwrap());
+    let filename_id = Uuid::now_v7().as_hyphenated().to_string();
+    let fa_clone = state.file_accessor.clone();
+    let ext = infer::get(&data).map(|x| x.extension()).unwrap_or("bin");
+    let filename = format!("{}.{}", filename_id, ext);
+    let filename_clone = filename.clone();
+    info!("File uploaded successfully to item at path: {}", path);
+    fa_clone.write_file(filename_clone, &data).await?;
+    state
+        .database_accessor
+        .update_item_data(&item.id, &filename)
+        .await?;
+
+    if !token_temporary {
+        Ok(success!(ItemSimplified::from(item)))
+    } else {
+        // 这里 token 是 cookie 的值，并且和 user_token 的键名一样
+        state.user_tokens.remove(&token);
+        let jar = jar.remove("token");
+        Ok(success!(ItemSimplified::from(item), jar))
+    }
 }
 
 #[instrument(skip(state, jar))]
@@ -355,7 +433,7 @@ pub async fn get_user_items(
         .database_accessor
         .get_user_by_id(&user_token.user_id)
         .await?
-        .unwrap();
+        .ok_or_else(|| ApiError::new(401, "User not found".to_string()))?; // 转为 ApiError
     if params
         .get("user")
         .is_some_and(|x| &user.id != x && !user.descriptor.contains(UserPermission::Manage))

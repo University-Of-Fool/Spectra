@@ -2,10 +2,10 @@ use crate::service::api::result::{ApiError, ApiResult};
 use crate::service::api::types::ApiUser;
 use crate::success;
 use crate::types::{AppState, ToPermission, Token, UserPermission};
-use axum::extract::{Path, State};
 use axum::Json;
-use axum_extra::extract::cookie::Cookie;
+use axum::extract::{Path, State};
 use axum_extra::extract::PrivateCookieJar;
+use axum_extra::extract::cookie::Cookie;
 use cookie::time::Duration;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -29,7 +29,7 @@ pub async fn login(
             let token = crate::util::random_password();
             let _ = state
                 .user_tokens
-                .insert(token.clone(), Token::new(user.id.clone()));
+                .insert(token.clone(), Token::new(user.id.clone(), false));
             let jar = jar.remove("token").add(
                 Cookie::build(("token", token.clone()))
                     .max_age(Duration::new(600, 0))

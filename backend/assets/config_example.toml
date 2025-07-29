@@ -3,3 +3,12 @@
 data_dir = "data"
 # The key for encrypting cookies
 cookie_key = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+[turnstile]
+# Whether to enable Cloudflare Turnstile captcha system
+# WARNING: Disabling this will prevent anonymous item creation
+enabled = true
+# Note: default values are for testing; you should replace them with your own
+# Get one at https://dash.cloudflare.com/?to=/:account/turnstile
+site_key = "1x00000000000000000000AA"
+secret_key = "1x0000000000000000000000000000000AA"

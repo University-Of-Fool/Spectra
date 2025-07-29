@@ -23,7 +23,7 @@ mod util;
 use crate::data::{DatabaseAccessor, FileAccessor};
 use crate::service::frontend::make_frontend_router;
 use crate::service::main::main_service;
-use crate::types::AppState;
+use crate::types::{AppState, TurnstileConfig};
 
 shadow!(shadow);
 const DEFAULT_CONFIG_FILE: &str = include_str!("../assets/config_example.toml");
@@ -58,7 +58,12 @@ async fn main() {
         .arg(arg!(-v --verbose "Enable more detailed output"));
     #[cfg(debug_assertions)]
     {
-        cmd_builder = cmd_builder.arg(arg!(-d --debug "Enable debug output"));
+        cmd_builder = cmd_builder.arg(arg!(-d --debug "Enable debug output")).arg(
+            arg!(-T --turnstile <TOKEN> "Turnstile secret token")
+                .value_parser(value_parser!(String))
+                .required(false)
+                .default_value("1x0000000000000000000000000000000AA"),
+        );
     }
     cmd_builder = cmd_builder
         .subcommand(
@@ -229,6 +234,72 @@ async fn main() {
             );
             std::process::exit(1);
         }
+
+        // 检查 turnstile 相关配置是否存在且类型正确
+        let turnstile_table = match config.get("turnstile") {
+            Some(table) => match table.as_table() {
+                Some(t) => t,
+                None => {
+                    error!("'turnstile' key in config is not a table");
+                    std::process::exit(1);
+                }
+            },
+            None => {
+                error!("'turnstile' key not found in config");
+                std::process::exit(1);
+            }
+        };
+        // 检查 turnstile.enabled 是否存在且类型正确
+        let enabled = match turnstile_table.get("enabled") {
+            Some(enabled) => match enabled.as_bool() {
+                Some(b) => b,
+                None => {
+                    error!("'enabled' in config is not a boolean");
+                    std::process::exit(1);
+                }
+            },
+            None => {
+                error!("'enabled' key not found in 'turnstile' table");
+                std::process::exit(1);
+            }
+        };
+        // 检查 turnstile.site_key 是否存在且类型正确
+        let site_key = match turnstile_table.get("site_key") {
+            Some(site_key) => match site_key.as_str() {
+                Some(s) => s,
+                None => {
+                    error!("'site_key' in config is not a string");
+                    std::process::exit(1);
+                }
+            },
+            None => {
+                error!("'site_key' key not found in 'turnstile' table");
+                std::process::exit(1);
+            }
+        };
+        // 检查 turnstile.secret_key 是否存在且类型正确
+        let secret_key = match turnstile_table.get("secret_key") {
+            Some(secret_key) => match secret_key.as_str() {
+                Some(s) => s,
+                None => {
+                    error!("'secret_key' in config is not a string");
+                    std::process::exit(1);
+                }
+            },
+            None => {
+                error!("'secret_key' key not found in 'turnstile' table");
+                std::process::exit(1);
+            }
+        };
+        let turnstile_config = TurnstileConfig {
+            enabled,
+            site_key: site_key.to_string(),
+            secret_key: if cfg!(debug_assertions) {
+                matches.get_one::<String>("turnstile").unwrap().to_string()
+            } else {
+                secret_key.to_string()
+            },
+        };
         AppState {
             database_accessor: DatabaseAccessor::new(
                 format!("sqlite:{}", database_path.to_str().unwrap()).as_str(),
@@ -238,6 +309,7 @@ async fn main() {
             file_accessor: FileAccessor::new(data_dir.to_string()),
             user_tokens: Arc::new(DashMap::new()),
             cookie_key: Key::from(cookie_key.as_bytes()),
+            turnstile: turnstile_config,
         }
     };
 
