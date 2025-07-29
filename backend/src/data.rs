@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use chrono::Local;
 use sqlx::types::chrono::NaiveDateTime;
-use sqlx::{Pool, Sqlite, sqlite::SqlitePoolOptions};
+use sqlx::{sqlite::SqlitePoolOptions, Pool, Sqlite};
 use std::path::PathBuf;
 use tracing::debug;
 use uuid::Uuid;
@@ -13,8 +13,9 @@ use crate::types::*;
 pub struct DatabaseAccessor {
     pool: Pool<Sqlite>,
 }
+
 impl std::fmt::Debug for DatabaseAccessor {
-    // 输出空字符串
+    // 输出固定字符串
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "A.N.D.A.") // A Normal Database Accessor
     }
@@ -125,6 +126,18 @@ impl DatabaseAccessor {
         Ok(user)
     }
 
+    pub async fn get_all_users(&self) -> Result<Vec<User>> {
+        let users = sqlx::query_as!(
+            User,
+            r#"
+            SELECT * FROM users
+            "#
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(users)
+    }
+
     pub async fn create_item(
         &self,
         short_path: &str,
@@ -175,6 +188,32 @@ impl DatabaseAccessor {
         .fetch_optional(&self.pool)
         .await?;
         Ok(item)
+    }
+
+    pub async fn get_user_items(&self, user_id: &str) -> anyhow::Result<Vec<Item>> {
+        let items = sqlx::query_as!(
+            Item,
+            r#"
+            SELECT * FROM items
+            WHERE creator = $1
+            "#,
+            user_id
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(items)
+    }
+
+    pub async fn get_all_items(&self) -> anyhow::Result<Vec<Item>> {
+        let items = sqlx::query_as!(
+            Item,
+            r#"
+            SELECT * FROM items
+            "#
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(items)
     }
 
     pub async fn item_exists(&self, path: &str) -> Result<bool> {
@@ -281,6 +320,19 @@ impl DatabaseAccessor {
 
         Ok(logs)
     }
+
+    pub async fn remove_user(&self, user_id: &str) -> anyhow::Result<()> {
+        sqlx::query!(
+            r#"
+            DELETE FROM users
+            WHERE id = $1
+            "#,
+            user_id
+        )
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -325,6 +377,14 @@ impl FileAccessor {
         let path = self.data_dir.join(path);
         let mut file = tokio::fs::File::create(path).await?;
         tokio::io::AsyncWriteExt::write_all(&mut file, content).await?;
+        Ok(())
+    }
+
+    pub async fn remove_file(&self, path: &str) -> anyhow::Result<()> {
+        let path = self.data_dir.join(path);
+        if path.exists() {
+            tokio::fs::remove_file(path).await?;
+        }
         Ok(())
     }
 }

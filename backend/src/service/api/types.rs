@@ -1,6 +1,6 @@
 use crate::data::FileAccessor;
 use crate::types::{Item, ItemType, User, UserPermission};
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Local, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize)]
@@ -93,3 +93,39 @@ pub struct ApiItemUpload {
 // pub fn from_utc(utc: DateTime<Utc>) -> NaiveDateTime {
 //     utc.with_timezone(&Local).naive_local()
 // }
+
+#[derive(Serialize)]
+pub struct ApiItemFull {
+    pub id: String,
+    pub short_path: String,
+    pub item_type: ItemType,
+    pub data: String,
+    pub expires_at: Option<DateTime<Utc>>,
+    pub max_visits: Option<i64>,
+    pub visits: i64,
+    pub created_at: DateTime<Utc>,
+    pub extra_data: Option<String>,
+    pub creator: Option<String>,
+}
+
+impl From<Item> for ApiItemFull {
+    fn from(item: Item) -> Self {
+        Self {
+            id: item.id,
+            short_path: item.short_path,
+            item_type: item.item_type,
+            data: item.data,
+            expires_at: item
+                .expires_at
+                .map(|x| Local.from_local_datetime(&x).unwrap().with_timezone(&Utc)),
+            max_visits: item.max_visits,
+            visits: item.visits,
+            created_at: Local
+                .from_local_datetime(&item.created_at)
+                .unwrap()
+                .with_timezone(&Utc),
+            extra_data: item.extra_data,
+            creator: item.creator,
+        }
+    }
+}

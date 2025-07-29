@@ -1,11 +1,11 @@
 use crate::service::api::result::{ApiError, ApiResult};
 use crate::service::api::types::ApiUser;
 use crate::success;
-use crate::types::{AppState, Token};
+use crate::types::{AppState, ToPermission, Token, UserPermission};
+use axum::extract::{Path, State};
 use axum::Json;
-use axum::extract::State;
-use axum_extra::extract::PrivateCookieJar;
 use axum_extra::extract::cookie::Cookie;
+use axum_extra::extract::PrivateCookieJar;
 use cookie::time::Duration;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -61,6 +61,101 @@ pub async fn user_info(State(state): State<AppState>, jar: PrivateCookieJar) -> 
         .await?;
     if user.is_none() {
         return Err(ApiError::new(401, "Unauthorized".to_string()).into());
+    }
+    Ok(success!(ApiUser::from(user.unwrap())))
+}
+
+#[instrument(skip(state, jar))]
+pub async fn get_users(State(state): State<AppState>, jar: PrivateCookieJar) -> ApiResult {
+    let token = jar.get("token").map(|c| c.value().to_string());
+    if token.is_none() {
+        return Err(ApiError::new(401, "Unauthorized".to_string()).into());
+    }
+    let token = state.user_tokens.get(&token.unwrap());
+    if token.is_none() {
+        return Err(ApiError::new(401, "Unauthorized".to_string()).into());
+    }
+    let current_user = state
+        .database_accessor
+        .get_user_by_id(&token.unwrap().user_id)
+        .await?;
+    if current_user.is_none() {
+        return Err(ApiError::new(401, "Unauthorized".to_string()).into());
+    }
+    let current_user = current_user.unwrap();
+    if !current_user.descriptor.contains(UserPermission::Manage) {
+        return Err(ApiError::new(403, "Forbidden".to_string()).into());
+    }
+    let users = state.database_accessor.get_all_users().await?;
+    Ok(success!(
+        users.into_iter().map(ApiUser::from).collect::<Vec<_>>()
+    ))
+}
+
+pub async fn remove_user(
+    State(state): State<AppState>,
+    jar: PrivateCookieJar,
+    Path(id): Path<String>,
+) -> ApiResult {
+    let token = jar.get("token").map(|c| c.value().to_string());
+    if token.is_none() {
+        return Err(ApiError::new(401, "Unauthorized".to_string()).into());
+    }
+    let token = state.user_tokens.get(&token.unwrap());
+    if token.is_none() {
+        return Err(ApiError::new(401, "Unauthorized".to_string()).into());
+    }
+    let current_user = state
+        .database_accessor
+        .get_user_by_id(&token.unwrap().user_id)
+        .await?;
+    if current_user.is_none() {
+        return Err(ApiError::new(401, "Unauthorized".to_string()).into());
+    }
+    let current_user = current_user.unwrap();
+    if !current_user.descriptor.contains(UserPermission::Manage) && current_user.id != id {
+        return Err(ApiError::new(403, "No sufficient permissions".to_string()).into());
+    }
+    if id == "00000000-0000-0000-0000-000000000000" {
+        // 不可以删除管理用户
+        return Err(ApiError::new(403, "Cannot remove root user".to_string()).into());
+    }
+    let user = state.database_accessor.get_user_by_id(&id).await?;
+    if user.is_none() {
+        return Err(ApiError::new(404, "User not found".to_string()).into());
+    }
+    let user = user.unwrap();
+    state.database_accessor.remove_user(&user.id).await?;
+    Ok(success!(ApiUser::from(user)))
+}
+
+pub async fn get_user(
+    State(state): State<AppState>,
+    jar: PrivateCookieJar,
+    Path(id): Path<String>,
+) -> ApiResult {
+    let token = jar.get("token").map(|c| c.value().to_string());
+    if token.is_none() {
+        return Err(ApiError::new(401, "Unauthorized".to_string()).into());
+    }
+    let token = state.user_tokens.get(&token.unwrap());
+    if token.is_none() {
+        return Err(ApiError::new(401, "Unauthorized".to_string()).into());
+    }
+    let current_user = state
+        .database_accessor
+        .get_user_by_id(&token.unwrap().user_id)
+        .await?;
+    if current_user.is_none() {
+        return Err(ApiError::new(401, "Unauthorized".to_string()).into());
+    }
+    let current_user = current_user.unwrap();
+    if !current_user.descriptor.contains(UserPermission::Manage) && current_user.id != id {
+        return Err(ApiError::new(403, "No sufficient permissions".to_string()).into());
+    }
+    let user = state.database_accessor.get_user_by_id(&id).await?;
+    if user.is_none() {
+        return Err(ApiError::new(404, "User not found".to_string()).into());
     }
     Ok(success!(ApiUser::from(user.unwrap())))
 }

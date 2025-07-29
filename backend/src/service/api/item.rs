@@ -1,9 +1,9 @@
 use crate::service::api::result::{ApiError, ApiResult};
-use crate::service::api::types::{ApiCode, ApiItemUpload, ItemSimplified};
+use crate::service::api::types::{ApiCode, ApiItemFull, ApiItemUpload, ItemSimplified};
 use crate::success;
 use crate::types::{AppState, ItemType, ToPermission, User, UserPermission};
-use axum::Json;
 use axum::extract::{Multipart, Path, Query, State};
+use axum::Json;
 use axum_extra::extract::PrivateCookieJar;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
@@ -37,7 +37,7 @@ pub async fn get_item(
     Query(params): Query<HashMap<String, String>>,
 ) -> ApiResult {
     info!("Attempting to get item with path: {}", item_path);
-
+    let detailed = params.get("detailed").is_some_and(|x| x == "true");
     let item = state.database_accessor.get_item(&item_path).await?;
 
     if item.is_none() {
@@ -48,7 +48,11 @@ pub async fn get_item(
 
     info!("Item found with path: {}", item_path);
     if item.password_hash.is_none() {
-        return Ok(success!(ItemSimplified::from(item)));
+        return if detailed {
+            Ok(success!(ApiItemFull::from(item)))
+        } else {
+            Ok(success!(ItemSimplified::from(item)))
+        };
     }
 
     debug!("Item has a password hash, checking authentication");
@@ -76,7 +80,11 @@ pub async fn get_item(
     };
     if user_auth || password_auth {
         tracing::info!("Authentication successful for item {}", item_path);
-        Ok(success!(ItemSimplified::from(item_clone)))
+        if detailed {
+            Ok(success!(ApiItemFull::from(item_clone)))
+        } else {
+            Ok(success!(ItemSimplified::from(item_clone)))
+        }
     } else {
         tracing::info!("Authentication failed for item {}", item_path);
         Err(ApiError::new(401, "Authentication required".to_string()))
@@ -224,7 +232,7 @@ pub async fn create_item(
 }
 
 #[instrument(skip(state, jar, multipart))]
-pub(crate) async fn upload_file(
+pub async fn upload_file(
     Path(path): Path<String>,
     State(state): State<AppState>,
     jar: PrivateCookieJar,
@@ -287,4 +295,98 @@ pub(crate) async fn upload_file(
         400,
         "No part named 'file' uploaded".to_string(),
     ))
+}
+
+#[instrument(skip(state, jar))]
+pub async fn remove_item(
+    Path(path): Path<String>,
+    State(state): State<AppState>,
+    jar: PrivateCookieJar,
+) -> ApiResult {
+    let item = state.database_accessor.get_item(&path).await?;
+    if item.is_none() {
+        return Err(ApiError::new(404, "Item not found".to_string()));
+    }
+    let item = item.unwrap();
+
+    let user = try_get_user(&state, &jar).await;
+    if user.is_none() {
+        return Err(ApiError::new(401, "Unauthorized".to_string()));
+    }
+    let user = user.unwrap();
+    info!(
+        "User {} is attempting to delete item at path: {}",
+        user.id, path
+    );
+    if !user.descriptor.contains(UserPermission::Manage)
+        && !item.creator.clone().is_some_and(|x| user.id == x)
+    {
+        info!(
+            "User {} has no sufficient permission to delete item at path: {}",
+            user.id, path
+        );
+        return Err(ApiError::new(403, "No sufficient permission".to_string()));
+    }
+    state.database_accessor.remove_item(&item.id).await?;
+    if item.item_type == ItemType::File || item.item_type == ItemType::Code {
+        state.file_accessor.remove_file(&item.data).await?;
+    }
+    Ok(success!(ItemSimplified::from(item)))
+}
+
+#[instrument(skip(state, jar))]
+pub async fn get_user_items(
+    State(state): State<AppState>,
+    jar: PrivateCookieJar,
+    Query(params): Query<HashMap<String, String>>,
+) -> ApiResult {
+    let token = jar.get("token").map(|c| c.value().to_string());
+    if token.is_none() {
+        return Err(ApiError::new(401, "Unauthorized".to_string()).into());
+    }
+    let token = token.unwrap();
+    let user = state.user_tokens.get(&token);
+    if user.is_none() {
+        return Err(ApiError::new(401, "Unauthorized".to_string()).into());
+    }
+    let user_token = user.unwrap();
+    // 有对应的 Token 说明这个用户确实存在
+    let user = state
+        .database_accessor
+        .get_user_by_id(&user_token.user_id)
+        .await?
+        .unwrap();
+    if params
+        .get("user")
+        .is_some_and(|x| &user.id != x && !user.descriptor.contains(UserPermission::Manage))
+    {
+        return Err(ApiError::new(403, "Forbidden".to_string()).into());
+    }
+    let items = state
+        .database_accessor
+        .get_user_items(params.get("user").unwrap_or(&user.id))
+        .await?
+        .into_iter()
+        .map(|x| ItemSimplified::from(x))
+        .collect::<Vec<_>>();
+    Ok(success!(items))
+}
+
+#[instrument(skip(state, jar))]
+pub async fn get_all_items(State(state): State<AppState>, jar: PrivateCookieJar) -> ApiResult {
+    let user = try_get_user(&state, &jar).await;
+    if user.is_none() {
+        return Err(ApiError::new(401, "Unauthorized".to_string()));
+    }
+    if !user.unwrap().descriptor.contains(UserPermission::Manage) {
+        return Err(ApiError::new(403, "No sufficient permission".to_string()));
+    }
+    let items = state
+        .database_accessor
+        .get_all_items()
+        .await?
+        .into_iter()
+        .map(|x| ItemSimplified::from(x))
+        .collect::<Vec<_>>();
+    Ok(success!(items))
 }

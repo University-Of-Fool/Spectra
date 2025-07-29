@@ -3,7 +3,7 @@ use axum::body::Body;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde::Serialize;
-use tracing::error;
+use tracing::{error, info};
 
 #[derive(Serialize)]
 pub struct ApiResponse<T>
@@ -63,15 +63,16 @@ where
     E: Into<anyhow::Error>,
 {
     fn from(err: E) -> Self {
+        let err: anyhow::Error = err.into();
+        error!("{}", err.backtrace());
         Self {
             status: StatusCode::INTERNAL_SERVER_ERROR,
-            error: err.into().to_string(),
+            error: err.to_string(),
         }
     }
 }
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
-        error!("{}", self.error);
         Response::builder()
             .status(self.status)
             .body(Body::from(
@@ -86,6 +87,7 @@ impl IntoResponse for ApiError {
 }
 impl ApiError {
     pub fn new(status: u16, error: String) -> Self {
+        info!("{}", error);
         Self {
             // 因为状态码一定是完全可控的所以忽略错误处理，panic 说明代码确实有问题
             status: StatusCode::from_u16(status).unwrap(),
