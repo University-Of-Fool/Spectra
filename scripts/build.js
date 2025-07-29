@@ -8,7 +8,7 @@ process.chdir(join(__dirname, ".."));
     console.warn("[!] 正在安装 npm 依赖...");
     try {
         await (isWindows
-            ? runCommand("cmd.exe", ["/c", "pnpm.cmd", "install"])
+            ? runCommand("cmd.exe", ["/c", "npx.cmd", "pnpm", "install"])
             : runCommand("pnpm", ["install"]));
         console.warn("[!] npm 依赖安装完成。");
     } catch (installError) {
@@ -19,7 +19,7 @@ process.chdir(join(__dirname, ".."));
     // pnpm vite build
     try {
         await (isWindows
-            ? runCommand("cmd.exe", ["/c", "pnpm.cmd", "vite", "build"])
+            ? runCommand("cmd.exe", ["/c", "npx.cmd", "pnpm", "vite", "build"])
             : runCommand("pnpm", ["vite", "build"]));
     } catch (e) {
         console.error(`[!] 构建前端文件失败: ${e.message}`);

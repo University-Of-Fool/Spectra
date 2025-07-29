@@ -39,7 +39,7 @@ async function checkCommandExists(command) {
     console.warn("[!] 正在安装 npm 依赖...");
     try {
         await (isWindows
-            ? runCommand("cmd.exe", ["/c", "pnpm.cmd", "install"])
+            ? runCommand("cmd.exe", ["/c", "npx.cmd", "pnpm", "install"])
             : runCommand("pnpm", ["install"]));
         console.warn("[!] npm 依赖安装完成。");
     } catch (installError) {
@@ -94,7 +94,8 @@ layout {
             "new-tab",
             "-d",
             ".",
-            "pnpm.cmd",
+            "npx.cmd",
+            "pnpm",
             "vite",
             "dev",
             ";",
