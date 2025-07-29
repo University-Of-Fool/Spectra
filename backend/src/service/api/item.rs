@@ -170,7 +170,10 @@ pub async fn create_item(
             if resp.0 {
                 true
             } else {
-                return Err(ApiError::new(403, resp.1.join(", ")));
+                return Err(ApiError::new(
+                    403,
+                    format!("Turnstile error: {}", resp.1.join(", ")),
+                ));
             }
         } else {
             false
