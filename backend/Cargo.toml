@@ -5,7 +5,7 @@ edition = "2024"
 build = "build.rs"
 
 [dependencies]
-axum = { version = "0.8", features = ["query", "multipart"] }
+axum = { version = "0.8", features = ["query", "multipart", "macros"] }
 axum-extra = { version = "0.10", features = ["cookie", "cookie-private"] }
 axum-reverse-proxy = "1.0"
 tokio = { version = "1.0", features = ["full"] }
