@@ -1,5 +1,5 @@
 use axum_extra::extract::cookie::Key;
-use clap::{Command, arg, crate_version, value_parser};
+use clap::{arg, crate_version, value_parser, Command};
 use dashmap::DashMap;
 use sha2::{Digest, Sha256};
 use shadow_rs::shadow;
@@ -12,8 +12,8 @@ use tower_http::compression::CompressionLayer;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use tracing::{error, info, warn};
-use tracing_subscriber::EnvFilter;
 use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::EnvFilter;
 
 mod data;
 mod service;

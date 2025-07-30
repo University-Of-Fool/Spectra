@@ -1,8 +1,9 @@
-use axum::Router;
 use axum::extract::DefaultBodyLimit;
 use axum::routing::{delete, get, post, put};
+use axum::Router;
 
 mod item;
+mod misc;
 mod result;
 mod types;
 mod user;
@@ -27,4 +28,5 @@ pub fn make_router() -> Router<AppState> {
         .route("/users", get(user::get_users))
         .route("/user/{id}", delete(user::remove_user))
         .route("/user/{id}", get(user::get_user))
+        .route("/about", get(misc::get_information))
 }

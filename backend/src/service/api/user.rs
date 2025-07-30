@@ -1,4 +1,4 @@
-use crate::service::api::result::ApiResult;
+use crate::service::api::result::{ApiError, ApiResult};
 use crate::service::api::types::ApiUser;
 use crate::types::{AppState, ToPermission, Token, UserPermission};
 use crate::{fail, success};
@@ -18,8 +18,14 @@ pub async fn login(
     Json(payload): Json<Value>,
 ) -> ApiResult {
     if payload.is_object() && payload.get("email").is_some() && payload.get("password").is_some() {
-        let email = payload.get("email").unwrap().as_str().unwrap();
-        let password = payload.get("password").unwrap().as_str().unwrap();
+        let email = payload
+            .get("email")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| ApiError::new(400, "Invalid email format".to_string()))?;
+        let password = payload
+            .get("password")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| ApiError::new(400, "Invalid password format".to_string()))?;
         let user = state.database_accessor.get_user_by_email(email).await?;
         debug!("{:?}", user);
         if user.as_ref().is_some_and(|user| {

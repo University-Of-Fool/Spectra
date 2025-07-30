@@ -14,20 +14,15 @@ use uuid::Uuid;
 async fn try_get_user(state: &AppState, jar: &PrivateCookieJar) -> Option<User> {
     let token = jar
         .get("token")
-        .and_then(|token| state.user_tokens.get(token.value()));
-    if token.is_none() {
-        return None;
-    }
-    let token = token.unwrap();
+        .and_then(|token| state.user_tokens.get(token.value()))?;
     if token.is_expired() {
         return None;
     }
-    // 真是搞不懂所有权规则有些时候真的莫名其妙明明可以用一个 if 完成的要拆成两个
-    if let Ok(user) = state.database_accessor.get_user_by_id(&token.user_id).await {
-        user
-    } else {
-        None
-    }
+    state
+        .database_accessor
+        .get_user_by_id(&token.user_id)
+        .await
+        .ok()?
 }
 
 #[instrument(skip(state, jar))]
