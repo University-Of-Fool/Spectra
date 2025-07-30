@@ -1,19 +1,20 @@
 use axum_extra::extract::cookie::Key;
-use clap::{arg, crate_version, value_parser, Command};
+use clap::{Command, arg, crate_version, value_parser};
 use dashmap::DashMap;
 use sha2::{Digest, Sha256};
 use shadow_rs::shadow;
 use std::fs::{self, read_to_string};
 use std::net::{IpAddr, SocketAddr};
 use std::path::PathBuf;
+use std::str::FromStr;
 use std::sync::Arc;
 use tokio_cron_scheduler::{Job, JobScheduler};
 use tower_http::compression::CompressionLayer;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use tracing::{error, info, warn};
-use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
+use tracing_subscriber::util::SubscriberInitExt;
 
 mod data;
 mod service;
@@ -108,10 +109,9 @@ async fn main() {
         let config = subcommand.get_one::<PathBuf>("PATH").unwrap();
         fs::write(
             &config,
-            DEFAULT_CONFIG_FILE.replace(
-                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                &util::random_string(64),
-            ),
+            DEFAULT_CONFIG_FILE
+                .replace("{SPECTRA_COOKIE_KEY}", &util::random_string(64, None))
+                .replace("{SPECTRA_CURRENT_VERSION}", shadow::PKG_VERSION),
         )
         .unwrap_or_else(|e| {
             error!("Error happened during writing to config file: {:?}", e);
@@ -122,7 +122,7 @@ async fn main() {
 
     if let Some(("generate-cookie-key", _)) = matches.subcommand() {
         eprintln!("New cookie key generated below:\n");
-        println!("{}", util::random_string(64));
+        println!("{}", util::random_string(64, None));
         eprintln!(
             "\nNote that this command did not modify the configuration.\nYou may need to manually edit the file to use the new key."
         );
@@ -137,10 +137,7 @@ async fn main() {
         warn!("The specified configuration file does not exist, using the default values...");
         warn!("Warning: a NEW cookie key is being generated...");
         DEFAULT_CONFIG_FILE
-            .replace(
-                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                &util::random_string(64),
-            )
+            .replace("{SPECTRA_COOKIE_KEY}", &util::random_string(64, None))
             .parse::<toml::Table>()
             .unwrap() // 默认的配置文件一定是有效的 TOML 字符串，所以这里略过错误处理
     } else {
@@ -179,6 +176,26 @@ async fn main() {
             },
             None => {
                 error!("'service' key not found in config");
+                std::process::exit(1);
+            }
+        };
+
+        // 检查 service.refresh_time 是否存在且为有效的 Cron 字符串
+        match service_table.get("refresh_time") {
+            Some(dir) => match dir.as_str() {
+                Some(s) => {
+                    if croner::Cron::from_str(s).is_err() {
+                        error!("'refresh_time' in config is not a valid cron expression");
+                        std::process::exit(1);
+                    }
+                }
+                None => {
+                    error!("'refresh_time' in config is not a string");
+                    std::process::exit(1);
+                }
+            },
+            None => {
+                error!("'refresh_time' key not found in 'service' table");
                 std::process::exit(1);
             }
         };
@@ -373,6 +390,29 @@ async fn main() {
                     service::scheduled::clear_expired_token(inner_tokens).await;
                 })
             })
+            .unwrap(),
+        );
+        let da_clone = state.database_accessor.clone();
+        let fa_clone = state.file_accessor.clone();
+        let _ = scheduler.add(
+            Job::new_async(
+                config
+                    .get("service")
+                    .unwrap()
+                    .get("refresh_time")
+                    .unwrap()
+                    .as_str()
+                    .unwrap(),
+                move |_, _| {
+                    let da = da_clone.clone();
+                    let fa = fa_clone.clone();
+                    Box::pin(async move {
+                        if let Err(e) = da.refresh_db(fa).await {
+                            error!("Failed to refresh database: {}", e);
+                        }
+                    })
+                },
+            )
             .unwrap(),
         );
 

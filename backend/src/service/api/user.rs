@@ -96,6 +96,7 @@ pub async fn get_users(State(state): State<AppState>, jar: PrivateCookieJar) -> 
     success!(users.into_iter().map(ApiUser::from).collect::<Vec<_>>())
 }
 
+#[instrument(skip(state, jar))]
 pub async fn remove_user(
     State(state): State<AppState>,
     jar: PrivateCookieJar,
@@ -133,6 +134,7 @@ pub async fn remove_user(
     success!(ApiUser::from(user))
 }
 
+#[instrument(skip(state, jar))]
 pub async fn get_user(
     State(state): State<AppState>,
     jar: PrivateCookieJar,

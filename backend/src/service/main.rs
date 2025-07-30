@@ -109,10 +109,11 @@ pub async fn main_service(
             || item.max_visits.is_some() && item.visits >= item.max_visits.unwrap()
         {
             let item_id = item.id.clone();
-            info!("Item {} is expired. Removing...", item_id);
-            let da = state.database_accessor.clone();
-            // 移除的结果不重要，因为如果移除失败了的话也不会对“过期”的事实有影响
-            tokio::spawn(async move { da.remove_item(&item_id).await });
+            info!("Item {} is expired. Marking as unavailable...", item_id);
+            let _ = state
+                .database_accessor
+                .update_item_available(&item_id, false)
+                .await;
             return resp_404(next).await;
         }
 

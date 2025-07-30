@@ -11,6 +11,7 @@ pub struct ItemSimplified {
     pub visits: i64,
     pub created_at: DateTime<Utc>,
     pub creator: Option<String>,
+    pub available: bool,
 }
 
 impl From<Item> for ItemSimplified {
@@ -20,8 +21,12 @@ impl From<Item> for ItemSimplified {
             short_path: item.short_path,
             item_type: item.item_type,
             visits: item.visits,
-            created_at: item.created_at.and_utc(),
+            created_at: Local
+                .from_local_datetime(&item.created_at)
+                .unwrap()
+                .with_timezone(&Utc),
             creator: item.creator,
+            available: item.available,
         }
     }
 }
@@ -43,7 +48,10 @@ impl From<User> for ApiUser {
             name: user.name,
             email: user.email,
             avatar: user.avatar,
-            created_at: user.created_at.and_utc(),
+            created_at: Local
+                .from_local_datetime(&user.created_at)
+                .unwrap()
+                .with_timezone(&Utc),
             descriptor: UserPermission::from_i64(user.descriptor),
         }
     }
@@ -82,7 +90,7 @@ pub struct ApiItemUpload {
     pub max_visits: Option<i64>,
     pub password: Option<String>,
 }
-//
+
 // /// 将 NaiveDateTime（本地时间）转换为 UTC 时间
 // pub fn to_utc(naive: NaiveDateTime) -> DateTime<Utc> {
 //     let local_dt = Local.from_local_datetime(&naive).unwrap();
@@ -106,6 +114,7 @@ pub struct ApiItemFull {
     pub created_at: DateTime<Utc>,
     pub extra_data: Option<String>,
     pub creator: Option<String>,
+    pub available: bool,
 }
 
 impl From<Item> for ApiItemFull {
@@ -126,6 +135,7 @@ impl From<Item> for ApiItemFull {
                 .with_timezone(&Utc),
             extra_data: item.extra_data,
             creator: item.creator,
+            available: item.available,
         }
     }
 }

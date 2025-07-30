@@ -1,13 +1,30 @@
+# Spectra config file (bundled; v{SPECTRA_CURRENT_VERSION})
+
+
+# Configuration for Spectra
+# -------------------------
 [service]
+
 # Determines the place where Spectra stores its data
 data_dir = "data"
-# The key for encrypting cookies
-cookie_key = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
+# The key for encrypting cookies
+cookie_key = "{SPECTRA_COOKIE_KEY}"
+
+# The time to refresh the database, i.e. to mark expired items as unavailable
+# and remove items that are no longer needed. Note that this should be a cron
+# expression, otherwise Spectra would fail to launch.
+refresh_time = "0 0 4 * * ?"
+
+
+# Configuration for Cloudflare Turnstiles
+# ---------------------------------------
 [turnstile]
-# Whether to enable Cloudflare Turnstile captcha system
+
+# Whether to enable Cloudflare Turnstile
 # WARNING: Disabling this will prevent anonymous item creation
 enabled = true
+
 # Note: default values are for testing; you should replace them with your own
 # Get one at https://dash.cloudflare.com/?to=/:account/turnstile
 site_key = "1x00000000000000000000AA"

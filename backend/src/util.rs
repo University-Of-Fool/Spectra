@@ -1,7 +1,8 @@
 use rand::Rng;
 
-pub fn random_string(length: usize) -> String {
-    let charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*().-";
+pub fn random_string(length: usize, charset: Option<&str>) -> String {
+    let charset = charset
+        .unwrap_or("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*().-");
     let mut rng = rand::rng();
     let mut s = String::new();
     for _ in 0..length {
@@ -11,7 +12,7 @@ pub fn random_string(length: usize) -> String {
     s
 }
 pub fn random_password() -> String {
-    random_string(16)
+    random_string(16, None)
 }
 
 pub async fn check_turnstile(

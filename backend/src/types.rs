@@ -178,6 +178,8 @@ pub struct Item {
     pub created_at: NaiveDateTime,
     pub extra_data: Option<String>,
     pub creator: Option<String>,
+    pub available: bool,
+    pub should_drop_at: Option<NaiveDateTime>,
 }
 
 // 访问日志结构

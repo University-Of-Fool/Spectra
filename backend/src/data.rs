@@ -1,9 +1,9 @@
 use anyhow::{Context, Result};
 use chrono::Local;
 use sqlx::types::chrono::NaiveDateTime;
-use sqlx::{Pool, Sqlite, sqlite::SqlitePoolOptions};
+use sqlx::{sqlite::SqlitePoolOptions, Pool, Sqlite};
 use std::path::PathBuf;
-use tracing::debug;
+use tracing::{debug, instrument};
 use uuid::Uuid;
 
 use crate::types::*;
@@ -155,8 +155,8 @@ impl DatabaseAccessor {
         let item = sqlx::query_as!(
             Item,
             r#"
-            INSERT INTO items (id, short_path, item_type, data, expires_at, max_visits, visits, password_hash, created_at, extra_data, creator)
-            VALUES ($1, $2, $3, $4, $5, $6, 0, $7, $8, $9, $10)
+            INSERT INTO items (id, short_path, item_type, data, expires_at, max_visits, visits, password_hash, created_at, extra_data, creator, available)
+            VALUES ($1, $2, $3, $4, $5, $6, 0, $7, $8, $9, $10, $11)
             RETURNING *
             "#,
             id,
@@ -168,7 +168,8 @@ impl DatabaseAccessor {
             password_hash,
             now,
             extra_data,
-            creator
+            creator,
+            true,
         )
         .fetch_one(&self.pool)
         .await?;
@@ -240,6 +241,37 @@ impl DatabaseAccessor {
         )
         .execute(&self.pool)
         .await?;
+        Ok(())
+    }
+
+    pub async fn update_item_available(&self, id: &str, available: bool) -> anyhow::Result<()> {
+        if available {
+            sqlx::query!(
+                r#"
+            UPDATE items
+            SET available = $1, should_drop_at = NULL
+            WHERE id = $2
+            "#,
+                available,
+                id
+            )
+            .execute(&self.pool)
+            .await?;
+        } else {
+            let expiration_time = Local::now().naive_local() + chrono::Duration::days(7);
+            sqlx::query!(
+                r#"
+                UPDATE items
+                SET available = $1, should_drop_at = $2
+                WHERE id = $3
+                "#,
+                available,
+                expiration_time,
+                id
+            )
+            .execute(&self.pool)
+            .await?;
+        }
         Ok(())
     }
 
@@ -331,6 +363,49 @@ impl DatabaseAccessor {
         )
         .execute(&self.pool)
         .await?;
+        Ok(())
+    }
+
+    #[instrument(skip(self, fa))]
+    pub async fn refresh_db(&self, fa: FileAccessor) -> anyhow::Result<()> {
+        tracing::info!("Refreshing database...");
+        let mut transaction = self.pool.begin().await?;
+        let now = Local::now().naive_local();
+        // 标记失效的项目
+        sqlx::query!(
+            r#"
+            UPDATE items
+            SET
+              available = 0,
+              should_drop_at = datetime(?, '+7 days')
+            WHERE
+              available = 1 AND (
+                expires_at <= datetime(?)
+                OR (max_visits IS NOT NULL AND visits >= max_visits)
+              )
+          "#,
+            now,
+            now
+        )
+        .execute(&mut *transaction)
+        .await?;
+
+        let result = sqlx::query!(
+            r#"
+            DELETE FROM items
+            WHERE
+              available = 0 AND should_drop_at <= datetime(?)
+            RETURNING data;
+            "#,
+            now
+        )
+        .fetch_all(&mut *transaction)
+        .await?;
+
+        transaction.commit().await?;
+        for data in result {
+            fa.remove_file(&data.data).await?;
+        }
         Ok(())
     }
 }

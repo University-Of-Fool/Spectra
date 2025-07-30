@@ -127,7 +127,7 @@ pub async fn get_code(
     }
 }
 
-//#[instrument(skip(state, jar))]
+#[instrument(skip(state, jar))]
 pub async fn create_item(
     ApiPath(path): ApiPath<String>,
     State(state): State<AppState>,
@@ -168,6 +168,13 @@ pub async fn create_item(
     } else {
         false
     };
+
+    if turnstile && path.as_str() != "__RANDOM__" {
+        fail!(
+            403,
+            "Guest users are not allowed to create items at customized paths"
+        );
+    }
 
     let user = try_get_user(&state, &jar).await;
     if user.is_none() && !turnstile {
@@ -228,6 +235,21 @@ pub async fn create_item(
         format!("guest-{}", Uuid::now_v7().as_hyphenated().to_string())
     } else {
         user_id_clone.unwrap()
+    };
+
+    let path = if path.as_str() != "__RANDOM__" {
+        path
+    } else {
+        loop {
+            let random_path = crate::util::random_string(
+                4,
+                Some("abcdefghijlkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ124567890"),
+            );
+            if state.database_accessor.item_exists(&random_path).await? {
+                continue;
+            }
+            break random_path;
+        }
     };
 
     let item = state

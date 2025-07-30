@@ -1,6 +1,6 @@
-use axum::extract::DefaultBodyLimit;
-use axum::routing::{delete, get, post, put};
 use axum::Router;
+use axum::extract::{DefaultBodyLimit, State};
+use axum::routing::{delete, get, post, put};
 
 mod item;
 mod misc;
@@ -11,10 +11,10 @@ mod user;
 use crate::types::AppState;
 
 pub fn make_router() -> Router<AppState> {
-    Router::new()
+    let mut r = Router::new()
         .route("/login", post(user::login))
         .route("/user-info", get(user::user_info))
-        .route("/code_content/{path}", get(item::get_code))
+        .route("/code-content/{path}", get(item::get_code))
         .route("/item/{path}", post(item::create_item))
         .route("/item/{path}", delete(item::remove_item))
         .route("/item/{path}", get(item::get_item))
@@ -28,5 +28,20 @@ pub fn make_router() -> Router<AppState> {
         .route("/users", get(user::get_users))
         .route("/user/{id}", delete(user::remove_user))
         .route("/user/{id}", get(user::get_user))
-        .route("/about", get(misc::get_information))
+        .route("/about", get(misc::get_information));
+
+    #[cfg(debug_assertions)]
+    {
+        r = r.route("/db-refresh", get(trigger_db_refresh));
+    }
+
+    r
+}
+#[cfg(debug_assertions)]
+async fn trigger_db_refresh(State(state): State<AppState>) {
+    state
+        .database_accessor
+        .refresh_db(state.file_accessor.clone())
+        .await
+        .unwrap();
 }
