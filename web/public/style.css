@@ -1,0 +1,41 @@
+@import "tailwindcss";
+@import "material-symbols/outlined.css";
+
+.card {
+    @apply bg-white shadow-lg border-1 border-neutral-200 rounded-lg;
+}
+
+.card-clickable {
+    @apply cursor-pointer hover:bg-neutral-100 transition-colors;
+}
+
+.dashboard-operation-large-icon {
+    @apply text-[128px];
+    font-variation-settings:
+        "FILL" 0,
+        "wght" 400,
+        "GRAD" 0,
+        "opsz" 24;
+}
+
+.button-icon {
+    @apply w-8 h-8 rounded-lg flex items-center justify-center bg-neutral-100 hover:bg-neutral-200 text-neutral-900 border-0 px-2 transition-colors;
+}
+
+#dark-mode-icon {
+    font-variation-settings:
+        "FILL" 0,
+        "wght" 300,
+        "GRAD" 0,
+        "opsz" 12;
+}
+
+button {
+    @apply cursor-pointer text-sm bg-neutral-950 text-neutral-100 border-1 border-neutral-200 rounded-md px-6 py-2;
+}
+
+input[type="password"] {
+    @apply border-2 border-neutral-200 rounded-md p-1;
+}
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
