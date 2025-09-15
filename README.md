@@ -7,7 +7,7 @@ Spectrum of online tools
 Before continuing, make sure you have these installed:
 
 - Rust toolchain
-- Node.js & pnpm
+- Node.js & pnpm (it would be better if your pnpm is installed using npm)
 - Windows Terminal
 
 Then create a `.env` under the root directory.
@@ -32,4 +32,21 @@ Finally run the command below to run the project under development mode:
 
 ```bash
 pnpm dev
+```
+
+### Note for building on Windows
+
+Cargo might fail to locate the `cmake` binary on Windows.
+
+You can find its path by running the command below in "Developer PowerShell for VS 20xx":
+
+```powershell
+where.exe cmake
+```
+
+Then add the path to `spectra/.cargo/config.toml` like below:
+
+```toml
+[env]
+CMAKE = "C:\\path\\to\\cmake.exe"
 ```

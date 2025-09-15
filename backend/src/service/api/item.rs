@@ -269,6 +269,7 @@ pub async fn create_item(
         .await?;
 
     if turnstile && body.item_type == ItemType::File {
+        info!("Guest user {} created item at path {}", id, path);
         let token = crate::util::random_password();
         let _ = state
             .user_tokens
@@ -277,6 +278,7 @@ pub async fn create_item(
             Cookie::build(("token", token.clone()))
                 .max_age(Duration::new(600, 0))
                 .http_only(true)
+                .path("/")
                 .build(),
         );
         success!(ItemSimplified::from(item), jar)
@@ -312,6 +314,7 @@ pub async fn upload_file(
     let token = if let Some(x) = jar.get("token") {
         x.value().to_string()
     } else {
+        info!("No token found in cookie");
         fail!(401, "Unauthorized");
     };
 

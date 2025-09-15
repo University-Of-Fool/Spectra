@@ -8,6 +8,7 @@ use std::net::{IpAddr, SocketAddr};
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::Arc;
+use axum::extract::DefaultBodyLimit;
 use tokio_cron_scheduler::{Job, JobScheduler};
 use tower_http::compression::CompressionLayer;
 use tower_http::cors::CorsLayer;
@@ -430,6 +431,7 @@ async fn main() {
         .layer(CompressionLayer::new())
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())
+        .layer(DefaultBodyLimit::max(1024 * 1024 * 1024 * 1024))
         .with_state(state);
 
     // 绑定服务器地址

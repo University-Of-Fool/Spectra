@@ -40,6 +40,7 @@ pub async fn login(
                 Cookie::build(("token", token.clone()))
                     .max_age(Duration::new(600, 0))
                     .http_only(true)
+                    .path("/")
                     .build(),
             );
             success!(ApiUser::from(user), jar);

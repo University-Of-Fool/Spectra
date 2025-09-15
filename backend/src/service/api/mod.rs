@@ -21,7 +21,7 @@ pub fn make_router() -> Router<AppState> {
         .route(
             "/file/{path}",
             // 对于文件上传允许最大 1GB 的请求体尺寸
-            put(item::upload_file).layer(DefaultBodyLimit::max(1024 * 1024 * 1024 * 1024)),
+            post(item::upload_file).layer(DefaultBodyLimit::max(1024 * 1024 * 1024 * 1024)),
         )
         .route("/items", get(item::get_user_items))
         .route("/items/all", get(item::get_all_items))
