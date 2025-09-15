@@ -15,8 +15,6 @@
         "@preact/preset-vite": "^2.10.2",
         "@tailwindcss/postcss": "^4.1.11",
         "@tailwindcss/vite": "^4.1.11",
-        "@types/react": "^19.1.9",
-        "@types/react-dom": "^19.1.7",
         "material-symbols": "^0.33.0",
         "tailwindcss": "^4.1.11",
         "typescript": "~5.8.3",
@@ -29,6 +27,8 @@
         "highlight.js": "^11.11.1",
         "lucide-react": "^0.544.0",
         "preact": "^10.27.0",
+        "react": "npm:@preact/compat",
+        "react-dom": "npm:@preact/compat",
         "tailwind-merge": "^3.3.1",
         "tailwindcss-animate": "^1.0.7"
     }
