@@ -17,7 +17,7 @@ export function Dashboard() {
     return <div>
         <TopBar />
 
-        {activeTab === "operation" && <AreaOperation />}
+        {activeTab === "operation" && <AreaOperation handleTabClick={handleTabClick} />}
         {activeTab === "fileShare" && <AreaFileShare />}
         {activeTab === "pasteBin" && <AreaPasteBin />}
         {activeTab === "shortUrl" && <AreaShortUrl />}
