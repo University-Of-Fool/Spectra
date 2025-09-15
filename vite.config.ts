@@ -1,9 +1,9 @@
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import preact from "@preact/preset-vite";
-import tailwindcss from "@tailwindcss/vite";
+import { dirname, resolve } from "node:path"
+import { fileURLToPath } from "node:url"
+import preact from "@preact/preset-vite"
+import tailwindcss from "@tailwindcss/vite"
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 /** @type {import('vite').UserConfig} */
 export default {
@@ -25,4 +25,9 @@ export default {
             port: 5174,
         },
     },
-};
+    resolve: {
+        alias: {
+            "@": resolve(__dirname, "./src"),
+        },
+    },
+}

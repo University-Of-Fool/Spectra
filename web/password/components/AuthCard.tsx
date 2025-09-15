@@ -1,3 +1,6 @@
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+
 export function AuthCard() {
     return <div className={"h-full flex items-center justify-center"}>
         <div className={"card p-8 flex flex-col items-start gap-4"}>
@@ -5,10 +8,10 @@ export function AuthCard() {
                 该内容需要验证密码。
             </div>
             <div className={"flex gap-2"}>
-                <input type={"password"} className={"w-60 mr-1"} />
-                <button type={"submit"}>
+                <Input type={"password"} className={"w-60 mr-1"} />
+                <Button type={"submit"}>
                     验证
-                </button>
+                </Button>
             </div>
         </div>
     </div>

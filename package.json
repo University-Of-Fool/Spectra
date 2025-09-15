@@ -23,7 +23,13 @@
         "vite": "^7.0.0"
     },
     "dependencies": {
+        "@radix-ui/react-slot": "^1.2.3",
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
         "highlight.js": "^11.11.1",
-        "preact": "^10.27.0"
+        "lucide-react": "^0.544.0",
+        "preact": "^10.27.0",
+        "tailwind-merge": "^3.3.1",
+        "tailwindcss-animate": "^1.0.7"
     }
 }
