@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@source "../../src";
+@source "../";
+@source not "../dist";
+
 @plugin "tailwindcss-animate";
 @import "material-symbols/outlined.css";
 /* @import "tw-animate-css"; */
