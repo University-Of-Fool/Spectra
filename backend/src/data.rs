@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use chrono::Local;
 use sqlx::types::chrono::NaiveDateTime;
-use sqlx::{sqlite::SqlitePoolOptions, Pool, Sqlite};
+use sqlx::{Pool, Sqlite, sqlite::SqlitePoolOptions};
 use std::path::PathBuf;
 use tracing::{debug, instrument};
 use uuid::Uuid;
@@ -205,6 +205,19 @@ impl DatabaseAccessor {
         Ok(items)
     }
 
+    pub async fn get_user_img_items(&self, user_id: &str) -> anyhow::Result<Vec<Item>> {
+        let items = sqlx::query_as!(
+            Item,
+            r#"
+            SELECT * FROM items
+            WHERE creator = $1 AND img = TRUE
+            "#,
+            user_id
+            ).fetch_all(&self.pool)
+            .await?;
+        Ok(items)
+    }
+
     pub async fn get_all_items(&self) -> anyhow::Result<Vec<Item>> {
         let items = sqlx::query_as!(
             Item,
@@ -283,6 +296,21 @@ impl DatabaseAccessor {
             WHERE id = $2
             "#,
             data,
+            id
+        )
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn update_item_img(&self, id: &str, img: bool) -> anyhow::Result<()> {
+        sqlx::query!(
+            r#"
+            UPDATE items
+            SET img = $1
+            WHERE id = $2
+            "#,
+            img,
             id
         )
         .execute(&self.pool)

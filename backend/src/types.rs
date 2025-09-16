@@ -180,6 +180,7 @@ pub struct Item {
     pub creator: Option<String>,
     pub available: bool,
     pub should_drop_at: Option<NaiveDateTime>,
+    pub img: bool,
 }
 
 // 访问日志结构

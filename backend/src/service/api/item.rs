@@ -64,7 +64,7 @@ pub async fn get_item(
             let password_hash = format!("{:x}", Sha256::digest(password.as_bytes()));
             let match_result = &password_hash == item.password_hash.as_ref().unwrap();
             // 记录密码认证结果
-            tracing::debug!(
+            debug!(
                 "Password authentication result for item {}: {}",
                 item_path,
                 match_result
@@ -74,15 +74,14 @@ pub async fn get_item(
     } else {
         false
     };
-    if user_auth || password_auth {
-        tracing::info!("Authentication successful for item {}", item_path);
+    if user_auth || password_auth { info!("Authentication successful for item {}", item_path);
         if detailed {
             success!(ApiItemFull::from(item_clone));
         } else {
             success!(ItemSimplified::from(item_clone));
         }
     } else {
-        tracing::info!("Authentication failed for item {}", item_path);
+        info!("Authentication failed for item {}", item_path);
         fail!(401, "Authentication required");
     }
 }
@@ -243,7 +242,7 @@ pub async fn create_item(
         loop {
             let random_path = crate::util::random_string(
                 4,
-                Some("abcdefghijlkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ124567890"),
+                Some("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ124567890"),
             );
             if state.database_accessor.item_exists(&random_path).await? {
                 continue;
@@ -318,7 +317,7 @@ pub async fn upload_file(
         fail!(401, "Unauthorized");
     };
 
-    // 显式限制 user_token（which 是从哈希表里取出的）的作用域以避免产生互锁
+    // 显式限制 user_token（which 是从哈希表里取出的）的作用域以避免产生死锁
     let token_temporary = {
         let user_token = state.user_tokens.get(&token);
         if user_token.is_none() {
@@ -370,7 +369,9 @@ pub async fn upload_file(
     let data = Box::new(field.unwrap());
     let filename_id = Uuid::now_v7().as_hyphenated().to_string();
     let fa_clone = state.file_accessor.clone();
-    let ext = infer::get(&data).map(|x| x.extension()).unwrap_or("bin");
+    let (ext, img) = infer::get(&data)
+        .map(|x| (x.extension(), x.mime_type().starts_with("image")))
+        .unwrap_or(("bin", false));
     let filename = format!("{}.{}", filename_id, ext);
     let filename_clone = filename.clone();
     info!("File uploaded successfully to item at path: {}", path);
@@ -378,6 +379,10 @@ pub async fn upload_file(
     state
         .database_accessor
         .update_item_data(&item.id, &filename)
+        .await?;
+    state
+        .database_accessor
+        .update_item_img(&item.id, img)
         .await?;
 
     if !token_temporary {
@@ -404,7 +409,7 @@ pub async fn remove_item(
 
     let user = try_get_user(&state, &jar).await;
     if user.is_none() {
-        fail!(401, "Unauthorized");
+        fail!(401, "Invalid token");
     }
     let user = user.unwrap();
     info!(
@@ -433,31 +438,47 @@ pub async fn get_user_items(
     jar: PrivateCookieJar,
     ApiQuery(params): ApiQuery<HashMap<String, String>>,
 ) -> ApiResult {
-    let token = jar.get("token").map(|c| c.value().to_string());
-    if token.is_none() {
-        fail!(401, "Unauthorized");
-    }
-    let token = token.unwrap();
-    let user = state.user_tokens.get(&token);
+    let user=try_get_user(&state, &jar).await;
     if user.is_none() {
-        fail!(401, "Unauthorized");
+        fail!(401, "Invalid or missing token");
     }
-    let user_token = user.unwrap();
-    // 有对应的 Token 说明这个用户确实存在
-    let user = state
-        .database_accessor
-        .get_user_by_id(&user_token.user_id)
-        .await?
-        .ok_or_else(|| ApiError::new(401, "User not found".to_string()))?; // 转为 ApiError
+    let user=user.unwrap();
     if params
         .get("user")
         .is_some_and(|x| &user.id != x && !user.descriptor.contains(UserPermission::Manage))
     {
-        fail!(403, "Forbidden");
+        fail!(403, "Insufficient permission");
     }
     let items = state
         .database_accessor
         .get_user_items(params.get("user").unwrap_or(&user.id))
+        .await?
+        .into_iter()
+        .map(|x| ItemSimplified::from(x))
+        .collect::<Vec<_>>();
+    success!(items)
+}
+
+#[instrument(skip(state, jar))]
+pub async fn get_user_img_items(
+    State(state): State<AppState>,
+    jar: PrivateCookieJar,
+    ApiQuery(params): ApiQuery<HashMap<String, String>>,
+) -> ApiResult {
+    let user=try_get_user(&state, &jar).await;
+    if user.is_none() {
+        fail!(401, "Invalid or missing token");
+    }
+    let user=user.unwrap();
+    if params
+        .get("user")
+        .is_some_and(|x| &user.id != x && !user.descriptor.contains(UserPermission::Manage))
+    {
+        fail!(403, "Insufficient permission");
+    }
+    let items = state
+        .database_accessor
+        .get_user_img_items(params.get("user").unwrap_or(&user.id))
         .await?
         .into_iter()
         .map(|x| ItemSimplified::from(x))
@@ -472,7 +493,7 @@ pub async fn get_all_items(State(state): State<AppState>, jar: PrivateCookieJar)
         fail!(401, "Unauthorized");
     }
     if !user.unwrap().descriptor.contains(UserPermission::Manage) {
-        fail!(403, "No sufficient permission");
+        fail!(403, "Insufficient permission");
     }
     let items = state
         .database_accessor

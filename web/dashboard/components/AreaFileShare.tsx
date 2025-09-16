@@ -221,7 +221,7 @@ export function AreaFileShare() {
                     {/* 文件选择区域 - 只在没有选择文件时显示 */}
                     {selectedFiles.length === 0 && (
                         <div
-                            className={`w-full h-40 mt-4 border-2 flex items-center justify-center transition-colors ${
+                            className={`w-full h-40 mt-4 border-2 flex items-center justify-center transition-colors rounded-md ${
                                 isDragging ? 'border-primary bg-primary/5' : 'border-accent hover:border-primary/50'
                             }`}
                             onClick={handleClickSelect}
@@ -289,6 +289,5 @@ export function AreaFileShare() {
                 </DialogContent>
             </Dialog>
         </div>
-
     )
 }
