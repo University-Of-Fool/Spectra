@@ -1,5 +1,5 @@
 use axum::Router;
-use axum::extract::{DefaultBodyLimit, State};
+use axum::extract::DefaultBodyLimit;
 use axum::routing::{delete, get, post};
 
 mod item;
@@ -11,6 +11,7 @@ mod user;
 use crate::types::AppState;
 
 pub fn make_router() -> Router<AppState> {
+    #[allow(unused_mut)]
     let mut r = Router::new()
         .route("/login", post(user::login))
         .route("/user-info", get(user::user_info))
@@ -38,6 +39,10 @@ pub fn make_router() -> Router<AppState> {
 
     r
 }
+
+#[cfg(debug_assertions)]
+use axum::extract::State;
+
 #[cfg(debug_assertions)]
 async fn trigger_db_refresh(State(state): State<AppState>) {
     state

@@ -21,7 +21,7 @@ use tracing::{debug, error, info, instrument};
 async fn to_frontend(
     next: Next,
     frontend_path: &str,
-    replace_patterns: Vec<(&str, String)>,
+    replace_pattern: Option<(&str, String)>,
 ) -> Response {
     let next_req = Request::builder()
         .method("GET")
@@ -39,8 +39,8 @@ async fn to_frontend(
             .to_vec(),
     )
     .unwrap();
-    for (pattern, replacement) in replace_patterns {
-        body = body.replace(&pattern, &replacement);
+    if let Some((pattern, replacement)) = replace_pattern {
+        body = body.replace(pattern, &replacement);
     }
     Response::builder()
         .status(200)
@@ -88,6 +88,7 @@ async fn log_access(
     }
     request
 }
+
 #[async_recursion::async_recursion]
 #[instrument(skip(state, request, next))]
 pub async fn main_service(
@@ -137,14 +138,14 @@ pub async fn main_service(
                     return to_frontend(
                         next,
                         "/password/",
-                        vec![(
+                        Some((
                             "\"{{{#JSON#}}}\"",
                             serde_json::to_string(&crate::types::PasswordInformation {
                                 error: false,
                                 path_name: item.short_path,
                             })
                             .unwrap_or("{}".to_string()),
-                        )],
+                        )),
                     )
                     .await;
                 } else if format!("{:x}", Sha256::digest(input_password.unwrap())) != password {
@@ -154,14 +155,14 @@ pub async fn main_service(
                     return to_frontend(
                         next,
                         "/password/",
-                        vec![(
+                        Some((
                             "\"{{{#JSON#}}}\"",
                             serde_json::to_string(&crate::types::PasswordInformation {
                                 error: true,
                                 path_name: item.short_path,
                             })
                             .unwrap_or("{}".to_string()),
-                        )],
+                        )),
                     )
                     .await;
                 }
@@ -185,16 +186,14 @@ pub async fn main_service(
                     to_frontend(
                         next,
                         "/code/",
-                        vec![
-                            ("\"{{{#CODE#}}}\"", code_content),
-                            (
-                                "\"{{{#JSON#}}}\"",
-                                serde_json::to_string(&crate::types::CodeInformation {
-                                    language: item.extra_data.unwrap_or("text".to_string()),
-                                })
-                                .unwrap_or("{}".to_string()),
-                            ),
-                        ],
+                        Some((
+                            "\"{{{#JSON#}}}\"",
+                            serde_json::to_string(&crate::types::CodeInformation {
+                                language: item.extra_data.unwrap_or("text".to_string()),
+                                content: code_content,
+                            })
+                            .unwrap_or("{}".to_string()),
+                        )),
                     )
                     .await
                 } else {
@@ -277,6 +276,21 @@ pub async fn main_service(
             }
         }
     } else {
+        debug!("Request to {} routed to frontend", request.uri().path());
+
+        // 防止直接访问一些不应该直接访问的前端路由
+        let forbidden_paths = vec!["code", "dashboard", "not_found", "password"];
+        let path = request.uri().path().trim_start_matches('/');
+        let path_segment = path.split('/').next().unwrap_or(""); // 
+        if forbidden_paths.contains(&path_segment) {
+            return resp_404(next).await;
+        }
+
+        if path.trim_start_matches("/") == "" {
+            // 转写请求到 /dashboard/
+            return to_frontend(next, "/dashboard/", None).await;
+        }
+
         // 既不是 API，也在数据库里不存在，于是将项目路由给前端
         next.run(request).await
     }

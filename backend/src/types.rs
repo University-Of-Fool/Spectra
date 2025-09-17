@@ -36,6 +36,7 @@ impl FromRef<AppState> for Key {
 #[derive(Serialize)]
 pub struct CodeInformation {
     pub language: String,
+    pub content: String,
 }
 
 // 给 Password 页面注入的信息

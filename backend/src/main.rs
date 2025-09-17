@@ -33,6 +33,9 @@ const DEFAULT_CONFIG_FILE: &str = include_str!("../assets/config_example.toml");
 #[tokio::main]
 async fn main() {
     // 解析命令行参数
+    // 因为 mut 是为了在 debug 模式下添加 Turnstile 相关参数
+    // 所以在 release 模式下会有未使用的 mut 警告
+    #[allow(unused_mut)]
     let mut cmd_builder = Command::new("Spectra")
         .version(crate_version!())
         .long_version(shadow::CLAP_LONG_VERSION)
@@ -57,17 +60,8 @@ async fn main() {
                 .required(false)
                 .default_value("127.0.0.1"),
         )
-        .arg(arg!(-v --verbose "Enable more detailed output"));
-    #[cfg(debug_assertions)]
-    {
-        cmd_builder = cmd_builder.arg(arg!(-d --debug "Enable debug output")).arg(
-            arg!(-T --turnstile <TOKEN> "Turnstile secret token")
-                .value_parser(value_parser!(String))
-                .required(false)
-                .default_value("1x0000000000000000000000000000000AA"),
-        );
-    }
-    cmd_builder = cmd_builder
+        .arg(arg!(-v --verbose "Enable more detailed output"))
+        .arg(arg!(-d --debug "Enable debug output"))
         .subcommand(
             Command::new("init")
                 .about("Write the default configuration file to the specified path")
@@ -82,6 +76,15 @@ async fn main() {
             Command::new("generate-cookie-key")
                 .about("Generate a random string appropriate to use as cookie key"),
         );
+    #[cfg(debug_assertions)]
+    {
+        cmd_builder = cmd_builder.arg(
+            arg!(-T --turnstile <TOKEN> "Turnstile secret token")
+                .value_parser(value_parser!(String))
+                .required(false)
+                .default_value("1x0000000000000000000000000000000AA"),
+        );
+    }
     let matches = cmd_builder.get_matches();
 
     let filter = std::env::var("RUST_LOG").unwrap_or(
