@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input"
 
-export function AreaShortUrl() {
+export function AreaShortUrl({ handleTabClick }: { handleTabClick: (tab: string) => void }) {
     return <div className={"flex flex-col items-center"}>
         <div className={"font-thin text-2xl mt-6 mb-12"}>
             短链接

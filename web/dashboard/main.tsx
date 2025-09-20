@@ -6,6 +6,7 @@ import { AreaFileShare } from "./components/AreaFileShare"
 import { AreaPasteBin } from "./components/AreaPasteBin"
 import { AreaShortUrl } from "./components/AreaShortUrl"
 import { useState } from "preact/hooks"
+import { TransitionTabs } from "./HeightTransition"
 
 const root = document.getElementById("app")!
 
@@ -17,10 +18,13 @@ export function Dashboard() {
     return <div>
         <TopBar />
 
-        {activeTab === "operation" && <AreaOperation handleTabClick={handleTabClick} />}
-        {activeTab === "fileShare" && <AreaFileShare />}
-        {activeTab === "pasteBin" && <AreaPasteBin />}
-        {activeTab === "shortUrl" && <AreaShortUrl />}
+        <TransitionTabs activeKey={activeTab} children={[
+            { key: "operation", node: <AreaOperation handleTabClick={handleTabClick} /> },
+            { key: "fileShare", node: <AreaFileShare handleTabClick={handleTabClick} /> },
+            { key: "pasteBin", node: <AreaPasteBin handleTabClick={handleTabClick} /> },
+            { key: "shortUrl", node: <AreaShortUrl handleTabClick={handleTabClick} /> },
+        ]} />
+
 
         <div className={"flex justify-center"}>
             <div className={"w-100 mt-20 mb-14 border-t-1 border-neutral-200"}></div>
