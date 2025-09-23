@@ -7,14 +7,31 @@ import { AreaPasteBin } from "./components/AreaPasteBin"
 import { AreaShortUrl } from "./components/AreaShortUrl"
 import { useState } from "preact/hooks"
 import { TransitionTabs } from "./HeightTransition"
+import { useEffect } from "react"
 
 const root = document.getElementById("app")!
 
 export function Dashboard() {
-    const [activeTab, setActiveTab] = useState("pasteBin")
+
+    const [activeTab, setActiveTab] = useState("operation")
     const handleTabClick = (tab: string) => {
         setActiveTab(tab)
     }
+
+    // 拖拽文件到页面上时，自动切换到文件快传tab
+    useEffect(() => {
+        const handleDragOver = (e: DragEvent) => {
+            e.preventDefault()
+            setActiveTab("fileShare")
+        }
+
+        window.addEventListener("dragover", handleDragOver)
+
+        return () => {
+            window.removeEventListener("dragover", handleDragOver)
+        }
+    }, [])
+
     return <div>
         <TopBar />
 

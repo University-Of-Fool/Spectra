@@ -250,7 +250,13 @@ export function AreaFileShare({ handleTabClick }: { handleTabClick: (tab: string
                         <div className="mb-2 text-sm">
                             访问人数限制
                         </div>
-                        <Input value={maxvisit} onChange={e => setMaxvisit(Number(e.currentTarget.value) || 0)} type={"number"} min={0} placeholder={"无限制"} />
+                        <Input
+                            type="number"
+                            min={0}
+                            value={maxvisit || ""}
+                            onChange={e => setMaxvisit(Number(e.currentTarget.value) || 0)}
+                            placeholder="无限制"
+                        />
                     </div>
                 </div>
 

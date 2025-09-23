@@ -1,20 +1,101 @@
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState } from "react"
 
 export function AreaShortUrl({ handleTabClick }: { handleTabClick: (tab: string) => void }) {
-    return <div className={"flex flex-col items-center"}>
-        <div className={"font-thin text-2xl mt-6 mb-12"}>
-            短链接
-        </div>
-        <div className={"flex gap-2"}>
-            <div>
-                https://s.akyuu.cn/
+    const [path, setPath] = useState("")
+    const [random, setRandom] = useState(true)
+    const [target, setTarget] = useState("")
+    const [expires, setExpires] = useState("604800")
+    const [maxvisit, setMaxvisit] = useState(0)
+    const [password, setPassword] = useState("")
+
+    return (
+        <div className={"flex flex-col items-center"}>
+            <div className="font-thin text-2xl mt-6 mb-12">
+                短链接
             </div>
-            <Input>
 
-            </Input>
-        </div>
-        <div className={"flex gap-8"}>
+            <div className="flex gap-2 items-center">
+                <div className="opacity-50">
+                    https://s.akyuu.cn/
+                </div>
+                <Input disabled={random} value={random ? "[随机]" : path} onChange={e => setPath(e.currentTarget.value)} />
+                <div className="flex items-center gap-2 ml-2">
+                    <Checkbox
+                        checked={random}
+                        onCheckedChange={checked => setRandom(!!checked)}
+                        id="terms"
+                    />
+                    <Label className="text-nowrap" htmlFor="terms">随机生成</Label>
+                </div>
+            </div>
 
+            <div className="w-150 mt-4">
+
+                <div className="mt-4">
+                    <div className="mb-2 text-sm">目标链接</div>
+                    <Input value={target} onChange={e => setTarget(e.currentTarget.value)} />
+                </div>
+
+                <div className="flex items-center justify-center mt-4 gap-4">
+                    <div className="flex-1">
+                        <div className="mb-2 text-sm">有效时长</div>
+                        <Select value={expires} onValueChange={setExpires}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="有效时长" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup>
+                                    <SelectItem value="3600">1 小时</SelectItem>
+                                    <SelectItem value="28800">8 小时</SelectItem>
+                                    <SelectItem value="86400">1 天</SelectItem>
+                                    <SelectItem value="604800">7 天</SelectItem>
+                                    <SelectItem value="1209600">14 天</SelectItem>
+                                    <SelectItem value="permanent">永久</SelectItem>
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="flex-1">
+                        <div className="mb-2 text-sm">访问人数限制</div>
+                        <Input
+                            type="number"
+                            min={0}
+                            value={maxvisit || ""}
+                            onChange={e => setMaxvisit(Number(e.currentTarget.value) || 0)}
+                            placeholder="无限制"
+                        />
+                    </div>
+                </div>
+
+                <div className="mt-4">
+                    <div className="mb-2 text-sm">
+                        密码
+                    </div>
+                    <Input value={password} onChange={e => setPassword(e.currentTarget.value)} placeholder={"无密码"} />
+                </div>
+
+                <div className="flex gap-4 mt-8">
+                    <Button
+                        className="flex-1"
+                        variant="outline"
+                        onClick={() => handleTabClick("operation")}
+                    >
+                        取消
+                    </Button>
+                    <Button
+                        className="flex-5"
+                        onClick={() => alert("FIXME")}
+                        disabled={target === ""}
+                    >
+                        上传
+                    </Button>
+                </div>
+            </div>
         </div>
-    </div>
+    )
 }

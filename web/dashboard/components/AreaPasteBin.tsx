@@ -14,6 +14,7 @@ export function AreaPasteBin({ handleTabClick }: { handleTabClick: (tab: string)
     const [content, setContent] = useState("")
     const [expires, setExpires] = useState("604800")
     const [maxvisit, setMaxvisit] = useState(0)
+    const [password, setPassword] = useState("")
 
     return (
         <div className="flex flex-col items-center">
@@ -39,7 +40,7 @@ export function AreaPasteBin({ handleTabClick }: { handleTabClick: (tab: string)
 
             <div className="w-150 mt-4">
 
-                <div className="flex gap-4">
+                <div className="flex gap-4 mt-4">
                     <div className="flex-3">
                         <div className="mb-2 text-sm">标题</div>
                         <Input placeholder="无标题" value={title} onChange={e => setTitle(e.currentTarget.value)} />
@@ -109,6 +110,13 @@ export function AreaPasteBin({ handleTabClick }: { handleTabClick: (tab: string)
                             placeholder="无限制"
                         />
                     </div>
+                </div>
+
+                <div className="mt-4">
+                    <div className="mb-2 text-sm">
+                        密码
+                    </div>
+                    <Input value={password} onChange={e => setPassword(e.currentTarget.value)} placeholder={"无密码"} />
                 </div>
 
                 <div className="flex gap-4 mt-8">
