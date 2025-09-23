@@ -1,5 +1,7 @@
 use crate::service::api::result::ApiResponse;
 use crate::shadow;
+use crate::types::AppState;
+use axum::extract::State;
 use serde::Serialize;
 use serde_json::Value;
 
@@ -29,4 +31,17 @@ pub async fn get_information() -> axum::Json<ApiResponse<About>> {
         debug: shadow_rs::is_debug(),
         version: shadow::PKG_VERSION.to_string(),
     }))
+}
+
+#[derive(Serialize)]
+pub struct Config {
+    turnstile_enabled: bool,
+    turnstile_site_key: String,
+}
+pub async fn get_config(State(state): State<AppState>) -> axum::Json<ApiResponse<Config>> {
+    let config = Config {
+        turnstile_enabled: state.turnstile.enabled,
+        turnstile_site_key: state.turnstile.site_key.clone(),
+    };
+    ApiResponse::from(config).into()
 }

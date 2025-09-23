@@ -14,6 +14,8 @@ use http_body_util::BodyExt;
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use std::net::SocketAddr;
+use axum::http::{header,  StatusCode};
+use axum::response::IntoResponse;
 use tokio::io::AsyncSeekExt;
 use tokio_util::io::ReaderStream;
 use tracing::{debug, error, info, instrument};
@@ -58,7 +60,7 @@ async fn resp_404(next: Next) -> Response {
                 .unwrap(),
         )
         .await;
-    *resp.status_mut() = axum::http::status::StatusCode::NOT_FOUND;
+    *resp.status_mut() = StatusCode::NOT_FOUND;
     resp
 }
 
@@ -278,17 +280,25 @@ pub async fn main_service(
     } else {
         debug!("Request to {} routed to frontend", request.uri().path());
 
-        // 防止直接访问一些不应该直接访问的前端路由
-        let forbidden_paths = vec!["code", "dashboard", "not_found", "password"];
         let path = request.uri().path().trim_start_matches('/');
-        let path_segment = path.split('/').next().unwrap_or(""); // 
-        if forbidden_paths.contains(&path_segment) {
-            return resp_404(next).await;
+
+        #[cfg(not(debug_assertions))]
+        {
+            // 防止直接访问一些不应该直接访问的前端路由
+            let forbidden_paths = vec!["code", "dashboard", "not_found", "password"];
+            let path_segment = path.split('/').next().unwrap_or(""); //
+            if forbidden_paths.contains(&path_segment) {
+                return resp_404(next).await;
+            }
         }
 
         if path.trim_start_matches("/") == "" {
-            // 转写请求到 /dashboard/
-            return to_frontend(next, "/dashboard/", None).await;
+            if !cfg!(debug_assertions){
+                // 对于生产环境直接转写请求到 /dashboard/
+                return to_frontend(next, "/dashboard/", None).await;
+            }
+            // 开发环境保留路径（因为如果直接转写会导致 Vite 无法解析路径）
+            return (StatusCode::FOUND, [(header::LOCATION, "/dashboard/".to_string())]).into_response();
         }
 
         // 既不是 API，也在数据库里不存在，于是将项目路由给前端
