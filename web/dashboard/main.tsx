@@ -11,7 +11,7 @@ import { TransitionTabs } from "./HeightTransition"
 const root = document.getElementById("app")!
 
 export function Dashboard() {
-    const [activeTab, setActiveTab] = useState("fileShare")
+    const [activeTab, setActiveTab] = useState("pasteBin")
     const handleTabClick = (tab: string) => {
         setActiveTab(tab)
     }

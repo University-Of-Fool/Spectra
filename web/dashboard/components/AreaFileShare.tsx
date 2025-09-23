@@ -1,7 +1,7 @@
-import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button.tsx"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
 import {
     Select,
     SelectContent,
@@ -10,27 +10,23 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { Progress } from "@/components/ui/progress"
-
-import { useEffect, useRef, useState } from 'react'
-
-import Turnstile, { useTurnstile } from "react-turnstile"
-import { Button } from "@/components/ui/button.tsx"
+import { Switch } from "@/components/ui/switch"
 import { X } from "lucide-react"
+import { useRef, useState } from 'react'
+import { useTurnstile } from "react-turnstile"
 
 export function AreaFileShare({ handleTabClick }: { handleTabClick: (tab: string) => void }) {
     const turnstile = useTurnstile()
     const turnstileToken = useRef("")
     const [progress, setProgress] = useState(0)
     const [finalUrl, setFinalUrl] = useState("")
-    const references = {
-        path: useRef(""),
-        random: useRef(true),
-        expires: useRef(""),
-        maxvisit: useRef(""),
-        password: useRef(""),
-        filename: useRef("")
-    }
+
+    const [path, setPath] = useState("")
+    const [random, setRandom] = useState(true)
+    const [expires, setExpires] = useState("604800")
+    const [maxvisit, setMaxvisit] = useState(0)
+    const [password, setPassword] = useState("")
+    const [imageHostingMode, setImageHostingMode] = useState(false)
 
     // 添加文件选择相关状态
     const [selectedFiles, setSelectedFiles] = useState<File[]>([])
@@ -95,12 +91,13 @@ export function AreaFileShare({ handleTabClick }: { handleTabClick: (tab: string
         let body = {
             item_type: "File",
             data: "none",
-            expires_at: references.expires.current === "permanent" ? undefined : (
-                new Date(Date.now() + parseInt(references.expires.current) * 1000).toISOString()
+            expires_at: expires === "permanent" ? undefined : (
+                new Date(Date.now() + parseInt(expires) * 1000).toISOString()
             ),
-            max_visit: references.maxvisit.current || undefined,
-            password: references.password.current || undefined,
-            extra_data: references.filename.current || undefined,
+            max_visit: maxvisit || undefined,
+            password: password || undefined,
+            extra_data: path || undefined,
+            // TODO: 图床模式特殊逻辑
         }
 
         let resp = await fetch("/api/item/__RANDOM__?turnstile-token=" + turnstileToken.current, {
@@ -140,17 +137,22 @@ export function AreaFileShare({ handleTabClick }: { handleTabClick: (tab: string
 
     return (
         <div className="flex flex-col items-center">
+
             <div className="font-thin text-2xl mt-6 mb-12">
                 文件快传
             </div>
+
             <div className="flex gap-2 items-center">
                 <div className="opacity-50">
                     https://s.akyuu.cn/
                 </div>
-                <Input onInput={e => references.path.current = e.data || ""} />
+                <Input disabled={random} value={random ? "[随机]" : path} onChange={e => setPath(e.currentTarget.value)} />
                 <div className="flex items-center gap-2 ml-2">
-                    <Checkbox onCheckedChange={checked => references.random.current = !!checked} id="terms" defaultChecked />
-                    {/* 上面事件处理函数的参数的类型：boolean|"indeterminate" */}
+                    <Checkbox
+                        checked={random}
+                        onCheckedChange={checked => setRandom(!!checked)}
+                        id="terms"
+                    />
                     <Label className="text-nowrap" htmlFor="terms">随机生成</Label>
                 </div>
             </div>
@@ -227,7 +229,7 @@ export function AreaFileShare({ handleTabClick }: { handleTabClick: (tab: string
                         <div className="mb-2 text-sm">
                             有效时长
                         </div>
-                        <Select defaultValue="604800" onValueChange={value => references.expires.current = value}>
+                        <Select value={expires} onValueChange={value => setExpires(value)}>
                             <SelectTrigger >
                                 <SelectValue placeholder="有效时长" />
                             </SelectTrigger>
@@ -248,7 +250,7 @@ export function AreaFileShare({ handleTabClick }: { handleTabClick: (tab: string
                         <div className="mb-2 text-sm">
                             访问人数限制
                         </div>
-                        <Input onInput={e => references.maxvisit.current = e.data || ""} type={"number"} min={0} placeholder={"无限制"} />
+                        <Input value={maxvisit} onChange={e => setMaxvisit(Number(e.currentTarget.value) || 0)} type={"number"} min={0} placeholder={"无限制"} />
                     </div>
                 </div>
 
@@ -256,7 +258,7 @@ export function AreaFileShare({ handleTabClick }: { handleTabClick: (tab: string
                     <div className="mb-2 text-sm">
                         密码
                     </div>
-                    <Input onInput={e => references.password.current = e.data || ""} placeholder={"无密码"} />
+                    <Input value={password} onChange={e => setPassword(e.currentTarget.value)} placeholder={"无密码"} />
                 </div>
 
                 <div className="mt-8 flex items-center border-1 border-neutral-200 rounded-md p-4 shadow-sm">
@@ -266,11 +268,11 @@ export function AreaFileShare({ handleTabClick }: { handleTabClick: (tab: string
                             {"开启后，上传图片生成的 URL 可以直接用作 HTML 中的 <img> 标签的 src 属性。"}
                         </div>
                     </div>
-                    <Switch className={"ml-auto"} id="airplane-mode" />
+                    <Switch checked={imageHostingMode} onCheckedChange={setImageHostingMode} className={"ml-auto"} />
                 </div>
 
 
-                <Label>{finalUrl}</Label>
+                {/* <Label>{finalUrl}</Label> */}
 
                 {/* <Turnstile
                     sitekey="1x00000000000000000000AA"
