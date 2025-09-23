@@ -22,7 +22,9 @@ export function Dashboard() {
     useEffect(() => {
         const handleDragOver = (e: DragEvent) => {
             e.preventDefault()
-            setActiveTab("fileShare")
+            if (e.dataTransfer?.types.includes("Files")) {
+                setActiveTab("fileShare")
+            }
         }
 
         window.addEventListener("dragover", handleDragOver)
@@ -31,6 +33,7 @@ export function Dashboard() {
             window.removeEventListener("dragover", handleDragOver)
         }
     }, [])
+
 
     return <div>
         <TopBar />
