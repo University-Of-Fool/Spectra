@@ -6,7 +6,7 @@ export function AreaOperation({ handleTabClick }: { handleTabClick: (tab: string
         <div className={"flex gap-8"}>
             <div className={"card card-clickable w-60 h-75 flex flex-col p-5 hover-float"} onClick={() => handleTabClick("fileShare")}>
                 <div className={"flex flex-1 items-center justify-center"}>
-                    <span className={"material-symbols-outlined dashboard-operation-large-icon opacity-100 text-[#F0D457]"}>drive_file_move</span>
+                    <span className={"material-symbols-outlined dashboard-operation-large-icon opacity-100 text-[#f7d063]"}>drive_file_move</span>
                 </div>
                 <div className={"mt-auto mb-2 text-lg font-semibold opacity-75"}>
                     文件快传
