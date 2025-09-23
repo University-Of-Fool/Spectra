@@ -45,9 +45,21 @@ pub async fn login(
             );
             success!(ApiUser::from(user), jar);
         }
-        fail!(403, "Invalid email or password");
+        fail!(401, "Invalid email or password");
     }
     fail!(400, "Invalid request")
+}
+
+pub async fn logout(State(state): State<AppState>, jar: PrivateCookieJar) -> ApiResult {
+    // 在服务器端的 hashmap 中移除 token（如果有）
+    let token = jar.get("token").map(|c| c.value().to_string());
+    if token.is_some() {
+        state.user_tokens.remove(&token.unwrap());
+    }
+
+    // 移除用户的 token cookie
+    let jar = jar.remove("token");
+    success!((), jar)
 }
 
 #[instrument(skip(state, jar))]
