@@ -179,7 +179,7 @@ export function TopBar() {
             </div>
             <div className={"w-12 h-12 rounded-full bg-black/10" + (context.value.loading ? " animate-pulse" : "")}>
                 <img alt={"avatar"}
-                     className={(context.value.loading || !context.value.isLoggedIn) ? " hidden" : "rounded-full"}
+                     className={(context.value.loading || !context.value.isLoggedIn || !context.value.avatar_url) ? " hidden" : "rounded-full"}
                      src={context.value.avatar_url}/>
             </div>
         </div>

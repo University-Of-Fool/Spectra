@@ -111,6 +111,7 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
             password: references.password.current || undefined,
             extra_data: references.no_filename.current ? undefined : selectedFiles[0].name,
         }
+        console.log(body);
 
         let path = `/api/item/${(references.random[0] || !context.value.isLoggedIn) ? "__RANDOM__" : references.path.current}`
         if (context.value.turnstile_enabled && !context.value.isLoggedIn) {
@@ -326,11 +327,13 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
                     <div>
                         <Label htmlFor="airplane-mode">图床模式</Label>
                         <div className={"mt-1.5 opacity-50 text-xs"}>
-                            {"开启后，上传图片生成的 URL 可以直接用作 HTML 中的 <img> 标签的 src 属性。"}
+                            开启后，上传图片生成的 URL 可以直接用作 HTML 中的 &lt;img&gt; 标签的 src 属性。
                         </div>
                     </div>
                     <Switch className={"ml-auto"} id="airplane-mode"
-                            onCheckedChange={checked => references.no_filename.current = !checked}/>
+                            onCheckedChange={checked =>
+                                references.no_filename.current = checked
+                            }/>
                 </div>
                 {
                     (!context.value.loading && !context.value.isLoggedIn)

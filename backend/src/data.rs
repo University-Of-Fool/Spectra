@@ -191,39 +191,62 @@ impl DatabaseAccessor {
         Ok(item)
     }
 
-    pub async fn get_user_items(&self, user_id: &str) -> anyhow::Result<Vec<Item>> {
+    pub async fn get_user_items(
+        &self,
+        user_id: &str,
+        offset: i64,
+        limit: i64,
+    ) -> anyhow::Result<Vec<Item>> {
         let items = sqlx::query_as!(
             Item,
             r#"
             SELECT * FROM items
             WHERE creator = $1
+            ORDER BY created_at DESC
+            LIMIT $2 OFFSET $3
             "#,
-            user_id
+            user_id,
+            limit,
+            offset
         )
         .fetch_all(&self.pool)
         .await?;
         Ok(items)
     }
 
-    pub async fn get_user_img_items(&self, user_id: &str) -> anyhow::Result<Vec<Item>> {
+    pub async fn get_user_img_items(
+        &self,
+        user_id: &str,
+        offset: i64,
+        limit: i64,
+    ) -> anyhow::Result<Vec<Item>> {
         let items = sqlx::query_as!(
             Item,
             r#"
             SELECT * FROM items
             WHERE creator = $1 AND img = TRUE
+            ORDER BY created_at DESC
+            LIMIT $2 OFFSET $3
             "#,
-            user_id
-            ).fetch_all(&self.pool)
-            .await?;
+            user_id,
+            limit,
+            offset
+        )
+        .fetch_all(&self.pool)
+        .await?;
         Ok(items)
     }
 
-    pub async fn get_all_items(&self) -> anyhow::Result<Vec<Item>> {
+    pub async fn get_all_items(&self, offset: i64, limit: i64) -> anyhow::Result<Vec<Item>> {
         let items = sqlx::query_as!(
             Item,
             r#"
             SELECT * FROM items
-            "#
+            ORDER BY created_at DESC
+            LIMIT $1 OFFSET $2
+            "#,
+            limit,
+            offset
         )
         .fetch_all(&self.pool)
         .await?;

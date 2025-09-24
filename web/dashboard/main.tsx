@@ -7,8 +7,7 @@ import {AreaPasteBin} from "./components/AreaPasteBin"
 import {AreaShortUrl} from "./components/AreaShortUrl"
 import {useState} from "preact/hooks"
 import {TransitionTabs} from "./HeightTransition"
-import {useEffect} from "react"
-import {createContext} from "react";
+import {useEffect, useContext, createContext} from "react"
 import "../public/style.css";
 
 const root = document.getElementById("app")!
@@ -80,7 +79,9 @@ export function Dashboard() {
                 <div className={"w-100 mt-20 mb-14 border-t-1 border-neutral-200"}></div>
             </div>
 
-            <AreaShared/>
+            {
+                (!value.loading && value.isLoggedIn) && <AreaShared/>
+            }
 
         </div>
     </AccountCtx.Provider>

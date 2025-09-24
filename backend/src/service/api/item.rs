@@ -66,15 +66,15 @@ pub async fn get_item(
             // 记录密码认证结果
             debug!(
                 "Password authentication result for item {}: {}",
-                item_path,
-                match_result
+                item_path, match_result
             );
             match_result
         })
     } else {
         false
     };
-    if user_auth || password_auth { info!("Authentication successful for item {}", item_path);
+    if user_auth || password_auth {
+        info!("Authentication successful for item {}", item_path);
         if detailed {
             success!(ApiItemFull::from(item_clone));
         } else {
@@ -438,20 +438,30 @@ pub async fn get_user_items(
     jar: PrivateCookieJar,
     ApiQuery(params): ApiQuery<HashMap<String, String>>,
 ) -> ApiResult {
-    let user=try_get_user(&state, &jar).await;
+    let user = try_get_user(&state, &jar).await;
     if user.is_none() {
         fail!(401, "Invalid or missing token");
     }
-    let user=user.unwrap();
+    let user = user.unwrap();
     if params
         .get("user")
         .is_some_and(|x| &user.id != x && !user.descriptor.contains(UserPermission::Manage))
     {
         fail!(403, "Insufficient permission");
     }
+    let offset = params
+        .get("offset")
+        .and_then(|x| x.parse::<i64>().ok())
+        .unwrap_or(0);
+    let limit = params
+        .get("limit")
+        .and_then(|x| x.parse::<i64>().ok())
+        .unwrap_or(50)
+        .min(100); // 设置最大限制为 100 个项目
+
     let items = state
         .database_accessor
-        .get_user_items(params.get("user").unwrap_or(&user.id))
+        .get_user_items(params.get("user").unwrap_or(&user.id), offset, limit)
         .await?
         .into_iter()
         .map(|x| ItemSimplified::from(x))
@@ -465,20 +475,30 @@ pub async fn get_user_img_items(
     jar: PrivateCookieJar,
     ApiQuery(params): ApiQuery<HashMap<String, String>>,
 ) -> ApiResult {
-    let user=try_get_user(&state, &jar).await;
+    let user = try_get_user(&state, &jar).await;
     if user.is_none() {
         fail!(401, "Invalid or missing token");
     }
-    let user=user.unwrap();
+    let user = user.unwrap();
     if params
         .get("user")
         .is_some_and(|x| &user.id != x && !user.descriptor.contains(UserPermission::Manage))
     {
         fail!(403, "Insufficient permission");
     }
+    let offset = params
+        .get("offset")
+        .and_then(|x| x.parse::<i64>().ok())
+        .unwrap_or(0);
+    let limit = params
+        .get("limit")
+        .and_then(|x| x.parse::<i64>().ok())
+        .unwrap_or(50)
+        .min(100); // 设置最大限制为 100 个项目
+
     let items = state
         .database_accessor
-        .get_user_img_items(params.get("user").unwrap_or(&user.id))
+        .get_user_img_items(params.get("user").unwrap_or(&user.id), offset, limit)
         .await?
         .into_iter()
         .map(|x| ItemSimplified::from(x))
@@ -487,7 +507,11 @@ pub async fn get_user_img_items(
 }
 
 #[instrument(skip(state, jar))]
-pub async fn get_all_items(State(state): State<AppState>, jar: PrivateCookieJar) -> ApiResult {
+pub async fn get_all_items(
+    State(state): State<AppState>,
+    jar: PrivateCookieJar,
+    ApiQuery(params): ApiQuery<HashMap<String, String>>,
+) -> ApiResult {
     let user = try_get_user(&state, &jar).await;
     if user.is_none() {
         fail!(401, "Unauthorized");
@@ -495,9 +519,19 @@ pub async fn get_all_items(State(state): State<AppState>, jar: PrivateCookieJar)
     if !user.unwrap().descriptor.contains(UserPermission::Manage) {
         fail!(403, "Insufficient permission");
     }
+    let offset = params
+        .get("offset")
+        .and_then(|x| x.parse::<i64>().ok())
+        .unwrap_or(0);
+    let limit = params
+        .get("limit")
+        .and_then(|x| x.parse::<i64>().ok())
+        .unwrap_or(50)
+        .min(100); // 设置最大限制为 100 个项目
+
     let items = state
         .database_accessor
-        .get_all_items()
+        .get_all_items(offset, limit)
         .await?
         .into_iter()
         .map(|x| ItemSimplified::from(x))
