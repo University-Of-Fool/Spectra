@@ -1,12 +1,13 @@
-import {render} from "preact"
-import {TopBar} from "./components/TopBar"
-import {AreaOperation} from "./components/AreaOperation"
-import {AreaShared} from "./components/AreaShared"
-import {AreaFileShare} from "./components/AreaFileShare"
-import {AreaPasteBin} from "./components/AreaPasteBin"
-import {AreaShortUrl} from "./components/AreaShortUrl"
-import {useState} from "preact/hooks"
-import {TransitionTabs} from "./HeightTransition"
+import { render } from "preact"
+import { TopBar } from "./components/TopBar"
+import { AreaOperation } from "./components/AreaOperation"
+import { AreaShared } from "./components/AreaShared"
+import { AreaFileShare } from "./components/AreaFileShare"
+import { AreaPasteBin } from "./components/AreaPasteBin"
+import { AreaShortUrl } from "./components/AreaShortUrl"
+import { useState } from "preact/hooks"
+import { TransitionTabs } from "./HeightTransition"
+import { useEffect } from "react"
 import {createContext} from "react";
 import "../public/style.css";
 
@@ -45,9 +46,30 @@ export function Dashboard() {
     const handleTabClick = (tab: string) => {
         setActiveTab(tab)
     }
+          const [activeTab, setActiveTab] = useState("operation")
+    const handleTabClick = (tab: string) => {
+        setActiveTab(tab)
+    }
+
+    // 拖拽文件到页面上时，自动切换到文件快传tab
+    useEffect(() => {
+        const handleDragOver = (e: DragEvent) => {
+            e.preventDefault()
+            if (e.dataTransfer?.types.includes("Files")) {
+                setActiveTab("fileShare")
+            }
+        }
+
+        window.addEventListener("dragover", handleDragOver)
+
+        return () => {
+            window.removeEventListener("dragover", handleDragOver)
+        }
+    }, [])
     return <AccountCtx.Provider value={{value, setValue}}>
         <div>
             <TopBar/>
+
 
             <TransitionTabs activeKey={activeTab} children={[
                 {key: "operation", node: <AreaOperation handleTabClick={handleTabClick}/>},

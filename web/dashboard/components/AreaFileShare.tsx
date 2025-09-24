@@ -2,6 +2,7 @@ import {Input} from "@/components/ui/input"
 import {Checkbox} from "@/components/ui/checkbox"
 import {Label} from "@/components/ui/label"
 import {Switch} from "@/components/ui/switch"
+
 import {
     Select,
     SelectContent,
@@ -10,6 +11,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+
 import {Progress} from "@/components/ui/progress"
 
 import {useRef, useState, useContext} from 'react'
@@ -19,6 +21,7 @@ import Turnstile, {useTurnstile} from "react-turnstile"
 import {Button} from "@/components/ui/button.tsx"
 import {X} from "lucide-react"
 
+
 export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) => void }) {
     useTurnstile()
 
@@ -26,6 +29,7 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
     const turnstileToken = useRef("")
     const [progress, setProgress] = useState(0)
     const [finalUrl, setFinalUrl] = useState("")
+
     const references = {
         path: useRef(""),
         random: useState(true),
@@ -34,7 +38,6 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
         password: useRef(""),
         no_filename: useRef(false),
     }
-
 
     // 添加文件选择相关状态
     const [selectedFiles, setSelectedFiles] = useState<File[]>([])
@@ -99,8 +102,8 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
         let body = {
             item_type: "File",
             data: "none",
-            expires_at: references.expires.current === "permanent" ? undefined : (
-                new Date(Date.now() + parseInt(references.expires.current) * 1000).toISOString()
+            expires_at: expires === "permanent" ? undefined : (
+                new Date(Date.now() + parseInt(expires) * 1000).toISOString()
             ),
             max_visit: references.maxvisit.current || undefined,
             password: references.password.current || undefined,
@@ -185,19 +188,23 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
 
     return (
         <div className="flex flex-col items-center">
+
             <div className="font-thin text-2xl mt-6 mb-12">
                 文件快传
             </div>
+
             <div className="flex gap-2 items-center">
                 <div className="opacity-50">
                     {window.location.origin}/
                 </div>
-                <Input onInput={e => references.path.current = (e.target as HTMLInputElement)?.value || ""}
+
+              <Input onInput={e => references.path.current = (e.target as HTMLInputElement)?.value || ""}
                        disabled={references.random[0]}/>
                 <div className="flex items-center gap-2 ml-2">
                     <Checkbox onCheckedChange={checked => references.random[1](!!checked)} id="terms"
                               defaultChecked/>
                     {/* 上面事件处理函数的参数的类型：boolean|"indeterminate" */}
+
                     <Label className="text-nowrap" htmlFor="terms">随机生成</Label>
                 </div>
             </div>
@@ -292,6 +299,7 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
                         </div>
                         <Input onInput={e => references.maxvisit.current = (e.target as HTMLInputElement).value || ""}
                                type={"number"} min={0} placeholder={"无限制"}/>
+
                     </div>
                 </div>
 
@@ -301,6 +309,7 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
                     </div>
                     <Input onInput={e => references.password.current = (e.target as HTMLInputElement).value || ""}
                            placeholder={"无密码"}/>
+
                 </div>
 
                 <div className="mt-8 flex items-center border-1 border-neutral-200 rounded-md p-4 shadow-sm">
@@ -333,6 +342,7 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
                         :
                         <></>
                 }
+
 
                 <div className={"flex gap-4 mt-8"}>
                     <Button className={"flex-1 cursor-pointer"} variant={"outline"}
