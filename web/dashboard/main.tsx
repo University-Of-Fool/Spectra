@@ -8,12 +8,45 @@ import { AreaShortUrl } from "./components/AreaShortUrl"
 import { useState } from "preact/hooks"
 import { TransitionTabs } from "./HeightTransition"
 import { useEffect } from "react"
+import {createContext} from "react";
+import "../public/style.css";
 
 const root = document.getElementById("app")!
 
-export function Dashboard() {
+export const AccountCtx = createContext({
+    value: {
+        isLoggedIn: false,
+        loading: true,
+        name: "",
+        avatar_url: "",
+        turnstile_enabled: false,
+        turnstile_site_key: ""
+    },
+    setValue: (_: {
+        isLoggedIn: boolean,
+        loading: boolean,
+        name: string,
+        avatar_url: string,
+        turnstile_enabled: boolean,
+        turnstile_site_key: string
+    }) => {
+    }
+})
 
-    const [activeTab, setActiveTab] = useState("operation")
+export function Dashboard() {
+    const [value, setValue] = useState({
+        isLoggedIn: false,
+        loading: true,
+        name: "",
+        avatar_url: "",
+        turnstile_enabled: false,
+        turnstile_site_key: ""
+    })
+    const [activeTab, setActiveTab] = useState("fileShare")
+    const handleTabClick = (tab: string) => {
+        setActiveTab(tab)
+    }
+          const [activeTab, setActiveTab] = useState("operation")
     const handleTabClick = (tab: string) => {
         setActiveTab(tab)
     }
@@ -33,26 +66,27 @@ export function Dashboard() {
             window.removeEventListener("dragover", handleDragOver)
         }
     }, [])
+    return <AccountCtx.Provider value={{value, setValue}}>
+        <div>
+            <TopBar/>
 
 
-    return <div>
-        <TopBar />
-
-        <TransitionTabs activeKey={activeTab} children={[
-            { key: "operation", node: <AreaOperation handleTabClick={handleTabClick} /> },
-            { key: "fileShare", node: <AreaFileShare handleTabClick={handleTabClick} /> },
-            { key: "pasteBin", node: <AreaPasteBin handleTabClick={handleTabClick} /> },
-            { key: "shortUrl", node: <AreaShortUrl handleTabClick={handleTabClick} /> },
-        ]} />
+            <TransitionTabs activeKey={activeTab} children={[
+                {key: "operation", node: <AreaOperation handleTabClick={handleTabClick}/>},
+                {key: "fileShare", node: <AreaFileShare handleTabClick={handleTabClick}/>},
+                {key: "pasteBin", node: <AreaPasteBin handleTabClick={handleTabClick}/>},
+                {key: "shortUrl", node: <AreaShortUrl handleTabClick={handleTabClick}/>},
+            ]}/>
 
 
-        <div className={"flex justify-center"}>
-            <div className={"w-100 mt-20 mb-14 border-t-1 border-neutral-200"}></div>
+            <div className={"flex justify-center"}>
+                <div className={"w-100 mt-20 mb-14 border-t-1 border-neutral-200"}></div>
+            </div>
+
+            <AreaShared/>
+
         </div>
-
-        <AreaShared />
-
-    </div>
+    </AccountCtx.Provider>
 }
 
-render(<Dashboard />, root)
+render(<Dashboard/>, root)

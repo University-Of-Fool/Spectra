@@ -14,6 +14,7 @@ pub fn make_router() -> Router<AppState> {
     #[allow(unused_mut)]
     let mut r = Router::new()
         .route("/login", post(user::login))
+        .route("/logout", post(user::logout))
         .route("/user-info", get(user::user_info))
         .route("/code-content/{path}", get(item::get_code))
         .route("/item/{path}", post(item::create_item))
