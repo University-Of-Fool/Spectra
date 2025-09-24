@@ -111,7 +111,9 @@ export function AreaShared() {
                 items.map(item =>
                     <tr key={item.id} className="border-b border-neutral-200 dark:border-neutral-700">
                         <td className="px-4 py-2">{item.item_type}</td>
-                        <td className="px-4 py-2 hover:underline cursor-pointer">{item.short_path}</td>
+                        <td className="px-4 py-2 hover:underline cursor-pointer"><a href={item.short_path}
+                                                                                    target="_blank">{item.short_path}</a>
+                        </td>
                         <td className="px-4 py-2">{item.available ? "有效" : "失效"}</td>
                         <td className="px-4 py-2">{item.visits}</td>
                         <td className="px-4 py-2">{new Date(item.created_at).toLocaleString()}</td>
