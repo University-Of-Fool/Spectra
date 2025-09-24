@@ -20,6 +20,8 @@ import {AccountCtx} from "../main.tsx";
 import Turnstile, {useTurnstile} from "react-turnstile"
 import {Button} from "@/components/ui/button.tsx"
 import {X} from "lucide-react"
+import {Toaster} from "@/components/ui/sonner.tsx";
+import {toast} from "sonner"
 
 
 export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) => void }) {
@@ -201,10 +203,18 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
                 <Input onInput={e => references.path.current = (e.target as HTMLInputElement)?.value || ""}
                        disabled={references.random[0]}/>
                 <div className="flex items-center gap-2 ml-2">
-                    <Checkbox onCheckedChange={checked => references.random[1](!!checked)} id="terms"
-                              defaultChecked/>
-                    {/* 上面事件处理函数的参数的类型：boolean|"indeterminate" */}
+                    <Checkbox checked={references.random[0]}
+                              onCheckedChange={checked => {
+                                  if (context.value.loading) return;
+                                  if ((!context.value.isLoggedIn && context.value.turnstile_enabled)) {
+                                      toast.error("未登录时只能使用随机路径");
+                                      return;
+                                  }
 
+                                  // checked: boolean|"indeterminate"
+                                  references.random[1](!!checked);
+                              }} id="terms"
+                              defaultChecked/>
                     <Label className="text-nowrap" htmlFor="terms">随机生成</Label>
                 </div>
             </div>
@@ -361,13 +371,16 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
                         <b>大功告成！</b>你可以用以下链接分享你的文件（点击复制）<br/>
                         <span className={"text-cyan-800 cursor-pointer"} onClick={() => {
                             navigator.clipboard.writeText(finalUrl)
+                                .then(() => {
+                                    toast.success("已复制到剪贴板")
+                                })
                         }}>{finalUrl}</span>
                     </div>
                 </div>
 
             </div>
 
-
+            <Toaster richColors/>
         </div>
     )
 }
