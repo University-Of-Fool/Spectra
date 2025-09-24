@@ -1,13 +1,13 @@
-import { render } from "preact"
-import { TopBar } from "./components/TopBar"
-import { AreaOperation } from "./components/AreaOperation"
-import { AreaShared } from "./components/AreaShared"
-import { AreaFileShare } from "./components/AreaFileShare"
-import { AreaPasteBin } from "./components/AreaPasteBin"
-import { AreaShortUrl } from "./components/AreaShortUrl"
-import { useState } from "preact/hooks"
-import { TransitionTabs } from "./HeightTransition"
-import { useEffect } from "react"
+import {render} from "preact"
+import {TopBar} from "./components/TopBar"
+import {AreaOperation} from "./components/AreaOperation"
+import {AreaShared} from "./components/AreaShared"
+import {AreaFileShare} from "./components/AreaFileShare"
+import {AreaPasteBin} from "./components/AreaPasteBin"
+import {AreaShortUrl} from "./components/AreaShortUrl"
+import {useState} from "preact/hooks"
+import {TransitionTabs} from "./HeightTransition"
+import {useEffect} from "react"
 import {createContext} from "react";
 import "../public/style.css";
 
@@ -42,11 +42,8 @@ export function Dashboard() {
         turnstile_enabled: false,
         turnstile_site_key: ""
     })
-    const [activeTab, setActiveTab] = useState("fileShare")
-    const handleTabClick = (tab: string) => {
-        setActiveTab(tab)
-    }
-          const [activeTab, setActiveTab] = useState("operation")
+
+    const [activeTab, setActiveTab] = useState("operation")
     const handleTabClick = (tab: string) => {
         setActiveTab(tab)
     }

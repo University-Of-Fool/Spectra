@@ -102,8 +102,8 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
         let body = {
             item_type: "File",
             data: "none",
-            expires_at: expires === "permanent" ? undefined : (
-                new Date(Date.now() + parseInt(expires) * 1000).toISOString()
+            expires_at: references.expires.current === "permanent" ? undefined : (
+                new Date(Date.now() + parseInt(references.expires.current) * 1000).toISOString()
             ),
             max_visit: references.maxvisit.current || undefined,
             password: references.password.current || undefined,
@@ -198,7 +198,7 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
                     {window.location.origin}/
                 </div>
 
-              <Input onInput={e => references.path.current = (e.target as HTMLInputElement)?.value || ""}
+                <Input onInput={e => references.path.current = (e.target as HTMLInputElement)?.value || ""}
                        disabled={references.random[0]}/>
                 <div className="flex items-center gap-2 ml-2">
                     <Checkbox onCheckedChange={checked => references.random[1](!!checked)} id="terms"
