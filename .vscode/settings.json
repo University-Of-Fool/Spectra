@@ -1,12 +1,12 @@
 {
     "[html]": {
-        "editor.defaultFormatter": "vscode.html-language-features"
+        "editor.defaultFormatter": "biomejs.biome"
     },
     "[javascript]": {
         "editor.defaultFormatter": "biomejs.biome"
     },
     "[typescript]": {
-        "editor.defaultFormatter": "vscode.typescript-language-features"
+        "editor.defaultFormatter": "biomejs.biome"
     },
     "[css]": {
         "editor.defaultFormatter": "biomejs.biome"
@@ -15,7 +15,7 @@
         "editor.defaultFormatter": "biomejs.biome"
     },
     "[typescriptreact]": {
-        "editor.defaultFormatter": "vscode.typescript-language-features"
+        "editor.defaultFormatter": "biomejs.biome"
     },
     "[json]": {
         "editor.defaultFormatter": "biomejs.biome"

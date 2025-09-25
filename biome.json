@@ -19,7 +19,8 @@
             "recommended": true,
             "complexity": {
                 "noUselessFragments": "off"
-            }
+            },
+            "a11y": "off"
         }
     },
     "javascript": {

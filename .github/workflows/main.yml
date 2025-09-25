@@ -1,0 +1,76 @@
+name: Format & Lint
+
+on:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Biome
+        run: pnpm install
+
+      - name: Run rustfmt
+        run: cargo fmt --all
+
+      - name: Run Biome format
+        run: pnpm biome format --write
+
+      - name: Commit & Push changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: auto format by rustfmt & biome"
+          push_options: "--force-with-lease"
+
+  lint:
+    runs-on: ubuntu-latest
+    needs: format
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Biome
+        run: pnpm install
+
+      - name: Run cargo check
+        run: cargo check --all --all-targets
+
+      - name: Run Biome lint
+        run: pnpm biome lint
