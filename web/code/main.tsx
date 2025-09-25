@@ -2,7 +2,7 @@
 
 import "../public/style.css"
 import "highlight.js/styles/github.css"
-import {render} from "preact"
+import { render } from "preact"
 import CodeBlock from "./components/CodeBlock.tsx"
 
 const backend_data = JSON.parse(
@@ -30,4 +30,4 @@ function Main() {
 
 const app = document.getElementById("app")
 if (!app) throw new Error("app not found")
-render(<Main/>, app)
+render(<Main />, app)
