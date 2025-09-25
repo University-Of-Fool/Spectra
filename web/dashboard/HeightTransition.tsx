@@ -7,15 +7,17 @@ interface TransitionTabsProps {
 
 export function TransitionTabs({ activeKey, children }: TransitionTabsProps) {
     const containerRef = useRef<HTMLDivElement>(null)
-    const [rendered, setRendered] = useState<{ key: string; node: preact.ComponentChildren }[]>([])
+    const [rendered, setRendered] = useState<
+        { key: string; node: preact.ComponentChildren }[]
+    >([])
 
     // 当 activeKey 改变时，把旧的和新的都放进来
     useEffect(() => {
-        const activeChild = children.find(c => c.key === activeKey)
+        const activeChild = children.find((c) => c.key === activeKey)
         if (!activeChild) return
-        setRendered(prev => {
+        setRendered((prev) => {
             // 如果已经包含新tab，就不用重复加
-            if (prev.some(c => c.key === activeKey)) return prev
+            if (prev.some((c) => c.key === activeKey)) return prev
             return [...prev, activeChild]
         })
     }, [activeKey, children])
@@ -44,7 +46,8 @@ export function TransitionTabs({ activeKey, children }: TransitionTabsProps) {
         // 动态调整容器高度
         const activeEl = el.querySelector<HTMLElement>("[data-active='true']")
         if (activeEl) {
-            const targetHeight = activeEl.scrollHeight + 8 /* 给shadow预留余量 */
+            const targetHeight =
+                activeEl.scrollHeight + 8 /* 给shadow预留余量 */
             el.style.height = targetHeight + "px"
         }
     }, [activeKey, rendered])
@@ -52,7 +55,7 @@ export function TransitionTabs({ activeKey, children }: TransitionTabsProps) {
     const handleAnimationEnd = (key: string) => {
         // 动画结束后移除旧tab
         if (key !== activeKey) {
-            setRendered(prev => prev.filter(c => c.key === activeKey))
+            setRendered((prev) => prev.filter((c) => c.key === activeKey))
         }
     }
 
@@ -62,7 +65,7 @@ export function TransitionTabs({ activeKey, children }: TransitionTabsProps) {
             style={{
                 height: "auto",
                 transition: "height 0.35s ease",
-                overflow: "hidden"
+                overflow: "hidden",
             }}
         >
             {rendered.map(({ key, node }) => (
@@ -76,7 +79,7 @@ export function TransitionTabs({ activeKey, children }: TransitionTabsProps) {
                                 ? "fadeIn 0.35s ease forwards"
                                 : "fadeOut 0.25s ease forwards",
                         position: key === activeKey ? "relative" : "absolute",
-                        width: "100%"
+                        width: "100%",
                     }}
                 >
                     {/* 内层包裹，避免shadow被裁掉 */}

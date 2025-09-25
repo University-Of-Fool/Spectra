@@ -2,11 +2,22 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useState } from "react"
 
-export function AreaPasteBin({ handleTabClick }: { handleTabClick: (tab: string) => void }) {
+export function AreaPasteBin({
+    handleTabClick,
+}: {
+    handleTabClick: (tab: string) => void
+}) {
     const [path, setPath] = useState("")
     const [random, setRandom] = useState(true)
     const [highlight, setHighlight] = useState("text")
@@ -18,32 +29,36 @@ export function AreaPasteBin({ handleTabClick }: { handleTabClick: (tab: string)
 
     return (
         <div className="flex flex-col items-center">
-
-            <div className="font-thin text-2xl mt-6 mb-12">
-                Pastebin
-            </div>
+            <div className="font-thin text-2xl mt-6 mb-12">Pastebin</div>
 
             <div className="flex gap-2 items-center">
-                <div className="opacity-50">
-                    https://s.akyuu.cn/
-                </div>
-                <Input disabled={random} value={random ? "[随机]" : path} onChange={e => setPath(e.currentTarget.value)} />
+                <div className="opacity-50">https://s.akyuu.cn/</div>
+                <Input
+                    disabled={random}
+                    value={random ? "[随机]" : path}
+                    onChange={(e) => setPath(e.currentTarget.value)}
+                />
                 <div className="flex items-center gap-2 ml-2">
                     <Checkbox
                         checked={random}
-                        onCheckedChange={checked => setRandom(!!checked)}
+                        onCheckedChange={(checked) => setRandom(!!checked)}
                         id="terms"
                     />
-                    <Label className="text-nowrap" htmlFor="terms">随机生成</Label>
+                    <Label className="text-nowrap" htmlFor="terms">
+                        随机生成
+                    </Label>
                 </div>
             </div>
 
             <div className="w-150 mt-4">
-
                 <div className="flex gap-4 mt-4">
                     <div className="flex-3">
                         <div className="mb-2 text-sm">标题</div>
-                        <Input placeholder="无标题" value={title} onChange={e => setTitle(e.currentTarget.value)} />
+                        <Input
+                            placeholder="无标题"
+                            value={title}
+                            onChange={(e) => setTitle(e.currentTarget.value)}
+                        />
                     </div>
                     <div className="flex-1">
                         <div className="mb-2 text-sm">语法高亮</div>
@@ -54,16 +69,24 @@ export function AreaPasteBin({ handleTabClick }: { handleTabClick: (tab: string)
                             <SelectContent>
                                 <SelectGroup>
                                     <SelectItem value="text">文本</SelectItem>
-                                    <SelectItem value="markdown">Markdown</SelectItem>
+                                    <SelectItem value="markdown">
+                                        Markdown
+                                    </SelectItem>
                                     <SelectItem value="html">HTML</SelectItem>
                                     <SelectItem value="css">CSS</SelectItem>
-                                    <SelectItem value="javascript">JavaScript</SelectItem>
-                                    <SelectItem value="typescript">TypeScript</SelectItem>
+                                    <SelectItem value="javascript">
+                                        JavaScript
+                                    </SelectItem>
+                                    <SelectItem value="typescript">
+                                        TypeScript
+                                    </SelectItem>
                                     <SelectItem value="json">JSON</SelectItem>
                                     <SelectItem value="yaml">YAML</SelectItem>
                                     <SelectItem value="xml">XML</SelectItem>
                                     <SelectItem value="sql">SQL</SelectItem>
-                                    <SelectItem value="python">Python</SelectItem>
+                                    <SelectItem value="python">
+                                        Python
+                                    </SelectItem>
                                     <SelectItem value="java">Java</SelectItem>
                                     <SelectItem value="csharp">C#</SelectItem>
                                     <SelectItem value="php">PHP</SelectItem>
@@ -78,7 +101,11 @@ export function AreaPasteBin({ handleTabClick }: { handleTabClick: (tab: string)
 
                 <div className="mt-4">
                     <div className="mb-2 text-sm">内容</div>
-                    <Textarea rows={10} value={content} onChange={e => setContent(e.currentTarget.value)} />
+                    <Textarea
+                        rows={10}
+                        value={content}
+                        onChange={(e) => setContent(e.currentTarget.value)}
+                    />
                 </div>
 
                 <div className="flex items-center justify-center mt-4 gap-4">
@@ -91,11 +118,17 @@ export function AreaPasteBin({ handleTabClick }: { handleTabClick: (tab: string)
                             <SelectContent>
                                 <SelectGroup>
                                     <SelectItem value="3600">1 小时</SelectItem>
-                                    <SelectItem value="28800">8 小时</SelectItem>
+                                    <SelectItem value="28800">
+                                        8 小时
+                                    </SelectItem>
                                     <SelectItem value="86400">1 天</SelectItem>
                                     <SelectItem value="604800">7 天</SelectItem>
-                                    <SelectItem value="1209600">14 天</SelectItem>
-                                    <SelectItem value="permanent">永久</SelectItem>
+                                    <SelectItem value="1209600">
+                                        14 天
+                                    </SelectItem>
+                                    <SelectItem value="permanent">
+                                        永久
+                                    </SelectItem>
                                 </SelectGroup>
                             </SelectContent>
                         </Select>
@@ -106,17 +139,21 @@ export function AreaPasteBin({ handleTabClick }: { handleTabClick: (tab: string)
                             type="number"
                             min={0}
                             value={maxvisit || ""}
-                            onChange={e => setMaxvisit(Number(e.currentTarget.value) || 0)}
+                            onChange={(e) =>
+                                setMaxvisit(Number(e.currentTarget.value) || 0)
+                            }
                             placeholder="无限制"
                         />
                     </div>
                 </div>
 
                 <div className="mt-4">
-                    <div className="mb-2 text-sm">
-                        密码
-                    </div>
-                    <Input value={password} onChange={e => setPassword(e.currentTarget.value)} placeholder={"无密码"} />
+                    <div className="mb-2 text-sm">密码</div>
+                    <Input
+                        value={password}
+                        onChange={(e) => setPassword(e.currentTarget.value)}
+                        placeholder={"无密码"}
+                    />
                 </div>
 
                 <div className="flex gap-4 mt-8">

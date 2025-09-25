@@ -1,69 +1,68 @@
-import {__dirname, runCommand} from './common.js';
-import {join} from 'node:path';
+import { __dirname, runCommand } from "./common.js"
+import { join } from "node:path"
 
-process.chdir(join(__dirname, ".."));
-
+process.chdir(join(__dirname, ".."))
 
 function sleep(timeout) {
     return new Promise((resolve) => {
-        setTimeout(resolve, timeout);
-    });
+        setTimeout(resolve, timeout)
+    })
 }
 
 async function checkCommandExists(command) {
     try {
         await runCommand(command, ["--version"], {
             stdio: "ignore", // 完全不输出
-        });
-        return true;
+        })
+        return true
     } catch {
-        return false;
+        return false
     }
 }
 
-(async () => {
-    const isWindows = process.platform === "win32";
+;(async () => {
+    const isWindows = process.platform === "win32"
 
     // 检测并安装 Bacon (在所有系统上都需要)
     if (!(await checkCommandExists("bacon"))) {
-        console.warn("[!] 正在安装 Bacon...");
+        console.warn("[!] 正在安装 Bacon...")
         try {
-            await runCommand("cargo", ["install", "--locked", "bacon"]);
-            console.warn("[!] Bacon 安装完成。");
+            await runCommand("cargo", ["install", "--locked", "bacon"])
+            console.warn("[!] Bacon 安装完成。")
         } catch (installError) {
-            console.error(`[!] 安装 Bacon 失败: ${installError.message}`);
-            process.exit(1);
+            console.error(`[!] 安装 Bacon 失败: ${installError.message}`)
+            process.exit(1)
         }
     }
 
-    console.warn("[!] 正在安装 npm 依赖...");
+    console.warn("[!] 正在安装 npm 依赖...")
     try {
         await (isWindows
             ? runCommand("cmd.exe", ["/c", "npx.cmd", "pnpm", "install"])
-            : runCommand("pnpm", ["install"]));
-        console.warn("[!] npm 依赖安装完成。");
+            : runCommand("pnpm", ["install"]))
+        console.warn("[!] npm 依赖安装完成。")
     } catch (installError) {
-        console.error(`[!] 安装 npm 依赖失败: ${installError.message}`);
-        process.exit(1);
+        console.error(`[!] 安装 npm 依赖失败: ${installError.message}`)
+        process.exit(1)
     }
 
     if (!isWindows) {
         // 检测并安装 Zellij
         if (!(await checkCommandExists("zellij"))) {
-            console.warn("[!] 正在安装 Zellij...");
+            console.warn("[!] 正在安装 Zellij...")
 
             try {
-                await runCommand("cargo", ["install", "--locked", "zellij"]);
-                console.warn("[!] Zellij 安装完成。");
+                await runCommand("cargo", ["install", "--locked", "zellij"])
+                console.warn("[!] Zellij 安装完成。")
             } catch (installError) {
-                console.error(`[!] 安装 Zellij 失败: ${installError.message}`);
-                process.exit(1);
+                console.error(`[!] 安装 Zellij 失败: ${installError.message}`)
+                process.exit(1)
             }
         }
 
         // 创建 Zellij 左右分屏布局
-        const zellijLayoutPath = join(__dirname, "zellij_layout.kdl");
-        const fs = await import("node:fs/promises");
+        const zellijLayoutPath = join(__dirname, "zellij_layout.kdl")
+        const fs = await import("node:fs/promises")
         await fs.writeFile(
             zellijLayoutPath,
             `
@@ -81,15 +80,15 @@ layout {
 
 }
 `.trim(),
-        );
+        )
 
-        console.warn("[!] 使用 Ctrl+Q 退出 Zellij");
-        await sleep(1500);
+        console.warn("[!] 使用 Ctrl+Q 退出 Zellij")
+        await sleep(1500)
 
         // 启动 Zellij 会话
-        await runCommand("zellij", ["--layout", zellijLayoutPath]);
+        await runCommand("zellij", ["--layout", zellijLayoutPath])
     } else {
-        console.warn("[!] 启动 Windows Terminal...");
+        console.warn("[!] 启动 Windows Terminal...")
         await runCommand("wt", [
             "new-tab",
             "-d",
@@ -104,7 +103,6 @@ layout {
             ".\\backend",
             "bacon.exe",
             "run",
-
-        ]);
+        ])
     }
-})();
+})()

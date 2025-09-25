@@ -3,11 +3,7 @@
         "target": "ES2022",
         "useDefineForClassFields": true,
         "module": "ESNext",
-        "lib": [
-            "ES2022",
-            "DOM",
-            "DOM.Iterable"
-        ],
+        "lib": ["ES2022", "DOM", "DOM.Iterable"],
         "skipLibCheck": true,
         /* Bundler mode */
         "moduleResolution": "bundler",
@@ -26,18 +22,12 @@
         "jsxImportSource": "preact",
         "baseUrl": ".",
         "paths": {
-            "@/*": [
-                "./src/*"
-            ],
+            "@/*": ["./src/*"],
             "react": ["./node_modules/preact/compat/"],
             "react/jsx-runtime": ["./node_modules/preact/jsx-runtime"],
             "react-dom": ["./node_modules/preact/compat/"],
             "react-dom/*": ["./node_modules/preact/compat/*"]
         }
     },
-    "include": [
-        "web/**/*.ts",
-        "web/**/*.tsx",
-        "web/**/*.vue"
-    ]
+    "include": ["web/**/*.ts", "web/**/*.tsx", "web/**/*.vue"]
 }
