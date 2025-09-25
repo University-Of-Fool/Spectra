@@ -54,7 +54,7 @@ export function AreaShared() {
                         ...data.payload.map((item) => ({
                             ...item,
                             short_path: `${window.location.origin}/${item.short_path}`,
-                            type: (() => {
+                            item_type: (() => {
                                 switch (item.item_type) {
                                     case "Link":
                                         return "链接"

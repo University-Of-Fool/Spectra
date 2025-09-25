@@ -1,0 +1,18 @@
+export const HLJS_LANGS: Record<string, () => Promise<any>> = {
+    markdown: () => import("highlight.js/lib/languages/markdown"),
+    html: () => import("highlight.js/lib/languages/xml"),
+    css: () => import("highlight.js/lib/languages/css"),
+    javascript: () => import("highlight.js/lib/languages/javascript"),
+    typescript: () => import("highlight.js/lib/languages/typescript"),
+    json: () => import("highlight.js/lib/languages/json"),
+    yaml: () => import("highlight.js/lib/languages/yaml"),
+    xml: () => import("highlight.js/lib/languages/xml"),
+    sql: () => import("highlight.js/lib/languages/sql"),
+    python: () => import("highlight.js/lib/languages/python"),
+    java: () => import("highlight.js/lib/languages/java"),
+    csharp: () => import("highlight.js/lib/languages/csharp"),
+    php: () => import("highlight.js/lib/languages/php"),
+    go: () => import("highlight.js/lib/languages/go"),
+    rust: () => import("highlight.js/lib/languages/rust"),
+    swift: () => import("highlight.js/lib/languages/swift"),
+}

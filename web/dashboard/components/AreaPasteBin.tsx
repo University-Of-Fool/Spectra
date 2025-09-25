@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useContext } from "react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -12,6 +12,9 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { wfetch } from "../fetch.ts"
+import { AccountCtx } from "../main.tsx"
+import { toast } from "sonner"
 
 export function AreaPasteBin({
     handleTabClick,
@@ -26,6 +29,46 @@ export function AreaPasteBin({
     const [expires, setExpires] = useState("604800")
     const [maxvisit, setMaxvisit] = useState(0)
     const [password, setPassword] = useState("")
+    const [finalUrl, setFinalUrl] = useState("")
+    const context = useContext(AccountCtx)
+
+    async function handleUpload() {
+        const body = {
+            item_type: "Code",
+            data: content,
+            expires_at:
+                expires === "permanent"
+                    ? undefined
+                    : new Date(
+                          Date.now() + parseInt(expires, 10) * 1000,
+                      ).toISOString(),
+            max_visit: maxvisit || undefined,
+            password: password || undefined,
+            extra_data: JSON.stringify({
+                title,
+                language: highlight,
+            }),
+        }
+        const uploadPath = `/api/item/${random ? "__RANDOM__" : path}`
+
+        if (!(context.value.turnstile_enabled && !context.value.isLoggedIn)) {
+            const resp = await wfetch(uploadPath, {
+                method: "POST",
+                body: JSON.stringify(body),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+            })
+            const data = await resp.json()
+            if (resp.status === 200 && data.success) {
+                context.sharedListUpdTrigger(context.sharedListUpd + 1)
+                setFinalUrl(
+                    `${window.location.origin}/${data.payload.short_path}`,
+                )
+            }
+        }
+    }
 
     return (
         <div className="flex flex-col items-center">
@@ -166,11 +209,32 @@ export function AreaPasteBin({
                     </Button>
                     <Button
                         className="flex-5"
-                        onClick={() => alert("FIXME")}
+                        onClick={() => handleUpload()}
                         disabled={content.length === 0}
                     >
                         上传
                     </Button>
+                </div>
+
+                <div
+                    className={
+                        "text-black/60 text-center mt-4" +
+                        (finalUrl ? "" : " hidden")
+                    }
+                >
+                    <b>大功告成！</b>
+                    你可以用以下链接分享你的代码（点击复制）
+                    <br />
+                    <span
+                        className={"text-cyan-800 cursor-pointer"}
+                        onClick={() => {
+                            navigator.clipboard.writeText(finalUrl).then(() => {
+                                toast.success("已复制到剪贴板")
+                            })
+                        }}
+                    >
+                        {finalUrl}
+                    </span>
                 </div>
             </div>
         </div>

@@ -191,7 +191,7 @@ pub async fn main_service(
                         Some((
                             "\"{{{#JSON#}}}\"",
                             serde_json::to_string(&crate::types::CodeInformation {
-                                language: item.extra_data.unwrap_or("text".to_string()),
+                                extra_data: item.extra_data.unwrap_or("text".to_string()),
                                 content: code_content,
                             })
                             .unwrap_or("{}".to_string()),
