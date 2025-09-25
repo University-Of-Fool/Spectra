@@ -17,6 +17,8 @@ jobs:
         with:
           toolchain: stable
           override: true
+          components: rustfmt
+
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
