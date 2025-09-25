@@ -1,4 +1,5 @@
 import { useContext, useState } from "react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -25,6 +26,7 @@ export function AreaShortUrl({
     const [expires, setExpires] = useState("604800")
     const [maxvisit, setMaxvisit] = useState(0)
     const [password, setPassword] = useState("")
+    const [finalUrl, setFinalUrl] = useState("")
 
     const context = useContext(AccountCtx)
 
@@ -41,10 +43,9 @@ export function AreaShortUrl({
             max_visit: maxvisit || undefined,
             password: password || undefined,
         }
-        console.log(body)
         const uploadPath = `/api/item/${random ? "__RANDOM__" : path}`
 
-        if (context.value.turnstile_enabled && !context.value.isLoggedIn) {
+        if (!(context.value.turnstile_enabled && !context.value.isLoggedIn)) {
             const resp = await wfetch(uploadPath, {
                 method: "POST",
                 body: JSON.stringify(body),
@@ -55,6 +56,10 @@ export function AreaShortUrl({
             })
             const data = await resp.json()
             if (resp.status === 200 && data.success) {
+                context.sharedListUpdTrigger(context.sharedListUpd + 1)
+                setFinalUrl(
+                    `${window.location.origin}/${data.payload.short_path}`,
+                )
             }
         }
     }
@@ -154,6 +159,27 @@ export function AreaShortUrl({
                     >
                         上传
                     </Button>
+                </div>
+
+                <div
+                    className={
+                        "text-black/60 text-center mt-4" +
+                        (finalUrl ? "" : " hidden")
+                    }
+                >
+                    <b>大功告成！</b>
+                    以下是你的短链接（点击复制）
+                    <br />
+                    <span
+                        className={"text-cyan-800 cursor-pointer"}
+                        onClick={() => {
+                            navigator.clipboard.writeText(finalUrl).then(() => {
+                                toast.success("已复制到剪贴板")
+                            })
+                        }}
+                    >
+                        {finalUrl}
+                    </span>
                 </div>
             </div>
         </div>

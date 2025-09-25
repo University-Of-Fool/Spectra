@@ -1,7 +1,7 @@
 import { render } from "preact"
-import { useState } from "preact/hooks"
-import { createContext, useEffect } from "react"
+import { createContext, useEffect, useState } from "react"
 import "../public/style.css"
+import { Toaster } from "@/components/ui/sonner.tsx"
 import { AreaFileShare } from "./components/AreaFileShare"
 import { AreaOperation } from "./components/AreaOperation"
 import { AreaPasteBin } from "./components/AreaPasteBin"
@@ -30,6 +30,8 @@ export const AccountCtx = createContext({
         turnstile_enabled: boolean
         turnstile_site_key: string
     }) => {},
+    sharedListUpdTrigger: (_: number) => {},
+    sharedListUpd: 0,
 })
 
 export function Dashboard() {
@@ -41,6 +43,7 @@ export function Dashboard() {
         turnstile_enabled: false,
         turnstile_site_key: "",
     })
+    const [sharedListUpd, sharedListUpdTrigger] = useState(0)
 
     const [activeTab, setActiveTab] = useState("operation")
     const handleTabClick = (tab: string) => {
@@ -63,7 +66,9 @@ export function Dashboard() {
         }
     }, [])
     return (
-        <AccountCtx.Provider value={{ value, setValue }}>
+        <AccountCtx.Provider
+            value={{ value, setValue, sharedListUpdTrigger, sharedListUpd }}
+        >
             <div>
                 <TopBar />
 
@@ -115,6 +120,7 @@ export function Dashboard() {
 
                 {!value.loading && value.isLoggedIn && <AreaShared />}
             </div>
+            <Toaster richColors></Toaster>
         </AccountCtx.Provider>
     )
 }

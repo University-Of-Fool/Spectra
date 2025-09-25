@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from "react"
+import { useContext, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { wfetch } from "../fetch"
+import { AccountCtx } from "../main"
 
 export function AreaShared() {
+    const context = useContext(AccountCtx)
     const [items, setItems] = useState([
         {
             id: "loading_dummy",
@@ -33,7 +35,6 @@ export function AreaShared() {
                     available: boolean
                 }[]
             } = await resp.json()
-            console.log(data)
             if (data.success) {
                 if (data.payload.length <= 10) {
                     setEnded(true)
@@ -46,8 +47,7 @@ export function AreaShared() {
                     setNothing(true)
                 }
                 setItems((prev) => {
-                    if (prev.length === 1 && prev[0].id === "loading_dummy")
-                        prev = []
+                    if (offset === 0) prev = []
                     if (data.payload.length === 11) data.payload.pop()
                     return [
                         ...prev,
@@ -86,7 +86,6 @@ export function AreaShared() {
                     },
                 )
                 const data = await resp.json()
-                console.log(data)
                 if (data.success) {
                     toast.success("删除成功")
                     setItems((prev) => prev.filter((item) => item.id !== id))
@@ -101,10 +100,16 @@ export function AreaShared() {
     }
 
     useEffect(() => {
-        get_items(0).then(() => {
-            offset.current = 10
-        })
-    }, [])
+        let delay = 0
+        if (context.sharedListUpd !== 0) delay = 100
+        setTimeout(
+            () =>
+                get_items(0).then(() => {
+                    offset.current = 10
+                }),
+            delay,
+        )
+    }, [context.sharedListUpd])
     return (
         <>
             <div className={"flex flex-col items-center"}>
@@ -164,21 +169,29 @@ export function AreaShared() {
                 </table>
                 <div className={"mt-8"}></div>
 
-                {!ended && (
-                    <div
-                        className={
-                            "text-center text-sm text-neutral-500 point cursor-pointer" +
-                            (ended ? " hidden" : "")
-                        }
-                        onClick={() => {
-                            get_items(offset.current).then(() => {
-                                offset.current += 10
-                            })
-                        }}
-                    >
-                        查看更多…
-                    </div>
-                )}
+                {!nothing &&
+                    (ended ? (
+                        <div
+                            className={
+                                "text-center text-sm text-neutral-500 point"
+                            }
+                        >
+                            没有其他项目了…
+                        </div>
+                    ) : (
+                        <div
+                            className={
+                                "text-center text-sm text-neutral-500 point cursor-pointer"
+                            }
+                            onClick={() => {
+                                get_items(offset.current).then(() => {
+                                    offset.current += 10
+                                })
+                            }}
+                        >
+                            查看更多…
+                        </div>
+                    ))}
 
                 {nothing && (
                     <div className={"text-center text-sm text-neutral-500"}>

@@ -16,6 +16,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { wfetch } from "../fetch.ts"
 import { AccountCtx } from "../main.tsx"
 
 export function AreaFileShare({
@@ -99,7 +100,6 @@ export function AreaFileShare({
     // 处理上传
     const handleUpload = async () => {
         if (selectedFiles.length === 0) return
-        console.log(parseInt(references.expires.current, 10))
         const body = {
             item_type: "File",
             data: "none",
@@ -116,13 +116,12 @@ export function AreaFileShare({
                 ? undefined
                 : selectedFiles[0].name,
         }
-        console.log(body)
 
         let path = `/api/item/${references.random[0] || !context.value.isLoggedIn ? "__RANDOM__" : references.path.current}`
         if (context.value.turnstile_enabled && !context.value.isLoggedIn) {
             path += `?turnstile-token=${turnstileToken.current}`
         }
-        const resp = await fetch(path, {
+        const resp = await wfetch(path, {
             method: "POST",
             body: JSON.stringify(body),
             headers: {
@@ -140,15 +139,6 @@ export function AreaFileShare({
         const formData = new FormData()
         formData.append("file", selectedFiles[0])
         try {
-            // resp = await fetch(`/api/file/${encodeURIComponent(data.payload.short_path)}`, {
-            //     method: "POST",
-            //     body: formData,
-            //     credentials: "include"
-            // })
-            // if (resp.status !== 200) {
-            //     return
-            // }
-            // setProgress(100)
             await new Promise<void>((resolve, reject) => {
                 const xhr = new XMLHttpRequest()
 
@@ -194,9 +184,9 @@ export function AreaFileShare({
             return
         }
         let final_url = `${window.location.origin}/${data.payload.short_path}`
-        console.log(references.password.current)
         if (references.password.current) {
             final_url += `?password=${references.password.current}`
+            context.sharedListUpdTrigger(context.sharedListUpd + 1)
         }
         setFinalUrl(final_url)
     }
