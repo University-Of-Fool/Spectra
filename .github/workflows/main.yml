@@ -112,7 +112,6 @@ jobs:
         run: |
           sqlx database setup
           cargo check --all --all-targets
-          sqlx database drop
 
       - name: Run Biome lint
         run: biome ci
