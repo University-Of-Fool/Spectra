@@ -3,6 +3,7 @@ use crate::types::AppState;
 use axum::body::Body;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
+use axum::response::IntoResponse;
 use axum::{
     extract::{Request, State},
     middleware::Next,
@@ -14,8 +15,6 @@ use http_body_util::BodyExt;
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use std::net::SocketAddr;
-use axum::http::{header,  StatusCode};
-use axum::response::IntoResponse;
 use tokio::io::AsyncSeekExt;
 use tokio_util::io::ReaderStream;
 use tracing::{debug, error, info, instrument};
@@ -293,12 +292,16 @@ pub async fn main_service(
         }
 
         if path.trim_start_matches("/") == "" {
-            if !cfg!(debug_assertions){
+            if !cfg!(debug_assertions) {
                 // 对于生产环境直接转写请求到 /dashboard/
                 return to_frontend(next, "/dashboard/", None).await;
             }
             // 开发环境保留路径（因为如果直接转写会导致 Vite 无法解析路径）
-            return (StatusCode::FOUND, [(header::LOCATION, "/dashboard/".to_string())]).into_response();
+            return (
+                StatusCode::FOUND,
+                [(header::LOCATION, "/dashboard/".to_string())],
+            )
+                .into_response();
         }
 
         // 既不是 API，也在数据库里不存在，于是将项目路由给前端
