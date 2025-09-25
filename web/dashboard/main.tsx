@@ -1,16 +1,17 @@
 import { render } from "preact"
-import { TopBar } from "./components/TopBar"
-import { AreaOperation } from "./components/AreaOperation"
-import { AreaShared } from "./components/AreaShared"
-import { AreaFileShare } from "./components/AreaFileShare"
-import { AreaPasteBin } from "./components/AreaPasteBin"
-import { AreaShortUrl } from "./components/AreaShortUrl"
 import { useState } from "preact/hooks"
-import { TransitionTabs } from "./HeightTransition"
-import { useEffect, useContext, createContext } from "react"
+import { createContext, useEffect } from "react"
 import "../public/style.css"
+import { AreaFileShare } from "./components/AreaFileShare"
+import { AreaOperation } from "./components/AreaOperation"
+import { AreaPasteBin } from "./components/AreaPasteBin"
+import { AreaShared } from "./components/AreaShared"
+import { AreaShortUrl } from "./components/AreaShortUrl"
+import { TopBar } from "./components/TopBar"
+import { TransitionTabs } from "./HeightTransition"
 
-const root = document.getElementById("app")!
+const root = document.getElementById("app")
+if (!root) throw new Error("Launch failed: Root element not found")
 
 export const AccountCtx = createContext({
     value: {
@@ -68,7 +69,7 @@ export function Dashboard() {
 
                 <TransitionTabs
                     activeKey={activeTab}
-                    children={[
+                    tabs={[
                         {
                             key: "operation",
                             node: (

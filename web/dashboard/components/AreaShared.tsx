@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from "react"
-import { Toaster } from "@/components/ui/sonner.tsx"
+import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
+import { wfetch } from "../fetch"
 
 export function AreaShared() {
     const [items, setItems] = useState([
@@ -20,8 +20,8 @@ export function AreaShared() {
 
     async function get_items(offset: number) {
         try {
-            let resp = await fetch(`/api/items?offset=${offset}&limit=11`)
-            let data: {
+            const resp = await wfetch(`/api/items?offset=${offset}&limit=11`)
+            const data: {
                 success: boolean
                 payload: {
                     id: string
@@ -39,6 +39,8 @@ export function AreaShared() {
                     setEnded(true)
                     // RLt: 我认为这里不用显示通知，因为“查看更多”按钮消失已经告诉用户列表到底了
                     // toast("没有更多项目了")
+
+                    // enita: 好的
                 }
                 if (data.payload.length === 0) {
                     setNothing(true)
@@ -51,8 +53,7 @@ export function AreaShared() {
                         ...prev,
                         ...data.payload.map((item) => ({
                             ...item,
-                            short_path:
-                                window.location.origin + "/" + item.short_path,
+                            short_path: `${window.location.origin}/${item.short_path}`,
                             type: (() => {
                                 switch (item.item_type) {
                                     case "Link":
@@ -78,13 +79,13 @@ export function AreaShared() {
     function getOnClickDelete(id: string, path: string) {
         return async () => {
             try {
-                let resp = await fetch(
-                    `/api/item/${path.replace(window.location.origin + "/", "")}`,
+                const resp = await fetch(
+                    `/api/item/${path.replace(`${window.location.origin}/`, "")}`,
                     {
                         method: "DELETE",
                     },
                 )
-                let data = await resp.json()
+                const data = await resp.json()
                 console.log(data)
                 if (data.success) {
                     toast.success("删除成功")
@@ -186,7 +187,6 @@ export function AreaShared() {
                 )}
 
                 <div className={"mb-20"}></div>
-                <Toaster richColors />
             </div>
         </>
     )

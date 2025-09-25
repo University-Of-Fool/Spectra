@@ -1,11 +1,11 @@
-import { useRef, useState, useLayoutEffect, useEffect } from "preact/hooks"
+import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks"
 
 interface TransitionTabsProps {
     activeKey: string
-    children: { key: string; node: preact.ComponentChildren }[]
+    tabs: { key: string; node: preact.ComponentChildren }[]
 }
 
-export function TransitionTabs({ activeKey, children }: TransitionTabsProps) {
+export function TransitionTabs({ activeKey, tabs }: TransitionTabsProps) {
     const containerRef = useRef<HTMLDivElement>(null)
     const [rendered, setRendered] = useState<
         { key: string; node: preact.ComponentChildren }[]
@@ -13,14 +13,14 @@ export function TransitionTabs({ activeKey, children }: TransitionTabsProps) {
 
     // 当 activeKey 改变时，把旧的和新的都放进来
     useEffect(() => {
-        const activeChild = children.find((c) => c.key === activeKey)
+        const activeChild = tabs.find((c) => c.key === activeKey)
         if (!activeChild) return
         setRendered((prev) => {
             // 如果已经包含新tab，就不用重复加
             if (prev.some((c) => c.key === activeKey)) return prev
             return [...prev, activeChild]
         })
-    }, [activeKey, children])
+    }, [activeKey, tabs])
 
     useLayoutEffect(() => {
         const el = containerRef.current
@@ -31,7 +31,7 @@ export function TransitionTabs({ activeKey, children }: TransitionTabsProps) {
 
         const ro = new ResizeObserver(() => {
             const targetHeight = activeEl.scrollHeight + 8
-            el.style.height = targetHeight + "px"
+            el.style.height = `${targetHeight}px`
         })
 
         ro.observe(activeEl)
@@ -48,7 +48,7 @@ export function TransitionTabs({ activeKey, children }: TransitionTabsProps) {
         if (activeEl) {
             const targetHeight =
                 activeEl.scrollHeight + 8 /* 给shadow预留余量 */
-            el.style.height = targetHeight + "px"
+            el.style.height = `${targetHeight}px`
         }
     }, [activeKey, rendered])
 

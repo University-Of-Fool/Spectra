@@ -1,8 +1,12 @@
-import { Input } from "@/components/ui/input"
+import { X } from "lucide-react"
+import { useContext, useRef, useState } from "react"
+import Turnstile, { useTurnstile } from "react-turnstile"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button.tsx"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-
+import { Progress } from "@/components/ui/progress"
 import {
     Select,
     SelectContent,
@@ -11,17 +15,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-
-import { Progress } from "@/components/ui/progress"
-
-import { useRef, useState, useContext } from "react"
+import { Switch } from "@/components/ui/switch"
 import { AccountCtx } from "../main.tsx"
-
-import Turnstile, { useTurnstile } from "react-turnstile"
-import { Button } from "@/components/ui/button.tsx"
-import { X } from "lucide-react"
-import { Toaster } from "@/components/ui/sonner.tsx"
-import { toast } from "sonner"
 
 export function AreaFileShare({
     handleTabClick,
@@ -88,7 +83,7 @@ export function AreaFileShare({
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault()
         setIsDragging(false)
-        handleFileSelect(e.dataTransfer!.files)
+        if (e.dataTransfer) handleFileSelect(e.dataTransfer.files)
     }
     // 移除选中的文件
     const removeFile = (index: number) => {
@@ -105,7 +100,7 @@ export function AreaFileShare({
     const handleUpload = async () => {
         if (selectedFiles.length === 0) return
         console.log(parseInt(references.expires.current))
-        let body = {
+        const body = {
             item_type: "File",
             data: "none",
             expires_at:
@@ -127,7 +122,7 @@ export function AreaFileShare({
         if (context.value.turnstile_enabled && !context.value.isLoggedIn) {
             path += `?turnstile-token=${turnstileToken.current}`
         }
-        let resp = await fetch(path, {
+        const resp = await fetch(path, {
             method: "POST",
             body: JSON.stringify(body),
             headers: {
@@ -141,8 +136,8 @@ export function AreaFileShare({
         }
 
         setProgress(30)
-        let data = await resp.json()
-        let formData = new FormData()
+        const data = await resp.json()
+        const formData = new FormData()
         formData.append("file", selectedFiles[0])
         try {
             // resp = await fetch(`/api/file/${encodeURIComponent(data.payload.short_path)}`, {
@@ -214,10 +209,10 @@ export function AreaFileShare({
                 <div className="opacity-50">{window.location.origin}/</div>
 
                 <Input
-                    onInput={(e) =>
-                        (references.path.current =
-                            (e.target as HTMLInputElement)?.value || "")
-                    }
+                    onInput={(e) => {
+                        references.path.current =
+                            (e.target as HTMLInputElement)?.value || ""
+                    }}
                     disabled={references.random[0]}
                 />
                 <div className="flex items-center gap-2 ml-2">
@@ -286,39 +281,37 @@ export function AreaFileShare({
                 {selectedFiles.length > 0 && (
                     <div className="mt-4">
                         <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
-                            {selectedFiles.map((file, index) => (
-                                <div
-                                    key={index}
-                                    className="flex items-center justify-between p-2 border rounded-md"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <div className="w-8 h-8 bg-accent/20 rounded flex items-center justify-center">
-                                            <span className="text-xs">
-                                                {file.name
-                                                    .split(".")
-                                                    .pop()
-                                                    ?.toUpperCase() || "FILE"}
-                                            </span>
+                            <div className="flex items-center justify-between p-2 border rounded-md">
+                                <div className="flex items-center space-x-2">
+                                    <div className="w-8 h-8 bg-accent/20 rounded flex items-center justify-center">
+                                        <span className="text-xs">
+                                            {selectedFiles[0].name
+                                                .split(".")
+                                                .pop()
+                                                ?.toUpperCase() || "FILE"}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <div className="text-sm truncate max-w-[200px]">
+                                            {selectedFiles[0].name}
                                         </div>
-                                        <div>
-                                            <div className="text-sm truncate max-w-[200px]">
-                                                {file.name}
-                                            </div>
-                                            <div className="text-xs text-muted-foreground">
-                                                {formatFileSize(file.size)}
-                                            </div>
+                                        <div className="text-xs text-muted-foreground">
+                                            {formatFileSize(
+                                                selectedFiles[0].size,
+                                            )}
                                         </div>
                                     </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => removeFile(index)}
-                                        className="h-8 w-8"
-                                    >
-                                        <X className="h-4 w-4" />
-                                    </Button>
                                 </div>
-                            ))}
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => removeFile(0)}
+                                    className="h-8 w-8"
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
+                            )
                         </div>
                     </div>
                 )}
@@ -328,9 +321,9 @@ export function AreaFileShare({
                         <div className="mb-2 text-sm">有效时长</div>
                         <Select
                             defaultValue="604800"
-                            onValueChange={(value) =>
-                                (references.expires.current = value)
-                            }
+                            onValueChange={(value) => {
+                                references.expires.current = value
+                            }}
                         >
                             <SelectTrigger>
                                 <SelectValue placeholder="有效时长" />
@@ -357,10 +350,10 @@ export function AreaFileShare({
                     <div className="flex-1">
                         <div className="mb-2 text-sm">访问人数限制</div>
                         <Input
-                            onInput={(e) =>
-                                (references.maxvisit.current =
-                                    (e.target as HTMLInputElement).value || "")
-                            }
+                            onInput={(e) => {
+                                references.maxvisit.current =
+                                    (e.target as HTMLInputElement).value || ""
+                            }}
                             type={"number"}
                             min={0}
                             placeholder={"无限制"}
@@ -371,10 +364,10 @@ export function AreaFileShare({
                 <div className="mt-4">
                     <div className="mb-2 text-sm">密码</div>
                     <Input
-                        onInput={(e) =>
-                            (references.password.current =
-                                (e.target as HTMLInputElement).value || "")
-                        }
+                        onInput={(e) => {
+                            references.password.current =
+                                (e.target as HTMLInputElement).value || ""
+                        }}
                         placeholder={"无密码"}
                     />
                 </div>
@@ -390,9 +383,9 @@ export function AreaFileShare({
                     <Switch
                         className={"ml-auto"}
                         id="airplane-mode"
-                        onCheckedChange={(checked) =>
-                            (references.no_filename.current = checked)
-                        }
+                        onCheckedChange={(checked) => {
+                            references.no_filename.current = checked
+                        }}
                     />
                 </div>
                 {!context.value.loading && !context.value.isLoggedIn ? (
@@ -478,8 +471,6 @@ export function AreaFileShare({
                     </div>
                 </div>
             </div>
-
-            <Toaster richColors />
         </div>
     )
 }

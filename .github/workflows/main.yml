@@ -30,8 +30,13 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install Biome
+      - name: Install dependencies
         run: pnpm install
+
+      - name: Setup Biome
+        uses: biomejs/setup-biome@v2
+        with:
+          version: latest
 
       - name: Run rustfmt
         run: cargo fmt --all
@@ -68,11 +73,16 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install Biome
+      - name: Install dependencies
         run: pnpm install
+      
+      - name: Setup Biome
+        uses: biomejs/setup-biome@v2
+        with:
+          version: latest
 
       - name: Run cargo check
         run: cargo check --all --all-targets
 
       - name: Run Biome lint
-        run: pnpm biome lint
+        run: biome ci

@@ -1,15 +1,15 @@
-import { AccountCtx } from "../main.tsx"
-import { useContext } from "react"
+import { useContext, useEffect, useRef, useState } from "react"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button.tsx"
+import { Checkbox } from "@/components/ui/checkbox.tsx"
+import { Input } from "@/components/ui/input.tsx"
+import { Label } from "@/components/ui/label.tsx"
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import { Input } from "@/components/ui/input.tsx"
-import { Checkbox } from "@/components/ui/checkbox.tsx"
-import { Label } from "@/components/ui/label.tsx"
-import { Button } from "@/components/ui/button.tsx"
-import { useRef, useEffect, useState } from "react"
+import { AccountCtx } from "../main.tsx"
 
 export function TopBar() {
     const context = useContext(AccountCtx)
@@ -24,11 +24,27 @@ export function TopBar() {
         turnstile_enabled: boolean,
         turnstile_site_key: string,
     ) {
-        let resp = await fetch("/api/user-info")
-        let data = await resp.json()
-        console.log(data)
-        if (data.success) {
-            let value = {
+        const resp = await fetch("/api/user-info")
+        let data: {
+            success: boolean
+            payload: { name: string; avatar: string }
+        } | null = null
+        try {
+            data = await resp.json()
+        } catch (e) {
+            // 返回的不是 json 说明服务器没有启动
+            const value = {
+                ...context.value,
+                loading: false,
+                isLoggedIn: false,
+                turnstile_enabled: false,
+            }
+            context.setValue(value)
+            toast.error("无法连接到服务器。")
+            console.error(e)
+        }
+        if (data?.success) {
+            const value = {
                 ...context.value,
                 loading: false,
                 isLoggedIn: true,
@@ -40,13 +56,13 @@ export function TopBar() {
             context.setValue(value)
             return
         } else if (localStorage.getItem("user")) {
-            let user = JSON.parse(localStorage.getItem("user") || "{}")
+            const user = JSON.parse(localStorage.getItem("user") || "{}")
             references.email.current = user.email
             references.password.current = user.password
             references.remember.current = true
             return login()
         }
-        let value = {
+        const value = {
             ...context.value,
             loading: false,
             isLoggedIn: false,
@@ -66,17 +82,25 @@ export function TopBar() {
                 ),
             )
             .catch((err) => {
+                const value = {
+                    ...context.value,
+                    loading: false,
+                    isLoggedIn: false,
+                    turnstile_enabled: false,
+                }
+                context.setValue(value)
+                toast.error("无法连接到服务器。")
                 console.error(err)
             })
     }, [])
 
     const login = async () => {
-        let value = {
+        const value = {
             ...context.value,
             loading: true,
         }
         context.setValue(value)
-        let resp = await fetch("/api/login", {
+        const resp = await fetch("/api/login", {
             body: JSON.stringify({
                 email: references.email.current,
                 password: references.password.current,
@@ -87,9 +111,9 @@ export function TopBar() {
                 "Content-Type": "application/json",
             },
         })
-        let data = await resp.json()
+        const data = await resp.json()
         if (data.success) {
-            let value = {
+            const value = {
                 ...context.value,
                 loading: false,
                 isLoggedIn: true,
@@ -108,7 +132,7 @@ export function TopBar() {
             }
         } else {
             setLoginSuccess(false)
-            let value = {
+            const value = {
                 ...context.value,
                 loading: false,
                 isLoggedIn: false,
@@ -117,12 +141,12 @@ export function TopBar() {
         }
     }
     const logout = async () => {
-        let resp = await fetch("/api/logout", {
+        const resp = await fetch("/api/logout", {
             method: "POST",
         })
-        let data = await resp.json()
+        const data = await resp.json()
         if (data.success) {
-            let value = {
+            const value = {
                 ...context.value,
                 loading: false,
                 isLoggedIn: false,
@@ -161,7 +185,14 @@ export function TopBar() {
                     {context.value.loading
                         ? "username (loading)"
                         : context.value.isLoggedIn
-                          ? "下午好，" + context.value.name + "。"
+                          ? `${(() => {
+                                const h = new Date().getHours()
+                                if (h < 5) return "晚上"
+                                else if (h < 11) return "上午"
+                                else if (h < 14) return "中午"
+                                else if (h < 18) return "下午"
+                                else return "晚上"
+                            })()}好，${context.value.name}。`
                           : "欢迎来到 Spectra。"}
                 </div>
                 <div
@@ -213,12 +244,12 @@ export function TopBar() {
                                         </div>
                                         <Input
                                             className={"mt-2"}
-                                            onChange={(e) =>
-                                                (references.email.current =
+                                            onChange={(e) => {
+                                                references.email.current =
                                                     (
                                                         e.target as HTMLInputElement
-                                                    )?.value || "")
-                                            }
+                                                    )?.value || ""
+                                            }}
                                         ></Input>
                                         <div
                                             className={
@@ -230,12 +261,12 @@ export function TopBar() {
                                         <Input
                                             className={"mt-2"}
                                             type={"password"}
-                                            onInput={(e) =>
-                                                (references.password.current =
+                                            onInput={(e) => {
+                                                references.password.current =
                                                     (
                                                         e.target as HTMLInputElement
-                                                    )?.value || "")
-                                            }
+                                                    )?.value || ""
+                                            }}
                                         ></Input>
                                         <div
                                             className={
@@ -245,10 +276,10 @@ export function TopBar() {
                                             <Checkbox
                                                 id={"remember-password"}
                                                 defaultChecked
-                                                onCheckedChange={(e) =>
-                                                    (references.remember.current =
-                                                        !!e)
-                                                }
+                                                onCheckedChange={(e) => {
+                                                    references.remember.current =
+                                                        !!e
+                                                }}
                                             />
                                             <Label
                                                 className="text-nowrap"
@@ -257,12 +288,7 @@ export function TopBar() {
                                                 自动登录
                                             </Label>
                                         </div>
-                                        <Button
-                                            className={"mt-5 mb-1"}
-                                            onClick={login}
-                                        >
-                                            登录
-                                        </Button>
+                                        <Button onClick={login}>登录</Button>
                                         <div
                                             className={`text-red-700 text-sm ${loginSuccess ? " hidden" : ""}`}
                                         >
