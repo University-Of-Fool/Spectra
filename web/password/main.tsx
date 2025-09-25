@@ -5,10 +5,12 @@ import { AuthCard } from "./components/AuthCard"
 const root = document.getElementById("app")!
 
 export function Dashboard() {
-    return <div className={"h-screen"}>
-        <TopBar />
-        <AuthCard />
-    </div>
+    return (
+        <div className={"h-screen"}>
+            <TopBar />
+            <AuthCard />
+        </div>
+    )
 }
 
 render(<Dashboard />, root)

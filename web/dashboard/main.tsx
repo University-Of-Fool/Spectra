@@ -1,14 +1,14 @@
-import {render} from "preact"
-import {TopBar} from "./components/TopBar"
-import {AreaOperation} from "./components/AreaOperation"
-import {AreaShared} from "./components/AreaShared"
-import {AreaFileShare} from "./components/AreaFileShare"
-import {AreaPasteBin} from "./components/AreaPasteBin"
-import {AreaShortUrl} from "./components/AreaShortUrl"
-import {useState} from "preact/hooks"
-import {TransitionTabs} from "./HeightTransition"
-import {useEffect, useContext, createContext} from "react"
-import "../public/style.css";
+import { render } from "preact"
+import { TopBar } from "./components/TopBar"
+import { AreaOperation } from "./components/AreaOperation"
+import { AreaShared } from "./components/AreaShared"
+import { AreaFileShare } from "./components/AreaFileShare"
+import { AreaPasteBin } from "./components/AreaPasteBin"
+import { AreaShortUrl } from "./components/AreaShortUrl"
+import { useState } from "preact/hooks"
+import { TransitionTabs } from "./HeightTransition"
+import { useEffect, useContext, createContext } from "react"
+import "../public/style.css"
 
 const root = document.getElementById("app")!
 
@@ -19,17 +19,16 @@ export const AccountCtx = createContext({
         name: "",
         avatar_url: "",
         turnstile_enabled: false,
-        turnstile_site_key: ""
+        turnstile_site_key: "",
     },
     setValue: (_: {
-        isLoggedIn: boolean,
-        loading: boolean,
-        name: string,
-        avatar_url: string,
-        turnstile_enabled: boolean,
+        isLoggedIn: boolean
+        loading: boolean
+        name: string
+        avatar_url: string
+        turnstile_enabled: boolean
         turnstile_site_key: string
-    }) => {
-    }
+    }) => {},
 })
 
 export function Dashboard() {
@@ -39,7 +38,7 @@ export function Dashboard() {
         name: "",
         avatar_url: "",
         turnstile_enabled: false,
-        turnstile_site_key: ""
+        turnstile_site_key: "",
     })
 
     const [activeTab, setActiveTab] = useState("operation")
@@ -62,29 +61,61 @@ export function Dashboard() {
             window.removeEventListener("dragover", handleDragOver)
         }
     }, [])
-    return <AccountCtx.Provider value={{value, setValue}}>
-        <div>
-            <TopBar/>
+    return (
+        <AccountCtx.Provider value={{ value, setValue }}>
+            <div>
+                <TopBar />
 
+                <TransitionTabs
+                    activeKey={activeTab}
+                    children={[
+                        {
+                            key: "operation",
+                            node: (
+                                <AreaOperation
+                                    handleTabClick={handleTabClick}
+                                />
+                            ),
+                        },
+                        {
+                            key: "fileShare",
+                            node: (
+                                <AreaFileShare
+                                    handleTabClick={handleTabClick}
+                                />
+                            ),
+                        },
+                        {
+                            key: "pasteBin",
+                            node: (
+                                <AreaPasteBin handleTabClick={handleTabClick} />
+                            ),
+                        },
+                        {
+                            key: "shortUrl",
+                            node: (
+                                <AreaShortUrl handleTabClick={handleTabClick} />
+                            ),
+                        },
+                    ]}
+                />
 
-            <TransitionTabs activeKey={activeTab} children={[
-                {key: "operation", node: <AreaOperation handleTabClick={handleTabClick}/>},
-                {key: "fileShare", node: <AreaFileShare handleTabClick={handleTabClick}/>},
-                {key: "pasteBin", node: <AreaPasteBin handleTabClick={handleTabClick}/>},
-                {key: "shortUrl", node: <AreaShortUrl handleTabClick={handleTabClick}/>},
-            ]}/>
+                <div className="flex justify-center">
+                    <div className="w-100 mt-20 mb-20 border-t-1 border-neutral-200"></div>
+                </div>
 
+                {!value.loading && !value.isLoggedIn && (
+                    <>
+                        <div className="text-center opacity-25 text-sm mb-20">
+                            要查看历史分享项目，请先登录。
+                        </div>
+                    </>
+                )}
 
-            <div className={"flex justify-center"}>
-                <div className={"w-100 mt-20 mb-14 border-t-1 border-neutral-200"}></div>
+                {!value.loading && value.isLoggedIn && <AreaShared />}
             </div>
-
-            {
-                (!value.loading && value.isLoggedIn) && <AreaShared/>
-            }
-
-        </div>
-    </AccountCtx.Provider>
+        </AccountCtx.Provider>
+    )
 }
 
-render(<Dashboard/>, root)
+render(<Dashboard />, root)

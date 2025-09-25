@@ -1,7 +1,7 @@
-import {Input} from "@/components/ui/input"
-import {Checkbox} from "@/components/ui/checkbox"
-import {Label} from "@/components/ui/label"
-import {Switch} from "@/components/ui/switch"
+import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 
 import {
     Select,
@@ -12,22 +12,25 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 
-import {Progress} from "@/components/ui/progress"
+import { Progress } from "@/components/ui/progress"
 
-import {useRef, useState, useContext} from 'react'
-import {AccountCtx} from "../main.tsx";
+import { useRef, useState, useContext } from "react"
+import { AccountCtx } from "../main.tsx"
 
-import Turnstile, {useTurnstile} from "react-turnstile"
-import {Button} from "@/components/ui/button.tsx"
-import {X} from "lucide-react"
-import {Toaster} from "@/components/ui/sonner.tsx";
-import {toast} from "sonner"
+import Turnstile, { useTurnstile } from "react-turnstile"
+import { Button } from "@/components/ui/button.tsx"
+import { X } from "lucide-react"
+import { Toaster } from "@/components/ui/sonner.tsx"
+import { toast } from "sonner"
 
-
-export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) => void }) {
+export function AreaFileShare({
+    handleTabClick,
+}: {
+    handleTabClick: (tab: string) => void
+}) {
     useTurnstile()
 
-    const context = useContext(AccountCtx);
+    const context = useContext(AccountCtx)
     const turnstileToken = useRef("")
     const [progress, setProgress] = useState(0)
     const [finalUrl, setFinalUrl] = useState("")
@@ -55,9 +58,10 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
 
         // 检查是否已选择相同文件
         const isDuplicate = selectedFiles.some(
-            selected => selected.name === newFile.name &&
+            (selected) =>
+                selected.name === newFile.name &&
                 selected.size === newFile.size &&
-                selected.lastModified === newFile.lastModified
+                selected.lastModified === newFile.lastModified,
         )
 
         if (!isDuplicate) {
@@ -88,7 +92,7 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
     }
     // 移除选中的文件
     const removeFile = (index: number) => {
-        setSelectedFiles(prev => prev.filter((_, i) => i !== index))
+        setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
     }
     // 格式化文件大小
     const formatFileSize = (bytes: number): string => {
@@ -104,16 +108,22 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
         let body = {
             item_type: "File",
             data: "none",
-            expires_at: references.expires.current === "permanent" ? undefined : (
-                new Date(Date.now() + parseInt(references.expires.current) * 1000).toISOString()
-            ),
+            expires_at:
+                references.expires.current === "permanent"
+                    ? undefined
+                    : new Date(
+                          Date.now() +
+                              parseInt(references.expires.current) * 1000,
+                      ).toISOString(),
             max_visit: references.maxvisit.current || undefined,
             password: references.password.current || undefined,
-            extra_data: references.no_filename.current ? undefined : selectedFiles[0].name,
+            extra_data: references.no_filename.current
+                ? undefined
+                : selectedFiles[0].name,
         }
-        console.log(body);
+        console.log(body)
 
-        let path = `/api/item/${(references.random[0] || !context.value.isLoggedIn) ? "__RANDOM__" : references.path.current}`
+        let path = `/api/item/${references.random[0] || !context.value.isLoggedIn ? "__RANDOM__" : references.path.current}`
         if (context.value.turnstile_enabled && !context.value.isLoggedIn) {
             path += `?turnstile-token=${turnstileToken.current}`
         }
@@ -121,9 +131,9 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
             method: "POST",
             body: JSON.stringify(body),
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             },
-            credentials: "include"
+            credentials: "include",
         })
 
         if (resp.status !== 200) {
@@ -148,31 +158,39 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
                 const xhr = new XMLHttpRequest()
 
                 // 监听上传进度事件
-                xhr.upload.addEventListener('progress', (event) => {
+                xhr.upload.addEventListener("progress", (event) => {
                     if (event.lengthComputable) {
                         // 计算上传进度百分比（从30%到95%）
-                        const uploadPercent = 30 + (event.loaded / event.total) * 65
+                        const uploadPercent =
+                            30 + (event.loaded / event.total) * 65
                         setProgress(Math.min(Math.round(uploadPercent), 95))
                     }
                 })
 
                 // 监听完成事件
-                xhr.addEventListener('load', () => {
+                xhr.addEventListener("load", () => {
                     setProgress(100)
                     if (xhr.status === 200) {
                         resolve()
                     } else {
-                        reject(new Error(`Upload failed with status: ${xhr.status}`))
+                        reject(
+                            new Error(
+                                `Upload failed with status: ${xhr.status}`,
+                            ),
+                        )
                     }
                 })
 
                 // 监听错误事件
-                xhr.addEventListener('error', () => {
-                    reject(new Error('Network error occurred'))
+                xhr.addEventListener("error", () => {
+                    reject(new Error("Network error occurred"))
                 })
 
                 // 初始化请求
-                xhr.open('POST', `/api/file/${encodeURIComponent(data.payload.short_path)}`)
+                xhr.open(
+                    "POST",
+                    `/api/file/${encodeURIComponent(data.payload.short_path)}`,
+                )
                 xhr.withCredentials = true // 包含凭证
                 xhr.send(formData)
             })
@@ -186,50 +204,57 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
             final_url += `?password=${references.password.current}`
         }
         setFinalUrl(final_url)
-
     }
 
     return (
         <div className="flex flex-col items-center">
-
-            <div className="font-thin text-2xl mt-6 mb-12">
-                文件快传
-            </div>
+            <div className="font-thin text-2xl mt-6 mb-12">文件快传</div>
 
             <div className="flex gap-2 items-center">
-                <div className="opacity-50">
-                    {window.location.origin}/
-                </div>
+                <div className="opacity-50">{window.location.origin}/</div>
 
-                <Input onInput={e => references.path.current = (e.target as HTMLInputElement)?.value || ""}
-                       disabled={references.random[0]}/>
+                <Input
+                    onInput={(e) =>
+                        (references.path.current =
+                            (e.target as HTMLInputElement)?.value || "")
+                    }
+                    disabled={references.random[0]}
+                />
                 <div className="flex items-center gap-2 ml-2">
-                    <Checkbox checked={references.random[0]}
-                              onCheckedChange={checked => {
-                                  if (context.value.loading) return;
-                                  if ((!context.value.isLoggedIn && context.value.turnstile_enabled)) {
-                                      toast.error("未登录时只能使用随机路径");
-                                      return;
-                                  }
+                    <Checkbox
+                        checked={references.random[0]}
+                        onCheckedChange={(checked) => {
+                            if (context.value.loading) return
+                            if (
+                                !context.value.isLoggedIn &&
+                                context.value.turnstile_enabled
+                            ) {
+                                toast.error("未登录时只能使用随机路径")
+                                return
+                            }
 
-                                  // checked: boolean|"indeterminate"
-                                  references.random[1](!!checked);
-                              }} id="terms"
-                              defaultChecked/>
-                    <Label className="text-nowrap" htmlFor="terms">随机生成</Label>
+                            // checked: boolean|"indeterminate"
+                            references.random[1](!!checked)
+                        }}
+                        id="terms"
+                        defaultChecked
+                    />
+                    <Label className="text-nowrap" htmlFor="terms">
+                        随机生成
+                    </Label>
                 </div>
             </div>
 
             <div className="w-150 mt-4">
-
-                <div className="mt-4 mb-2 text-sm">
-                    文件选择
-                </div>
+                <div className="mt-4 mb-2 text-sm">文件选择</div>
 
                 {/* 文件选择区域 - 只在没有选择文件时显示 */}
                 {selectedFiles.length === 0 && (
                     <div
-                        className={`w-full h-40 border-2 flex items-center justify-center transition-colors rounded-md ${isDragging ? 'border-neutral-400 bg-neutral-200' : 'border-neutral-200 hover:border-neutral-300'
+                        className={`w-full h-40 border-2 flex items-center justify-center transition-colors rounded-md ${
+                            isDragging
+                                ? "border-neutral-400 bg-neutral-200"
+                                : "border-neutral-200 hover:border-neutral-300"
                         }`}
                         onClick={handleClickSelect}
                         onDragEnter={handleDragEnter}
@@ -238,8 +263,12 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
                         onDrop={handleDrop}
                     >
                         <div className="flex items-center justify-center opacity-50 text-sm">
-                            <span className="material-symbols-outlined mr-1">upload</span>
-                            <span className="text-center">点击上传或拖拽文件至此</span>
+                            <span className="material-symbols-outlined mr-1">
+                                upload
+                            </span>
+                            <span className="text-center">
+                                点击上传或拖拽文件至此
+                            </span>
                         </div>
                     </div>
                 )}
@@ -249,23 +278,35 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
                     type="file"
                     ref={fileInputRef}
                     className="hidden"
-                    onChange={(e) => handleFileSelect((e.target as HTMLInputElement).files)}
+                    onChange={(e) =>
+                        handleFileSelect((e.target as HTMLInputElement).files)
+                    }
                 />
 
                 {selectedFiles.length > 0 && (
                     <div className="mt-4">
                         <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
                             {selectedFiles.map((file, index) => (
-                                <div key={index} className="flex items-center justify-between p-2 border rounded-md">
+                                <div
+                                    key={index}
+                                    className="flex items-center justify-between p-2 border rounded-md"
+                                >
                                     <div className="flex items-center space-x-2">
                                         <div className="w-8 h-8 bg-accent/20 rounded flex items-center justify-center">
-                                            <span
-                                                className="text-xs">{file.name.split('.').pop()?.toUpperCase() || 'FILE'}</span>
+                                            <span className="text-xs">
+                                                {file.name
+                                                    .split(".")
+                                                    .pop()
+                                                    ?.toUpperCase() || "FILE"}
+                                            </span>
                                         </div>
                                         <div>
-                                            <div className="text-sm truncate max-w-[200px]">{file.name}</div>
-                                            <div
-                                                className="text-xs text-muted-foreground">{formatFileSize(file.size)}</div>
+                                            <div className="text-sm truncate max-w-[200px]">
+                                                {file.name}
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">
+                                                {formatFileSize(file.size)}
+                                            </div>
                                         </div>
                                     </div>
                                     <Button
@@ -274,7 +315,7 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
                                         onClick={() => removeFile(index)}
                                         className="h-8 w-8"
                                     >
-                                        <X className="h-4 w-4"/>
+                                        <X className="h-4 w-4" />
                                     </Button>
                                 </div>
                             ))}
@@ -284,106 +325,161 @@ export function AreaFileShare({handleTabClick}: { handleTabClick: (tab: string) 
 
                 <div className="flex items-center justify-center mt-4 gap-4">
                     <div className="flex-1">
-                        <div className="mb-2 text-sm">
-                            有效时长
-                        </div>
-                        <Select defaultValue="604800" onValueChange={value => references.expires.current = value}>
+                        <div className="mb-2 text-sm">有效时长</div>
+                        <Select
+                            defaultValue="604800"
+                            onValueChange={(value) =>
+                                (references.expires.current = value)
+                            }
+                        >
                             <SelectTrigger>
-                                <SelectValue placeholder="有效时长"/>
+                                <SelectValue placeholder="有效时长" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectGroup>
                                     <SelectItem value="3600">1 小时</SelectItem>
-                                    <SelectItem value="28800">8 小时</SelectItem>
+                                    <SelectItem value="28800">
+                                        8 小时
+                                    </SelectItem>
                                     <SelectItem value="86400">1 天</SelectItem>
                                     <SelectItem value="604800">7 天</SelectItem>
-                                    <SelectItem value="1209600">14 天</SelectItem>
-                                    <SelectItem value="permanent">永久</SelectItem>
+                                    <SelectItem value="1209600">
+                                        14 天
+                                    </SelectItem>
+                                    <SelectItem value="permanent">
+                                        永久
+                                    </SelectItem>
                                 </SelectGroup>
                             </SelectContent>
                         </Select>
                     </div>
 
                     <div className="flex-1">
-                        <div className="mb-2 text-sm">
-                            访问人数限制
-                        </div>
-                        <Input onInput={e => references.maxvisit.current = (e.target as HTMLInputElement).value || ""}
-                               type={"number"} min={0} placeholder={"无限制"}/>
-
+                        <div className="mb-2 text-sm">访问人数限制</div>
+                        <Input
+                            onInput={(e) =>
+                                (references.maxvisit.current =
+                                    (e.target as HTMLInputElement).value || "")
+                            }
+                            type={"number"}
+                            min={0}
+                            placeholder={"无限制"}
+                        />
                     </div>
                 </div>
 
                 <div className="mt-4">
-                    <div className="mb-2 text-sm">
-                        密码
-                    </div>
-                    <Input onInput={e => references.password.current = (e.target as HTMLInputElement).value || ""}
-                           placeholder={"无密码"}/>
-
+                    <div className="mb-2 text-sm">密码</div>
+                    <Input
+                        onInput={(e) =>
+                            (references.password.current =
+                                (e.target as HTMLInputElement).value || "")
+                        }
+                        placeholder={"无密码"}
+                    />
                 </div>
 
                 <div className="mt-8 flex items-center border-1 border-neutral-200 rounded-md p-4 shadow-sm">
                     <div>
                         <Label htmlFor="airplane-mode">图床模式</Label>
                         <div className={"mt-1.5 opacity-50 text-xs"}>
-                            开启后，上传图片生成的 URL 可以直接用作 HTML 中的 &lt;img&gt; 标签的 src 属性。
+                            开启后，上传图片生成的 URL 可以直接用作 HTML 中的
+                            &lt;img&gt; 标签的 src 属性。
                         </div>
                     </div>
-                    <Switch className={"ml-auto"} id="airplane-mode"
-                            onCheckedChange={checked =>
-                                references.no_filename.current = checked
-                            }/>
+                    <Switch
+                        className={"ml-auto"}
+                        id="airplane-mode"
+                        onCheckedChange={(checked) =>
+                            (references.no_filename.current = checked)
+                        }
+                    />
                 </div>
-                {
-                    (!context.value.loading && !context.value.isLoggedIn)
-                        ?
-                        (
-                            context.value.turnstile_enabled ?
-                                <Turnstile
-                                    sitekey={context.value.turnstile_site_key}
-                                    className="mt-6 mb-[-16px] text-center"
-                                    onVerify={token => {
-                                        turnstileToken.current = token
-                                    }}
-                                    refreshExpired={"auto"}
-                                />
-                                :
-                                <div
-                                    className={"mt-6 text-center text-black/50"}>当前站点未开启游客上传功能，请先登录</div>
-                        )
-                        :
-                        <></>
-                }
-
+                {!context.value.loading && !context.value.isLoggedIn ? (
+                    context.value.turnstile_enabled ? (
+                        <Turnstile
+                            sitekey={context.value.turnstile_site_key}
+                            className="mt-6 mb-[-16px] text-center"
+                            onVerify={(token) => {
+                                turnstileToken.current = token
+                            }}
+                            refreshExpired={"auto"}
+                        />
+                    ) : (
+                        <div className={"mt-8 text-center text-sm opacity-50"}>
+                            当前站点未开启游客上传功能，请先登录。
+                        </div>
+                    )
+                ) : (
+                    <></>
+                )}
 
                 <div className={"flex gap-4 mt-8"}>
-                    <Button className={"flex-1 cursor-pointer"} variant={"outline"}
-                            onClick={() => handleTabClick("operation")}>取消</Button>
-                    <Button className={"flex-5 cursor-pointer"} onClick={handleUpload}
-                            disabled={selectedFiles.length === 0 || context.value.loading || (!context.value.isLoggedIn && !context.value.turnstile_enabled)}>
+                    <Button
+                        className={"flex-1 cursor-pointer"}
+                        variant={"outline"}
+                        onClick={() => handleTabClick("operation")}
+                    >
+                        取消
+                    </Button>
+                    <Button
+                        className={"flex-5 cursor-pointer"}
+                        onClick={handleUpload}
+                        disabled={
+                            selectedFiles.length === 0 ||
+                            context.value.loading ||
+                            (!context.value.isLoggedIn &&
+                                !context.value.turnstile_enabled)
+                        }
+                    >
                         上传
                     </Button>
                 </div>
-                <div className={"flex items-center justify-center flex-col" + (progress === 0 ? " hidden" : "")}>
-                    <div className={"flex flex-row w-full mt-4 mb-4 items-center justify-center"}>
-                        <Progress value={progress} className="w-full h-2 mr-4"/>
-                        <span className={"text-center text-sm mr-2"}>{progress}%</span>
+                <div
+                    className={
+                        "flex items-center justify-center flex-col" +
+                        (progress === 0 ? " hidden" : "")
+                    }
+                >
+                    <div
+                        className={
+                            "flex flex-row w-full mt-4 mb-4 items-center justify-center"
+                        }
+                    >
+                        <Progress
+                            value={progress}
+                            className="w-full h-2 mr-4"
+                        />
+                        <span className={"text-center text-sm mr-2"}>
+                            {progress}%
+                        </span>
                     </div>
-                    <div className={"text-black/60 text-center" + (finalUrl ? "" : " hidden")}>
-                        <b>大功告成！</b>你可以用以下链接分享你的文件（点击复制）<br/>
-                        <span className={"text-cyan-800 cursor-pointer"} onClick={() => {
-                            navigator.clipboard.writeText(finalUrl)
-                                .then(() => {
-                                    toast.success("已复制到剪贴板")
-                                })
-                        }}>{finalUrl}</span>
+                    <div
+                        className={
+                            "text-black/60 text-center" +
+                            (finalUrl ? "" : " hidden")
+                        }
+                    >
+                        <b>大功告成！</b>
+                        你可以用以下链接分享你的文件（点击复制）
+                        <br />
+                        <span
+                            className={"text-cyan-800 cursor-pointer"}
+                            onClick={() => {
+                                navigator.clipboard
+                                    .writeText(finalUrl)
+                                    .then(() => {
+                                        toast.success("已复制到剪贴板")
+                                    })
+                            }}
+                        >
+                            {finalUrl}
+                        </span>
                     </div>
                 </div>
-
             </div>
 
-            <Toaster richColors/>
+            <Toaster richColors />
         </div>
     )
 }
