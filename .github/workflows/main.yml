@@ -19,25 +19,36 @@ jobs:
           override: true
           components: rustfmt
 
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "rust-deps"
+          cache-on-failure: true
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 10
 
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'pnpm'
 
-      - name: Install Biome
-        run: pnpm install
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Biome
+        uses: biomejs/setup-biome@v2
+        with:
+          version: latest
 
       - name: Run rustfmt
         run: cargo fmt --all
 
       - name: Run Biome format
-        run: pnpm biome format --write
+        run: biome format --write
 
       - name: Commit & Push changes
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -58,21 +69,49 @@ jobs:
           toolchain: stable
           override: true
 
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "rust-deps"
+          cache-on-failure: true
+
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 10
 
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
+          cache: 'pnpm'
 
-      - name: Install Biome
-        run: pnpm install
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Setup Biome
+        uses: biomejs/setup-biome@v2
+        with:
+          version: "v2.2.4"
 
+      - name: Cache cargo binaries
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-bins-${{ hashFiles('**/Cargo.lock') }}
+        
+      - name: Setup sqlx cli
+        run: |
+          if ! command -v sqlx &> /dev/null; then
+            cargo install sqlx-cli --no-default-features --features sqlite-unbundled
+          fi
+        
       - name: Run cargo check
-        run: cargo check --all --all-targets
+        env:
+          DATABASE_URL: "sqlite:./data.db"
+        run: |
+          sqlx database setup
+          cargo check --all --all-targets
 
       - name: Run Biome lint
-        run: pnpm biome lint
+        run: biome ci

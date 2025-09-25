@@ -1,16 +1,17 @@
 import { render } from "preact"
-import { TopBar } from "./components/TopBar"
-import { AreaOperation } from "./components/AreaOperation"
-import { AreaShared } from "./components/AreaShared"
-import { AreaFileShare } from "./components/AreaFileShare"
-import { AreaPasteBin } from "./components/AreaPasteBin"
-import { AreaShortUrl } from "./components/AreaShortUrl"
-import { useState } from "preact/hooks"
-import { TransitionTabs } from "./HeightTransition"
-import { useEffect, useContext, createContext } from "react"
+import { createContext, useEffect, useState } from "react"
 import "../public/style.css"
+import { Toaster } from "@/components/ui/sonner.tsx"
+import { AreaFileShare } from "./components/AreaFileShare"
+import { AreaOperation } from "./components/AreaOperation"
+import { AreaPasteBin } from "./components/AreaPasteBin"
+import { AreaShared } from "./components/AreaShared"
+import { AreaShortUrl } from "./components/AreaShortUrl"
+import { TopBar } from "./components/TopBar"
+import { TransitionTabs } from "./HeightTransition"
 
-const root = document.getElementById("app")!
+const root = document.getElementById("app")
+if (!root) throw new Error("Launch failed: Root element not found")
 
 export const AccountCtx = createContext({
     value: {
@@ -29,6 +30,8 @@ export const AccountCtx = createContext({
         turnstile_enabled: boolean
         turnstile_site_key: string
     }) => {},
+    sharedListUpdTrigger: (_: number) => {},
+    sharedListUpd: 0,
 })
 
 export function Dashboard() {
@@ -40,6 +43,7 @@ export function Dashboard() {
         turnstile_enabled: false,
         turnstile_site_key: "",
     })
+    const [sharedListUpd, sharedListUpdTrigger] = useState(0)
 
     const [activeTab, setActiveTab] = useState("operation")
     const handleTabClick = (tab: string) => {
@@ -62,13 +66,15 @@ export function Dashboard() {
         }
     }, [])
     return (
-        <AccountCtx.Provider value={{ value, setValue }}>
+        <AccountCtx.Provider
+            value={{ value, setValue, sharedListUpdTrigger, sharedListUpd }}
+        >
             <div>
                 <TopBar />
 
                 <TransitionTabs
                     activeKey={activeTab}
-                    children={[
+                    tabs={[
                         {
                             key: "operation",
                             node: (
@@ -114,6 +120,7 @@ export function Dashboard() {
 
                 {!value.loading && value.isLoggedIn && <AreaShared />}
             </div>
+            <Toaster richColors></Toaster>
         </AccountCtx.Provider>
     )
 }

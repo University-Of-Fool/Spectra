@@ -1,11 +1,12 @@
+/** biome-ignore-all lint/suspicious/noUnknownAtRules: Tailwind specific at-rules */
 @import "tailwindcss";
+@import "material-symbols/outlined.css";
 
 @source "../../src";
 @source "../";
 @source not "../dist";
 
 @plugin "tailwindcss-animate";
-@import "material-symbols/outlined.css";
 /* @import "tw-animate-css"; */
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
@@ -158,7 +159,6 @@
     * {
         @apply border-border outline-ring/50;
     }
-
     body {
         @apply bg-background text-foreground;
     }

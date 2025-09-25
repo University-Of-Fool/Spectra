@@ -1,3 +1,5 @@
+import { useContext, useState } from "react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -10,7 +12,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { useState } from "react"
+import { wfetch } from "../fetch.ts"
+import { AccountCtx } from "../main.tsx"
 
 export function AreaShortUrl({
     handleTabClick,
@@ -23,6 +26,43 @@ export function AreaShortUrl({
     const [expires, setExpires] = useState("604800")
     const [maxvisit, setMaxvisit] = useState(0)
     const [password, setPassword] = useState("")
+    const [finalUrl, setFinalUrl] = useState("")
+
+    const context = useContext(AccountCtx)
+
+    async function handleUpload() {
+        const body = {
+            item_type: "Link",
+            data: target,
+            expires_at:
+                expires === "permanent"
+                    ? undefined
+                    : new Date(
+                          Date.now() + parseInt(expires, 10) * 1000,
+                      ).toISOString(),
+            max_visit: maxvisit || undefined,
+            password: password || undefined,
+        }
+        const uploadPath = `/api/item/${random ? "__RANDOM__" : path}`
+
+        if (!(context.value.turnstile_enabled && !context.value.isLoggedIn)) {
+            const resp = await wfetch(uploadPath, {
+                method: "POST",
+                body: JSON.stringify(body),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+            })
+            const data = await resp.json()
+            if (resp.status === 200 && data.success) {
+                context.sharedListUpdTrigger(context.sharedListUpd + 1)
+                setFinalUrl(
+                    `${window.location.origin}/${data.payload.short_path}`,
+                )
+            }
+        }
+    }
 
     return (
         <div className={"flex flex-col items-center"}>
@@ -114,11 +154,32 @@ export function AreaShortUrl({
                     </Button>
                     <Button
                         className="flex-5"
-                        onClick={() => alert("FIXME")}
+                        onClick={handleUpload}
                         disabled={target === ""}
                     >
                         上传
                     </Button>
+                </div>
+
+                <div
+                    className={
+                        "text-black/60 text-center mt-4" +
+                        (finalUrl ? "" : " hidden")
+                    }
+                >
+                    <b>大功告成！</b>
+                    以下是你的短链接（点击复制）
+                    <br />
+                    <span
+                        className={"text-cyan-800 cursor-pointer"}
+                        onClick={() => {
+                            navigator.clipboard.writeText(finalUrl).then(() => {
+                                toast.success("已复制到剪贴板")
+                            })
+                        }}
+                    >
+                        {finalUrl}
+                    </span>
                 </div>
             </div>
         </div>
