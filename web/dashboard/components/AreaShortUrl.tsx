@@ -36,7 +36,7 @@ export function AreaShortUrl({
                 expires === "permanent"
                     ? undefined
                     : new Date(
-                          Date.now() + parseInt(expires) * 1000,
+                          Date.now() + parseInt(expires, 10) * 1000,
                       ).toISOString(),
             max_visit: maxvisit || undefined,
             password: password || undefined,

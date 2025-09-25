@@ -99,7 +99,7 @@ export function AreaFileShare({
     // 处理上传
     const handleUpload = async () => {
         if (selectedFiles.length === 0) return
-        console.log(parseInt(references.expires.current))
+        console.log(parseInt(references.expires.current, 10))
         const body = {
             item_type: "File",
             data: "none",
@@ -108,7 +108,7 @@ export function AreaFileShare({
                     ? undefined
                     : new Date(
                           Date.now() +
-                              parseInt(references.expires.current) * 1000,
+                              parseInt(references.expires.current, 10) * 1000,
                       ).toISOString(),
             max_visit: references.maxvisit.current || undefined,
             password: references.password.current || undefined,
