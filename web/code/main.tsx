@@ -2,7 +2,7 @@ import "../public/style.css"
 import "highlight.js/styles/github.css"
 import { render } from "preact"
 import { Toaster } from "@/components/ui/sonner.tsx"
-import { TopBar } from "../password/components/TopBar.tsx"
+import { TopBar } from "../components/TopBar.tsx"
 import CodeBlock from "./components/CodeBlock.tsx"
 
 const backendData = JSON.parse(
