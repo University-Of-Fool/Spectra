@@ -30,15 +30,14 @@ export function AreaFileShare({
     const turnstileToken = useRef("")
     const [progress, setProgress] = useState(0)
     const [finalUrl, setFinalUrl] = useState("")
-
-    // setTimeout(() => {
-    //     setProgress(30)
-    // }, 1000)
-
-    // setTimeout(() => {
-    //     setProgress(100)
-    //     setFinalUrl("http://127.0.0.1:3000/MBUK")
-    // }, 2000)
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+    const [isDragging, setIsDragging] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
+    const [failedMessage, setFailedMessage] = useState("")
+    const xhrStates = {
+        aborted: useState(false),
+        xhr: useRef<XMLHttpRequest>(null),
+    }
 
     const references = {
         path: useRef(""),
@@ -50,9 +49,6 @@ export function AreaFileShare({
     }
 
     // 添加文件选择相关状态
-    const [selectedFiles, setSelectedFiles] = useState<File[]>([])
-    const [isDragging, setIsDragging] = useState(false)
-    const fileInputRef = useRef<HTMLInputElement>(null)
 
     // 处理文件选择
     const handleFileSelect = (files: FileList | null) => {
@@ -139,24 +135,31 @@ export function AreaFileShare({
             credentials: "include",
         })
 
+        const data = await resp.json()
+
         if (resp.status !== 200) {
+            if (resp.status === 409) {
+                setFailedMessage("指定的路径已存在")
+            } else {
+                setFailedMessage(`未知错误：${resp.status} ${data.payload}`)
+            }
             return
         }
+        setFailedMessage("")
 
-        setProgress(30)
-        const data = await resp.json()
+        setProgress(10)
         const formData = new FormData()
         formData.append("file", selectedFiles[0])
         try {
             await new Promise<void>((resolve, reject) => {
                 const xhr = new XMLHttpRequest()
-
+                xhrStates.xhr.current = xhr
                 // 监听上传进度事件
                 xhr.upload.addEventListener("progress", (event) => {
                     if (event.lengthComputable) {
-                        // 计算上传进度百分比（从30%到95%）
+                        // 计算上传进度百分比（从10%到95%）
                         const uploadPercent =
-                            30 + (event.loaded / event.total) * 65
+                            10 + (event.loaded / event.total) * 75
                         setProgress(Math.min(Math.round(uploadPercent), 95))
                     }
                 })
@@ -189,6 +192,7 @@ export function AreaFileShare({
                 xhr.send(formData)
             })
         } catch (e) {
+            toast.error(`未知错误: ${e}`)
             console.error(e)
             return
         }
@@ -450,6 +454,15 @@ export function AreaFileShare({
                                 上传
                             </Button>
                         </div>
+                        {failedMessage !== "" && (
+                            <div
+                                className={
+                                    "text-red-500 mt-4 text-sm text-center"
+                                }
+                            >
+                                {failedMessage}
+                            </div>
+                        )}
                     </>
                 )}
 
@@ -459,7 +472,11 @@ export function AreaFileShare({
                             "flex items-center justify-center flex-col mt-8"
                         }
                     >
-                        <div className={"mb-2 opacity-75"}>正在上传文件...</div>
+                        <div className={"mb-2 opacity-75"}>
+                            {xhrStates.aborted[0]
+                                ? "上传已终止"
+                                : "正在上传文件..."}
+                        </div>
                         <div
                             className={
                                 "flex flex-row w-full mt-4 items-center justify-center"
@@ -473,16 +490,35 @@ export function AreaFileShare({
                                 {progress}%
                             </span>
                         </div>
-                        <Button className={"mt-8 w-full"} variant={"outline"}>
-                            取消
-                        </Button>
+                        {xhrStates.aborted[0] ? (
+                            <Button
+                                className={"mt-8 w-full"}
+                                variant={"outline"}
+                                onClick={() => {
+                                    handleTabClick("operation")
+                                }}
+                            >
+                                返回
+                            </Button>
+                        ) : (
+                            <Button
+                                className={"mt-8 w-full"}
+                                variant={"outline"}
+                                onClick={() => {
+                                    xhrStates.xhr.current?.abort()
+                                    xhrStates.aborted[1](true)
+                                }}
+                            >
+                                取消
+                            </Button>
+                        )}
                     </div>
                 )}
 
                 {finalUrl !== "" && (
                     <div className={"mt-8 w-full flex flex-col items-center"}>
                         <div className={"mb-6 opacity-75"}>
-                            上传完成，链接已复制。
+                            上传成功，链接已复制。
                         </div>
                         <Input
                             className={"w-full"}

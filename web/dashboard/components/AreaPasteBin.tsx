@@ -30,6 +30,7 @@ export function AreaPasteBin({
     const [maxvisit, setMaxvisit] = useState(0)
     const [password, setPassword] = useState("")
     const [finalUrl, setFinalUrl] = useState("")
+    const [failedMessage, setFailedMessage] = useState("")
     const context = useContext(AccountCtx)
 
     async function handleUpload() {
@@ -62,13 +63,23 @@ export function AreaPasteBin({
             })
             const data = await resp.json()
             if (resp.status === 200 && data.success) {
+                setFailedMessage("")
                 context.sharedListUpdTrigger(context.sharedListUpd + 1)
-                const url = `${window.location.origin}/${data.payload.short_path}`
-                setFinalUrl(url)
-                navigator.clipboard.writeText(url).then(() => {
+
+                setFinalUrl(
+                    `${window.location.origin}/${data.payload.short_path}`,
+                )
+                navigator.clipboard.writeText(finalUrl).then(() => {
                     toast.success("链接已复制到剪贴板")
                 })
+                return
+
             }
+            if (resp.status === 409) {
+                setFailedMessage("指定的路径已存在")
+                return
+            }
+            setFailedMessage(`未知错误：${resp.status} ${data.payload}`)
         }
     }
 
@@ -77,29 +88,29 @@ export function AreaPasteBin({
             <div className="font-thin text-2xl mt-6 mb-12">Pastebin</div>
 
             {finalUrl === "" && (
-                <div className="flex gap-2 items-center">
-                    <div className="opacity-50">https://s.akyuu.cn/</div>
-                    <Input
-                        disabled={random}
-                        value={random ? "[随机]" : path}
-                        onChange={(e) => setPath(e.currentTarget.value)}
-                    />
-                    <div className="flex items-center gap-2 ml-2">
-                        <Checkbox
-                            checked={random}
-                            onCheckedChange={(checked) => setRandom(!!checked)}
-                            id="terms"
-                        />
-                        <Label className="text-nowrap" htmlFor="terms">
-                            随机生成
-                        </Label>
-                    </div>
-                </div>
-            )}
 
-            <div className="w-150 mt-4">
-                {finalUrl === "" && (
-                    <>
+                <>
+                    <div className="flex gap-2 items-center">
+                        <div className="opacity-50">https://s.akyuu.cn/</div>
+                        <Input
+                            disabled={random}
+                            value={random ? "[随机]" : path}
+                            onChange={(e) => setPath(e.currentTarget.value)}
+                        />
+                        <div className="flex items-center gap-2 ml-2">
+                            <Checkbox
+                                checked={random}
+                                onCheckedChange={(checked) =>
+                                    setRandom(!!checked)
+                                }
+                                id="terms"
+                            />
+                            <Label className="text-nowrap" htmlFor="terms">
+                                随机生成
+                            </Label>
+                        </div>
+                    </div>
+                    <div className="w-150 mt-4">
                         <div className="flex gap-4 mt-4">
                             <div className="flex-3">
                                 <div className="mb-2 text-sm">标题</div>
@@ -224,6 +235,7 @@ export function AreaPasteBin({
                                     </SelectContent>
                                 </Select>
                             </div>
+
                             <div className="flex-1">
                                 <div className="mb-2 text-sm">访问人数限制</div>
                                 <Input
@@ -264,61 +276,61 @@ export function AreaPasteBin({
                                 onClick={() => handleUpload()}
                                 disabled={content.length === 0}
                             >
-                                上传
+                                创建短链接
                             </Button>
                         </div>
-                    </>
-                )}
 
-                {finalUrl !== "" && (
-                    <div className={"mt-8 w-full flex flex-col items-center"}>
-                        <div className={"mb-6 opacity-75"}>
-                            上传完成，链接已复制。
-                        </div>
-                        <Input
-                            className={"w-full"}
-                            type="text"
-                            value={finalUrl}
-                            readOnly
-                        />
-
-                        <div
-                            className={
-                                "flex mt-8 gap-4 items-center justify-center w-full"
-                            }
-                        >
-                            <Button
-                                variant={"outline"}
-                                className={"flex-1"}
-                                onClick={() => handleTabClick("operation")}
+                        {failedMessage !== "" && (
+                            <div
+                                className={
+                                    "text-red-500 mt-4 text-sm text-center"
+                                }
                             >
-                                返回
-                            </Button>
-                            <Button
-                                className={"flex-4"}
-                                onClick={() => {
-                                    navigator.clipboard
-                                        .writeText(finalUrl)
-                                        .then(() => {
-                                            toast.success("链接已复制到剪贴板")
-                                        })
-                                }}
-                            >
-                                再次复制
-                            </Button>
-                            <Button
-                                variant={"outline"}
-                                className={"flex-1"}
-                                onClick={() => {
-                                    window.open(finalUrl, "_blank")
-                                }}
-                            >
-                                打开链接
-                            </Button>
-                        </div>
+                                {failedMessage}
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
+                </>
+            )}
+            {finalUrl !== "" && (
+                <div className={"mt-8 w-150 flex flex-col items-center"}>
+                    <div className={"mb-6 opacity-75"}>
+                        项目创建完成，链接已复制。
+                    </div>
+                    <Input
+                        className={"w-full"}
+                        type="text"
+                        value={finalUrl}
+                        readOnly
+                    />
+
+                    <div
+                        className={
+                            "flex mt-8 gap-4 items-center justify-center w-full"
+                        }
+                    >
+                        <Button
+                            variant={"outline"}
+                            className={"flex-1"}
+                            onClick={() => handleTabClick("operation")}
+                        >
+                            返回
+                        </Button>
+                        <Button
+                            className={"flex-5"}
+                            onClick={() => {
+                                navigator.clipboard
+                                    .writeText(finalUrl)
+                                    .then(() => {
+                                        toast.success("链接已复制到剪贴板")
+                                    })
+                            }}
+                        >
+                            再次复制
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
