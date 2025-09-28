@@ -1,8 +1,8 @@
 import { useContext, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { wfetch } from "../fetch"
-import { AccountCtx } from "../main"
 import { TransitionHeight } from "../HeightTransition"
+import { AccountCtx } from "../main"
 
 export function AreaShared() {
     const context = useContext(AccountCtx)

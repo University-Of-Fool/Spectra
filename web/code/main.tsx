@@ -1,17 +1,18 @@
 import "../public/style.css"
 import "highlight.js/styles/github.css"
 import { render } from "preact"
+import { Toaster } from "@/components/ui/sonner.tsx"
 import CodeBlock from "./components/CodeBlock.tsx"
 import { TopBar } from "./components/TopBar.tsx"
-import { Toaster } from "@/components/ui/sonner.tsx"
 
-const backenddData = JSON.parse(
-    document.getElementById("spectra-data")!.textContent || "{}",
+const backendData = JSON.parse(
+    document.getElementById("spectra-data")?.textContent || "{}",
 ) as {
     content: string
     extra_data: string
 }
-const extraData = JSON.parse(backenddData.extra_data) as {
+if (!backendData) throw new Error("backendData is empty")
+const extraData = JSON.parse(backendData.extra_data) as {
     language: string
     title: string
 }
@@ -38,7 +39,7 @@ function Main() {
                     )}
                     <div>
                         <CodeBlock
-                            code={backenddData.content}
+                            code={backendData.content}
                             language={extraData.language}
                             wrap={extraData.language === "text"}
                         />
@@ -50,5 +51,6 @@ function Main() {
     )
 }
 
-const app = document.getElementById("app")!
+const app = document.getElementById("app")
+if (!app) throw new Error("app is empty")
 render(<Main />, app)

@@ -109,7 +109,6 @@ export function AreaFileShare({
     // 处理上传
     const handleUpload = async () => {
         if (selectedFiles.length === 0) return
-        console.log(references.maxvisit.current)
         const body = {
             item_type: "File",
             data: "none",

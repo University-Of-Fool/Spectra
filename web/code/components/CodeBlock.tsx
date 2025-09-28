@@ -1,7 +1,7 @@
 import hljs from "highlight.js/lib/core"
 import { useEffect, useRef, useState } from "react"
-import { HLJS_LANGS } from "../hljs.ts"
 import { toast } from "sonner"
+import { HLJS_LANGS } from "../hljs.ts"
 
 interface CodeBlockProps {
     code: string
@@ -18,9 +18,9 @@ export default function CodeBlock({
     const codeRef = useRef<HTMLElement>(null)
     const [lineHeights, setLineHeights] = useState<number[]>([])
     const [highlightLine, setHighlightLine] = useState<number | null>(null)
-    const [lineRects, setLineRects] = useState<
-        { top: number; height: number }[]
-    >([])
+    // const [lineRects, setLineRects] = useState<
+    //     { top: number; height: number }[]
+    // >([])
 
     useEffect(() => {
         let active = true
@@ -57,7 +57,9 @@ export default function CodeBlock({
             const tempSpans: HTMLSpanElement[] = []
 
             // 清理之前的临时span
-            codeEl.querySelectorAll(".temp-line").forEach((el) => el.remove())
+            for (const el of codeEl.querySelectorAll(".temp-line")) {
+                el.remove()
+            }
 
             const fragment = document.createDocumentFragment()
 
@@ -75,16 +77,19 @@ export default function CodeBlock({
 
             // 计算相对于 pre 的 top 和 height
             const preRect = codeRef.current.getBoundingClientRect()
-            const rects = tempSpans.map((span) => {
+            //const rects =
+            tempSpans.map((span) => {
                 const r = span.getBoundingClientRect()
                 return { top: r.top - preRect.top, height: r.height }
             })
-            setLineRects(rects)
+            //setLineRects(rects)
 
             setLineHeights(tempSpans.map((span) => span.offsetHeight))
 
             // 移除临时span
-            tempSpans.forEach((span) => span.remove())
+            for (const span of tempSpans) {
+                span.remove()
+            }
         }
 
         updateLineHeights()
@@ -99,7 +104,7 @@ export default function CodeBlock({
                 const el = document.getElementById(hash.slice(1))
                 if (el) {
                     el.scrollIntoView({ behavior: "smooth", block: "center" })
-                    setHighlightLine(parseInt(hash.slice(2)) - 1)
+                    setHighlightLine(parseInt(hash.slice(2), 10) - 1)
                 }
             }
         }
@@ -113,14 +118,15 @@ export default function CodeBlock({
     const handleLineClick = (lineNumber: number) => {
         const url = new URL(window.location.href)
         url.hash = `L${lineNumber + 1}` // 生成锚点
-        navigator.clipboard.writeText(url.toString())
+        void navigator.clipboard.writeText(url.toString())
         history.replaceState(null, "", url.toString())
         setHighlightLine(lineNumber)
         toast.success(`已复制锚点位置: ${url.toString()}`)
     }
 
     useEffect(() => {
-        const bar = document.getElementById("highlight-bar")!
+        const bar = document.getElementById("highlight-bar")
+        if (!bar) return
         bar.style.backgroundColor = "rgba(255, 255, 0, 0.25)"
         bar.style.transition = ""
         const timeout = setTimeout(() => {
@@ -130,12 +136,12 @@ export default function CodeBlock({
         return () => clearTimeout(timeout)
     }, [highlightLine])
 
-    useEffect(() => {
-        console.log(lineHeights)
-    }, [lineHeights])
-    useEffect(() => {
-        console.log(lineRects)
-    }, [lineRects])
+    // useEffect(() => {
+    //     console.log(lineHeights)
+    // }, [lineHeights])
+    // useEffect(() => {
+    //     console.log(lineRects)
+    // }, [lineRects])
 
     return (
         <>
@@ -159,6 +165,9 @@ export default function CodeBlock({
                     {lineHeights.map((h, i) => (
                         <div
                             className={"cursor-pointer"}
+                            // We don’t recommend using indexes for keys if the order of items **may change**
+                            //                                                                  -- React documentation
+                            // biome-ignore lint/suspicious/noArrayIndexKey: the array here won't change
                             key={i}
                             style={{ height: h }}
                             id={`L${i + 1}`}
