@@ -119,6 +119,21 @@ pub async fn main_service(
                 .await;
             return resp_404(next).await;
         }
+        // 尝试获取项目的创建者信息
+        let (username, avatar_url) =
+            if item.creator.is_some() && !item.creator.clone().unwrap().starts_with("guest") {
+                if let Ok(Some(user)) = state
+                    .database_accessor
+                    .get_user_by_id(&*item.creator.unwrap())
+                    .await
+                {
+                    (user.name, user.avatar)
+                } else {
+                    ("Guest".to_string(), None)
+                }
+            } else {
+                ("Guest".to_string(), None)
+            };
 
         // 将下面被解析参数消耗了的 request 恢复
         let request = if let Some(password) = item.password_hash.clone() {
@@ -131,21 +146,6 @@ pub async fn main_service(
             let (mut parts, body) = request.into_parts();
             let query =
                 axum::extract::Query::<PasswordForm>::from_request_parts(&mut parts, &()).await;
-            // 尝试获取用户信息
-            let (username, avatar_url) =
-                if item.creator.is_some() && !item.creator.clone().unwrap().starts_with("guest") {
-                    if let Ok(Some(user)) = state
-                        .database_accessor
-                        .get_user_by_id(&*item.creator.unwrap())
-                        .await
-                    {
-                        (user.name, user.avatar)
-                    } else {
-                        ("Guest".to_string(), None)
-                    }
-                } else {
-                    ("Guest".to_string(), None)
-                };
             if let Ok(form) = query {
                 let input_password = form.0.password;
                 if !input_password.is_some() {
@@ -212,6 +212,8 @@ pub async fn main_service(
                             serde_json::to_string(&crate::types::CodeInformation {
                                 extra_data: item.extra_data.unwrap_or("text".to_string()),
                                 content: code_content,
+                                creator_name: username,
+                                creator_avatar: avatar_url,
                             })
                             .unwrap_or("{}".to_string()),
                         )),

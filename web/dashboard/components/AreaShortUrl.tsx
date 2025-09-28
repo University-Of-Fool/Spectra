@@ -218,7 +218,7 @@ export function AreaShortUrl({
                 </>
             )}
             {finalUrl !== "" && (
-                <div className={"mt-8 w-full flex flex-col items-center"}>
+                <div className={"mt-8 w-150 flex flex-col items-center"}>
                     <div className={"mb-6 opacity-75"}>
                         项目创建完成，链接已复制。
                     </div>
@@ -252,6 +252,15 @@ export function AreaShortUrl({
                             }}
                         >
                             再次复制
+                        </Button>
+                        <Button
+                            variant={"outline"}
+                            className={"flex-1"}
+                            onClick={() => {
+                                window.open(finalUrl, "_blank")
+                            }}
+                        >
+                            打开链接
                         </Button>
                     </div>
                 </div>

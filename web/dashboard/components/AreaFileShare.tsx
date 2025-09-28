@@ -36,6 +36,7 @@ export function AreaFileShare({
     const [failedMessage, setFailedMessage] = useState("")
     const xhrStates = {
         aborted: useState(false),
+        url: useRef(""),
         xhr: useRef<XMLHttpRequest>(null),
     }
 
@@ -105,7 +106,6 @@ export function AreaFileShare({
     // 处理上传
     const handleUpload = async () => {
         if (selectedFiles.length === 0) return
-        console.log(references.maxvisit.current)
         const body = {
             item_type: "File",
             data: "none",
@@ -155,6 +155,7 @@ export function AreaFileShare({
             await new Promise<void>((resolve, reject) => {
                 const xhr = new XMLHttpRequest()
                 xhrStates.xhr.current = xhr
+                xhrStates.url.current = `/api/item/${encodeURIComponent(data.payload.short_path)}`
                 // 监听上传进度事件
                 xhr.upload.addEventListener("progress", (event) => {
                     if (event.lengthComputable) {
@@ -505,9 +506,25 @@ export function AreaFileShare({
                             <Button
                                 className={"mt-8 w-full"}
                                 variant={"outline"}
-                                onClick={() => {
+                                onClick={async () => {
                                     xhrStates.xhr.current?.abort()
                                     xhrStates.aborted[1](true)
+                                    try {
+                                        const resp = await fetch(
+                                            xhrStates.url.current,
+                                            {
+                                                method: "DELETE",
+                                                credentials: "include",
+                                            },
+                                        )
+                                        const data = await resp.json()
+                                        if (!data.success) {
+                                            toast.error("取消失败")
+                                        }
+                                    } catch (e) {
+                                        console.error(e)
+                                        toast.error("取消失败：未知错误")
+                                    }
                                 }}
                             >
                                 取消

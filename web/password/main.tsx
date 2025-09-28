@@ -1,4 +1,5 @@
-import { render } from "preact"
+import "../public/style.css"
+import { render } from "react"
 import { AuthCard } from "./components/AuthCard"
 import { TopBar } from "./components/TopBar"
 
@@ -20,6 +21,7 @@ export function Dashboard() {
             <TopBar
                 name={backendData.creator_name}
                 avatar={backendData.creator_avatar}
+                page={"Auth"}
             />
             <AuthCard error={backendData.error} />
         </div>

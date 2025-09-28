@@ -409,7 +409,24 @@ pub async fn remove_item(
 
     let user = try_get_user(&state, &jar).await;
     if user.is_none() {
-        fail!(401, "Invalid token");
+        if let Some(token) = state
+            .user_tokens
+            .get(&jar.get("token").unwrap().value().to_string())
+        {
+            if token.is_expired() {
+                fail!(403, "Token expired");
+            }
+            if item.creator.clone().is_some_and(|x| token.user_id == x) {
+                state.database_accessor.remove_item(&item.id).await?;
+                if item.item_type == ItemType::File || item.item_type == ItemType::Code {
+                    state.file_accessor.remove_file(&item.data).await?;
+                }
+                success!(ItemSimplified::from(item))
+            }
+            fail!(403, "No sufficient permission");
+        } else {
+            fail!(401, "Invalid token");
+        }
     }
     let user = user.unwrap();
     info!(

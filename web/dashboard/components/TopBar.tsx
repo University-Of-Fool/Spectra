@@ -37,7 +37,6 @@ export function TopBar() {
                 ...context.value,
                 loading: false,
                 isLoggedIn: false,
-                turnstile_enabled: false,
             }
             context.setValue(value)
             toast.error("无法连接到服务器。")
@@ -48,8 +47,8 @@ export function TopBar() {
                 ...context.value,
                 loading: false,
                 isLoggedIn: true,
-                name: data.payload.name,
-                avatar_url: data.payload.avatar,
+                name: data?.payload.name || "",
+                avatar_url: data?.payload.avatar || "",
                 turnstile_enabled,
                 turnstile_site_key,
             }
@@ -154,6 +153,9 @@ export function TopBar() {
                 avatar_url: "",
             }
             context.setValue(value)
+            localStorage.removeItem("user")
+        } else {
+            toast.error(`退出登录失败: ${resp.status} ${data?.payload || ""}`)
         }
     }
     return (

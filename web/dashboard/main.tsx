@@ -1,6 +1,6 @@
+import "../public/style.css"
 import { render } from "preact"
 import { createContext, useEffect, useState } from "react"
-import "../public/style.css"
 import { Toaster } from "@/components/ui/sonner.tsx"
 import { AreaFileShare } from "./components/AreaFileShare"
 import { AreaOperation } from "./components/AreaOperation"

@@ -65,6 +65,7 @@ export function AreaPasteBin({
             if (resp.status === 200 && data.success) {
                 setFailedMessage("")
                 context.sharedListUpdTrigger(context.sharedListUpd + 1)
+
                 setFinalUrl(
                     `${window.location.origin}/${data.payload.short_path}`,
                 )
@@ -232,6 +233,7 @@ export function AreaPasteBin({
                                     </SelectContent>
                                 </Select>
                             </div>
+
                             <div className="flex-1">
                                 <div className="mb-2 text-sm">访问人数限制</div>
                                 <Input
@@ -323,6 +325,15 @@ export function AreaPasteBin({
                             }}
                         >
                             再次复制
+                        </Button>
+                        <Button
+                            variant={"outline"}
+                            className={"flex-1"}
+                            onClick={() => {
+                                window.open(finalUrl, "_blank")
+                            }}
+                        >
+                            打开链接
                         </Button>
                     </div>
                 </div>
