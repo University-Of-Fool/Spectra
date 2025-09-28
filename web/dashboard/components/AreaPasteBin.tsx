@@ -1,4 +1,5 @@
-import { useState, useContext } from "react"
+import { useContext, useState } from "react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -14,7 +15,6 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { wfetch } from "../fetch.ts"
 import { AccountCtx } from "../main.tsx"
-import { toast } from "sonner"
 
 export function AreaPasteBin({
     handleTabClick,
@@ -42,7 +42,7 @@ export function AreaPasteBin({
                     : new Date(
                           Date.now() + parseInt(expires, 10) * 1000,
                       ).toISOString(),
-            max_visit: maxvisit || undefined,
+            max_visits: parseInt(maxvisit, 10) || undefined,
             password: password || undefined,
             extra_data: JSON.stringify({
                 title,

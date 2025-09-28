@@ -40,7 +40,7 @@ export function AreaShortUrl({
                     : new Date(
                           Date.now() + parseInt(expires, 10) * 1000,
                       ).toISOString(),
-            max_visit: maxvisit || undefined,
+            max_visits: parseInt(maxvisit, 10) || undefined,
             password: password || undefined,
         }
         const uploadPath = `/api/item/${random ? "__RANDOM__" : path}`

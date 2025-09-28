@@ -1,4 +1,7 @@
-export const HLJS_LANGS: Record<string, () => Promise<any>> = {
+export const HLJS_LANGS: Record<
+    string,
+    () => Promise<typeof import("highlight.js/lib/languages/*")>
+> = {
     markdown: () => import("highlight.js/lib/languages/markdown"),
     html: () => import("highlight.js/lib/languages/xml"),
     css: () => import("highlight.js/lib/languages/css"),
