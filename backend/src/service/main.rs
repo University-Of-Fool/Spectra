@@ -131,12 +131,27 @@ pub async fn main_service(
             let (mut parts, body) = request.into_parts();
             let query =
                 axum::extract::Query::<PasswordForm>::from_request_parts(&mut parts, &()).await;
-
+            // 尝试获取用户信息
+            let (username, avatar_url) =
+                if item.creator.is_some() && !item.creator.clone().unwrap().starts_with("guest") {
+                    if let Ok(Some(user)) = state
+                        .database_accessor
+                        .get_user_by_id(&*item.creator.unwrap())
+                        .await
+                    {
+                        (user.name, user.avatar)
+                    } else {
+                        ("Guest".to_string(), None)
+                    }
+                } else {
+                    ("Guest".to_string(), None)
+                };
             if let Ok(form) = query {
                 let input_password = form.0.password;
                 if !input_password.is_some() {
                     // 密码未提供
                     debug!("No password provided for a protected item {}", item.id);
+
                     return to_frontend(
                         next,
                         "/password/",
@@ -145,6 +160,8 @@ pub async fn main_service(
                             serde_json::to_string(&crate::types::PasswordInformation {
                                 error: false,
                                 path_name: item.short_path,
+                                creator_name: username,
+                                creator_avatar: avatar_url,
                             })
                             .unwrap_or("{}".to_string()),
                         )),
@@ -162,6 +179,8 @@ pub async fn main_service(
                             serde_json::to_string(&crate::types::PasswordInformation {
                                 error: true,
                                 path_name: item.short_path,
+                                creator_name: username,
+                                creator_avatar: avatar_url,
                             })
                             .unwrap_or("{}".to_string()),
                         )),

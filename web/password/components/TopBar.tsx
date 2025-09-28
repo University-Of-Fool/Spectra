@@ -1,4 +1,4 @@
-export function TopBar() {
+export function TopBar(props: { name: string; avatar: string | null }) {
     return (
         <div
             className={
@@ -10,15 +10,20 @@ export function TopBar() {
                 src="../logo_demo.svg"
                 className={"h-12 mr-4"}
             ></img>
+
             <div className={"text-xl font-mono font-medium"}>Spectra.Auth</div>
             <div className={"flex flex-col items-end ml-auto mr-4 gap-1"}>
-                <div className={"opacity-75 text-sm"}>分享者：@RLt</div>
+                <div className={"opacity-75 text-sm"}>
+                    分享者：@{props.name}
+                </div>
             </div>
-            <img
-                className={"w-12 h-12 rounded-full"}
-                alt={"avatar"}
-                src={"../avatar.jpg"}
-            />
+            <div className={"w-12 h-12 rounded-full bg-black/10"}>
+                <img
+                    alt={"avatar"}
+                    className={!props.avatar ? " hidden" : "rounded-full"}
+                    src={props.avatar || ""}
+                />
+            </div>
         </div>
     )
 }

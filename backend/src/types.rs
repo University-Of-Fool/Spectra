@@ -44,6 +44,8 @@ pub struct CodeInformation {
 pub struct PasswordInformation {
     pub error: bool,
     pub path_name: String,
+    pub creator_name: String,
+    pub creator_avatar: Option<String>,
 }
 
 // 用户令牌，令牌的实际表示由 State 中的哈希表键名决定
