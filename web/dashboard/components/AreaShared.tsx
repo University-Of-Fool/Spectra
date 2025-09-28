@@ -2,6 +2,7 @@ import { useContext, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { wfetch } from "../fetch"
 import { AccountCtx } from "../main"
+import { TransitionHeight } from "../HeightTransition"
 
 export function AreaShared() {
     const context = useContext(AccountCtx)
@@ -115,58 +116,61 @@ export function AreaShared() {
             <div className={"flex flex-col items-center"}>
                 <div className={"font-thin text-2xl mb-12"}>已分享的项目</div>
 
-                <table className="w-200 text-sm text-left text-neutral-700 dark:text-neutral-200">
-                    <thead className="text-sm uppercase border-b border-neutral-200 dark:border-neutral-700">
-                        <tr>
-                            <th className="px-4 py-3">类型</th>
-                            <th className="px-4 py-3">链接</th>
-                            <th className="px-4 py-3">状态</th>
-                            <th className="px-4 py-3">访问次数</th>
-                            <th className="px-4 py-3">创建时间</th>
-                            <th className="px-4 py-3">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {items.map((item) => (
-                            <tr
-                                key={item.id}
-                                className="border-b border-neutral-200 dark:border-neutral-700"
-                            >
-                                <td className="px-4 py-2">{item.item_type}</td>
-                                <td className="px-4 py-2 hover:underline cursor-pointer">
-                                    <a href={item.short_path} target="_blank">
-                                        {item.short_path}
-                                    </a>
-                                </td>
-                                <td className="px-4 py-2">
-                                    {item.available ? "有效" : "失效"}
-                                </td>
-                                <td className="px-4 py-2">{item.visits}</td>
-                                <td className="px-4 py-2">
-                                    {new Date(item.created_at).toLocaleString()}
-                                </td>
-                                <td className="px-4 py-2">
-                                    <button
-                                        type="button"
-                                        className={"button-icon"}
-                                        onClick={getOnClickDelete(
-                                            item.id,
-                                            item.short_path,
-                                        )}
-                                    >
-                                        <span
-                                            className={
-                                                "material-symbols-outlined point cursor-pointer text-[1.4rem]!"
-                                            }
-                                        >
-                                            delete
-                                        </span>
-                                    </button>
-                                </td>
+                <TransitionHeight>
+                    <table className="w-200 text-sm text-left text-neutral-700 dark:text-neutral-200">
+                        <thead className="text-sm uppercase border-b border-neutral-200 dark:border-neutral-700">
+                            <tr>
+                                <th className="px-4 py-3">类型</th>
+                                <th className="px-4 py-3">链接</th>
+                                <th className="px-4 py-3">状态</th>
+                                <th className="px-4 py-3">访问次数</th>
+                                <th className="px-4 py-3">创建时间</th>
+                                <th className="px-4 py-3">操作</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {items.map((item) => (
+                                <tr
+                                    key={item.id}
+                                    className="border-b border-neutral-200 dark:border-neutral-700"
+                                >
+                                    <td className="px-4 py-2">{item.item_type}</td>
+                                    <td className="px-4 py-2 hover:underline cursor-pointer">
+                                        <a href={item.short_path} target="_blank">
+                                            {item.short_path}
+                                        </a>
+                                    </td>
+                                    <td className="px-4 py-2">
+                                        {item.available ? "有效" : "失效"}
+                                    </td>
+                                    <td className="px-4 py-2">{item.visits}</td>
+                                    <td className="px-4 py-2">
+                                        {new Date(item.created_at).toLocaleString()}
+                                    </td>
+                                    <td className="px-4 py-2">
+                                        <button
+                                            type="button"
+                                            className={"button-icon"}
+                                            onClick={getOnClickDelete(
+                                                item.id,
+                                                item.short_path,
+                                            )}
+                                        >
+                                            <span
+                                                className={
+                                                    "material-symbols-outlined point cursor-pointer text-[1.4rem]!"
+                                                }
+                                            >
+                                                delete
+                                            </span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </TransitionHeight>
+
                 <div className={"mt-8"}></div>
 
                 {!nothing &&

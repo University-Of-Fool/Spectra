@@ -31,6 +31,15 @@ export function AreaFileShare({
     const [progress, setProgress] = useState(0)
     const [finalUrl, setFinalUrl] = useState("")
 
+    // setTimeout(() => {
+    //     setProgress(30)
+    // }, 1000)
+
+    // setTimeout(() => {
+    //     setProgress(100)
+    //     setFinalUrl("http://127.0.0.1:3000/MBUK")
+    // }, 2000)
+
     const references = {
         path: useRef(""),
         random: useState(true),
@@ -108,9 +117,9 @@ export function AreaFileShare({
                 references.expires.current === "permanent"
                     ? undefined
                     : new Date(
-                          Date.now() +
-                              parseInt(references.expires.current, 10) * 1000,
-                      ).toISOString(),
+                        Date.now() +
+                        parseInt(references.expires.current, 10) * 1000,
+                    ).toISOString(),
             max_visits: parseInt(references.maxvisit.current, 10) || undefined,
             password: references.password.current || undefined,
             extra_data: references.no_filename.current
@@ -190,278 +199,311 @@ export function AreaFileShare({
             context.sharedListUpdTrigger(context.sharedListUpd + 1)
         }
         setFinalUrl(final_url)
+        // 复制到剪贴板
+        navigator.clipboard
+            .writeText(finalUrl)
+            .then(() => {
+                toast.success("链接已复制到剪贴板")
+            })
     }
 
     return (
         <div className="flex flex-col items-center">
             <div className="font-thin text-2xl mt-6 mb-12">文件快传</div>
 
-            <div className="flex gap-2 items-center">
-                <div className="opacity-50">{window.location.origin}/</div>
 
-                <Input
-                    onInput={(e) => {
-                        references.path.current =
-                            (e.target as HTMLInputElement)?.value || ""
-                    }}
-                    disabled={references.random[0]}
-                />
-                <div className="flex items-center gap-2 ml-2">
-                    <Checkbox
-                        checked={references.random[0]}
-                        onCheckedChange={(checked) => {
-                            if (context.value.loading) return
-                            if (
-                                !context.value.isLoggedIn &&
-                                context.value.turnstile_enabled
-                            ) {
-                                toast.error("未登录时只能使用随机路径")
-                                return
-                            }
+            {progress === 0 && (
+                <div className="flex gap-2 items-center">
+                    <div className="opacity-50">{window.location.origin}/</div>
 
-                            // checked: boolean|"indeterminate"
-                            references.random[1](!!checked)
-                        }}
-                        id="terms"
-                        defaultChecked
-                    />
-                    <Label className="text-nowrap" htmlFor="terms">
-                        随机生成
-                    </Label>
-                </div>
-            </div>
-
-            <div className="w-150 mt-4">
-                <div className="mt-4 mb-2 text-sm">文件选择</div>
-
-                {/* 文件选择区域 - 只在没有选择文件时显示 */}
-                {selectedFiles.length === 0 && (
-                    <div
-                        className={`w-full h-40 border-2 flex items-center justify-center transition-colors rounded-md ${
-                            isDragging
-                                ? "border-neutral-400 bg-neutral-200"
-                                : "border-neutral-200 hover:border-neutral-300"
-                        }`}
-                        onClick={handleClickSelect}
-                        onDragEnter={handleDragEnter}
-                        onDragLeave={handleDragLeave}
-                        onDragOver={handleDragOver}
-                        onDrop={handleDrop}
-                    >
-                        <div className="flex items-center justify-center opacity-50 text-sm">
-                            <span className="material-symbols-outlined mr-1">
-                                upload
-                            </span>
-                            <span className="text-center">
-                                点击上传或拖拽文件至此
-                            </span>
-                        </div>
-                    </div>
-                )}
-
-                {/* 隐藏的文件输入 - 移除multiple属性 */}
-                <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    onChange={(e) =>
-                        handleFileSelect((e.target as HTMLInputElement).files)
-                    }
-                />
-
-                {selectedFiles.length > 0 && (
-                    <div className="mt-4">
-                        <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
-                            <div className="flex items-center justify-between p-2 border rounded-md">
-                                <div className="flex items-center space-x-2">
-                                    <div className="w-8 h-8 bg-accent/20 rounded flex items-center justify-center">
-                                        <span className="text-xs">
-                                            {selectedFiles[0].name
-                                                .split(".")
-                                                .pop()
-                                                ?.toUpperCase() || "FILE"}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <div className="text-sm truncate max-w-[200px]">
-                                            {selectedFiles[0].name}
-                                        </div>
-                                        <div className="text-xs text-muted-foreground">
-                                            {formatFileSize(
-                                                selectedFiles[0].size,
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => removeFile(0)}
-                                    className="h-8 w-8"
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </div>
-                            )
-                        </div>
-                    </div>
-                )}
-
-                <div className="flex items-center justify-center mt-4 gap-4">
-                    <div className="flex-1">
-                        <div className="mb-2 text-sm">有效时长</div>
-                        <Select
-                            defaultValue="604800"
-                            onValueChange={(value) => {
-                                references.expires.current = value
-                            }}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="有效时长" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectGroup>
-                                    <SelectItem value="3600">1 小时</SelectItem>
-                                    <SelectItem value="28800">
-                                        8 小时
-                                    </SelectItem>
-                                    <SelectItem value="86400">1 天</SelectItem>
-                                    <SelectItem value="604800">7 天</SelectItem>
-                                    <SelectItem value="1209600">
-                                        14 天
-                                    </SelectItem>
-                                    <SelectItem value="permanent">
-                                        永久
-                                    </SelectItem>
-                                </SelectGroup>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="flex-1">
-                        <div className="mb-2 text-sm">访问人数限制</div>
-                        <Input
-                            onInput={(e) => {
-                                references.maxvisit.current =
-                                    (e.target as HTMLInputElement).value || ""
-                            }}
-                            type={"number"}
-                            min={0}
-                            placeholder={"无限制"}
-                        />
-                    </div>
-                </div>
-
-                <div className="mt-4">
-                    <div className="mb-2 text-sm">密码</div>
                     <Input
                         onInput={(e) => {
-                            references.password.current =
-                                (e.target as HTMLInputElement).value || ""
+                            references.path.current =
+                                (e.target as HTMLInputElement)?.value || ""
                         }}
-                        placeholder={"无密码"}
+                        disabled={references.random[0]}
                     />
-                </div>
+                    <div className="flex items-center gap-2 ml-2">
+                        <Checkbox
+                            checked={references.random[0]}
+                            onCheckedChange={(checked) => {
+                                if (context.value.loading) return
+                                if (
+                                    !context.value.isLoggedIn &&
+                                    context.value.turnstile_enabled
+                                ) {
+                                    toast.error("未登录时只能使用随机路径")
+                                    return
+                                }
 
-                <div className="mt-8 flex items-center border-1 border-neutral-200 rounded-md p-4 shadow-sm">
-                    <div>
-                        <Label htmlFor="airplane-mode">图床模式</Label>
-                        <div className={"mt-1.5 opacity-50 text-xs"}>
-                            开启后，上传图片生成的 URL 可以直接用作 HTML 中的
-                            &lt;img&gt; 标签的 src 属性。
+                                // checked: boolean|"indeterminate"
+                                references.random[1](!!checked)
+                            }}
+                            id="terms"
+                            defaultChecked
+                        />
+                        <Label className="text-nowrap" htmlFor="terms">
+                            随机生成
+                        </Label>
+                    </div>
+                </div>
+            )}
+
+
+            <div className="w-150 mt-4">
+
+                {progress === 0 && (<>
+                    <div className="mt-4 mb-2 text-sm">文件选择</div>
+
+                    {/* 文件选择区域 - 只在没有选择文件时显示 */}
+                    {selectedFiles.length === 0 && (
+                        <div
+                            className={`w-full h-40 border-2 flex items-center justify-center transition-colors rounded-md ${isDragging
+                                ? "border-neutral-400 bg-neutral-200"
+                                : "border-neutral-200 hover:border-neutral-300"
+                                }`}
+                            onClick={handleClickSelect}
+                            onDragEnter={handleDragEnter}
+                            onDragLeave={handleDragLeave}
+                            onDragOver={handleDragOver}
+                            onDrop={handleDrop}
+                        >
+                            <div className="flex items-center justify-center opacity-50 text-sm">
+                                <span className="material-symbols-outlined mr-1">
+                                    upload
+                                </span>
+                                <span className="text-center">
+                                    点击上传或拖拽文件至此
+                                </span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 隐藏的文件输入 - 移除multiple属性 */}
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        onChange={(e) =>
+                            handleFileSelect((e.target as HTMLInputElement).files)
+                        }
+                    />
+
+                    {selectedFiles.length > 0 && (
+                        <div className="mt-4">
+                            <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+                                <div className="flex items-center justify-between p-2 border rounded-md">
+                                    <div className="flex items-center space-x-2">
+                                        <div className="w-8 h-8 bg-accent/20 rounded flex items-center justify-center">
+                                            <span className="text-xs">
+                                                {selectedFiles[0].name
+                                                    .split(".")
+                                                    .pop()
+                                                    ?.toUpperCase() || "FILE"}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <div className="text-sm truncate max-w-[200px]">
+                                                {selectedFiles[0].name}
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">
+                                                {formatFileSize(
+                                                    selectedFiles[0].size,
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => removeFile(0)}
+                                        className="h-8 w-8"
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex items-center justify-center mt-4 gap-4">
+                        <div className="flex-1">
+                            <div className="mb-2 text-sm">有效时长</div>
+                            <Select
+                                defaultValue="604800"
+                                onValueChange={(value) => {
+                                    references.expires.current = value
+                                }}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="有效时长" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectItem value="3600">1 小时</SelectItem>
+                                        <SelectItem value="28800">
+                                            8 小时
+                                        </SelectItem>
+                                        <SelectItem value="86400">1 天</SelectItem>
+                                        <SelectItem value="604800">7 天</SelectItem>
+                                        <SelectItem value="1209600">
+                                            14 天
+                                        </SelectItem>
+                                        <SelectItem value="permanent">
+                                            永久
+                                        </SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="flex-1">
+                            <div className="mb-2 text-sm">访问人数限制</div>
+                            <Input
+                                onInput={(e) => {
+                                    references.maxvisit.current =
+                                        (e.target as HTMLInputElement).value || ""
+                                }}
+                                type={"number"}
+                                min={0}
+                                placeholder={"无限制"}
+                            />
                         </div>
                     </div>
-                    <Switch
-                        className={"ml-auto"}
-                        id="airplane-mode"
-                        onCheckedChange={(checked) => {
-                            references.no_filename.current = checked
-                        }}
-                    />
-                </div>
-                {!context.value.loading && !context.value.isLoggedIn ? (
-                    context.value.turnstile_enabled ? (
-                        <Turnstile
-                            sitekey={context.value.turnstile_site_key}
-                            className="mt-6 mb-[-16px] text-center"
-                            onVerify={(token) => {
-                                turnstileToken.current = token
+
+                    <div className="mt-4">
+                        <div className="mb-2 text-sm">密码</div>
+                        <Input
+                            onInput={(e) => {
+                                references.password.current =
+                                    (e.target as HTMLInputElement).value || ""
                             }}
-                            refreshExpired={"auto"}
+                            placeholder={"无密码"}
                         />
-                    ) : (
-                        <div className={"mt-8 text-center text-sm opacity-50"}>
-                            当前站点未开启游客上传功能，请先登录。
+                    </div>
+
+                    <div className="mt-8 flex items-center border-1 border-neutral-200 rounded-md p-4 shadow-sm">
+                        <div>
+                            <Label htmlFor="airplane-mode">图床模式</Label>
+                            <div className={"mt-1.5 opacity-50 text-xs"}>
+                                开启后，上传图片生成的 URL 可以直接用作 HTML 中的
+                                &lt;img&gt; 标签的 src 属性。
+                            </div>
                         </div>
-                    )
-                ) : (
-                    <></>
+                        <Switch
+                            className={"ml-auto"}
+                            id="airplane-mode"
+                            onCheckedChange={(checked) => {
+                                references.no_filename.current = checked
+                            }}
+                        />
+                    </div>
+
+                    {!context.value.loading && !context.value.isLoggedIn ? (
+                        context.value.turnstile_enabled ? (
+                            <Turnstile
+                                sitekey={context.value.turnstile_site_key}
+                                className="mt-6 mb-[-16px] text-center"
+                                onVerify={(token) => {
+                                    turnstileToken.current = token
+                                }}
+                                refreshExpired={"auto"}
+                            />
+                        ) : (
+                            <div className={"mt-8 text-center text-sm opacity-50"}>
+                                当前站点未开启游客上传功能，请先登录。
+                            </div>
+                        )
+                    ) : (
+                        <></>
+                    )}
+
+                    <div className={"flex gap-4 mt-8"}>
+                        <Button
+                            className={"flex-1 cursor-pointer"}
+                            variant={"outline"}
+                            onClick={() => handleTabClick("operation")}
+                        >
+                            取消
+                        </Button>
+                        <Button
+                            className={"flex-5 cursor-pointer"}
+                            onClick={handleUpload}
+                            disabled={
+                                selectedFiles.length === 0 ||
+                                context.value.loading ||
+                                (!context.value.isLoggedIn &&
+                                    !context.value.turnstile_enabled)
+                            }
+                        >
+                            上传
+                        </Button>
+                    </div>
+                </>)}
+
+                {progress !== 0 && finalUrl === "" && (
+                    <div
+                        className={
+                            "flex items-center justify-center flex-col mt-8"
+                        }
+                    >
+                        <div className={"mb-2 opacity-75"}>
+                            正在上传文件...
+                        </div>
+                        <div
+                            className={
+                                "flex flex-row w-full mt-4 items-center justify-center"
+                            }
+                        >
+                            <Progress
+                                value={progress}
+                                className="w-full h-2 mr-4"
+                            />
+                            <span className={"text-center text-sm mr-2"}>
+                                {progress}%
+                            </span>
+                        </div>
+                        <Button className={"mt-8 w-full"} variant={"outline"}>
+                            取消
+                        </Button>
+
+                    </div>
                 )}
 
-                <div className={"flex gap-4 mt-8"}>
-                    <Button
-                        className={"flex-1 cursor-pointer"}
-                        variant={"outline"}
-                        onClick={() => handleTabClick("operation")}
-                    >
-                        取消
-                    </Button>
-                    <Button
-                        className={"flex-5 cursor-pointer"}
-                        onClick={handleUpload}
-                        disabled={
-                            selectedFiles.length === 0 ||
-                            context.value.loading ||
-                            (!context.value.isLoggedIn &&
-                                !context.value.turnstile_enabled)
-                        }
-                    >
-                        上传
-                    </Button>
-                </div>
-                <div
-                    className={
-                        "flex items-center justify-center flex-col" +
-                        (progress === 0 ? " hidden" : "")
-                    }
-                >
-                    <div
-                        className={
-                            "flex flex-row w-full mt-4 mb-4 items-center justify-center"
-                        }
-                    >
-                        <Progress
-                            value={progress}
-                            className="w-full h-2 mr-4"
+
+                {finalUrl !== "" && (
+                    <div className={
+                        "mt-8 w-full flex flex-col items-center"
+                    }>
+
+                        <div className={"mb-6 opacity-75"}>
+                            上传完成，链接已复制。
+                        </div>
+                        <Input
+                            className={"w-full"}
+                            type="text"
+                            value={finalUrl}
+                            readOnly
                         />
-                        <span className={"text-center text-sm mr-2"}>
-                            {progress}%
-                        </span>
-                    </div>
-                    <div
-                        className={
-                            "text-black/60 text-center" +
-                            (finalUrl ? "" : " hidden")
-                        }
-                    >
-                        <b>大功告成！</b>
-                        你可以用以下链接分享你的文件（点击复制）
-                        <br />
-                        <span
-                            className={"text-cyan-800 cursor-pointer"}
-                            onClick={() => {
+
+                        <div className={"flex mt-8 gap-4 items-center justify-center w-full"}>
+                            <Button variant={"outline"} className={"flex-1"} onClick={() => handleTabClick("operation")}>
+                                返回
+                            </Button>
+                            <Button className={"flex-5"} onClick={() => {
                                 navigator.clipboard
                                     .writeText(finalUrl)
                                     .then(() => {
-                                        toast.success("已复制到剪贴板")
+                                        toast.success("链接已复制到剪贴板")
                                     })
-                            }}
-                        >
-                            {finalUrl}
-                        </span>
+                            }}>
+                                再次复制
+                            </Button>
+                        </div>
                     </div>
-                </div>
+                )}
+
             </div>
-        </div>
+        </div >
     )
 }

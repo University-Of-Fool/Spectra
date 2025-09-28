@@ -102,3 +102,42 @@ export function TransitionTabs({ activeKey, tabs }: TransitionTabsProps) {
         </div>
     )
 }
+
+
+interface TransitionHeightProps {
+    children: React.ReactNode
+    duration?: number
+}
+
+export function TransitionHeight({ children, duration = 300 }: TransitionHeightProps) {
+    const ref = useRef<HTMLDivElement>(null)
+    const [height, setHeight] = useState<number>(0)
+
+    useLayoutEffect(() => {
+        const el = ref.current
+        if (!el) return
+
+        // 初始设置高度
+        setHeight(el.scrollHeight)
+
+        // 使用 ResizeObserver 监听内容变化
+        const observer = new ResizeObserver(() => {
+            setHeight(el.scrollHeight)
+        })
+        observer.observe(el)
+
+        return () => observer.disconnect()
+    }, [children])
+
+    return (
+        <div
+            style={{
+                height: `${height}px`,
+                overflow: "hidden",
+                transition: `height ${duration}ms ease`,
+            }}
+        >
+            <div ref={ref}>{children}</div>
+        </div>
+    )
+}

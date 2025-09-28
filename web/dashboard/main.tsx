@@ -29,8 +29,8 @@ export const AccountCtx = createContext({
         avatar_url: string
         turnstile_enabled: boolean
         turnstile_site_key: string
-    }) => {},
-    sharedListUpdTrigger: (_: number) => {},
+    }) => { },
+    sharedListUpdTrigger: (_: number) => { },
     sharedListUpd: 0,
 })
 
@@ -118,7 +118,10 @@ export function Dashboard() {
                     </>
                 )}
 
-                {!value.loading && value.isLoggedIn && <AreaShared />}
+                {!value.loading && value.isLoggedIn && (
+                    <AreaShared />
+                )}
+
             </div>
             <Toaster richColors></Toaster>
         </AccountCtx.Provider>
