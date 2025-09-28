@@ -37,6 +37,8 @@ impl FromRef<AppState> for Key {
 pub struct CodeInformation {
     pub extra_data: String,
     pub content: String,
+    pub creator_name: String,
+    pub creator_avatar: Option<String>,
 }
 
 // 给 Password 页面注入的信息

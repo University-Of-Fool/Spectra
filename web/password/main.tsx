@@ -21,6 +21,7 @@ export function Dashboard() {
             <TopBar
                 name={backendData.creator_name}
                 avatar={backendData.creator_avatar}
+                page={"Auth"}
             />
             <AuthCard error={backendData.error} />
         </div>

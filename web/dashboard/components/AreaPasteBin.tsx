@@ -326,6 +326,15 @@ export function AreaPasteBin({
                         >
                             再次复制
                         </Button>
+                        <Button
+                            variant={"outline"}
+                            className={"flex-1"}
+                            onClick={() => {
+                                window.open(finalUrl, "_blank")
+                            }}
+                        >
+                            打开链接
+                        </Button>
                     </div>
                 </div>
             )}

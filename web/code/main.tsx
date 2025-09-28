@@ -2,14 +2,16 @@ import "../public/style.css"
 import "highlight.js/styles/github.css"
 import { render } from "preact"
 import { Toaster } from "@/components/ui/sonner.tsx"
+import { TopBar } from "../password/components/TopBar.tsx"
 import CodeBlock from "./components/CodeBlock.tsx"
-import { TopBar } from "./components/TopBar.tsx"
 
 const backendData = JSON.parse(
     document.getElementById("spectra-data")?.textContent || "{}",
 ) as {
     content: string
     extra_data: string
+    creator_name: string
+    creator_avatar: string | null
 }
 if (!backendData) throw new Error("backendData is empty")
 const extraData = JSON.parse(backendData.extra_data) as {
@@ -20,7 +22,11 @@ const extraData = JSON.parse(backendData.extra_data) as {
 function Main() {
     return (
         <>
-            <TopBar />
+            <TopBar
+                name={backendData.creator_name}
+                avatar={backendData.creator_avatar}
+                page={"Code"}
+            />
             <div className={"flex justify-center"}>
                 <div className={"mx-10 mb-10 w-280"}>
                     {extraData.title && (
