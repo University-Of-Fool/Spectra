@@ -134,9 +134,14 @@ export function AreaShared() {
                                     key={item.id}
                                     className="border-b border-neutral-200 dark:border-neutral-700"
                                 >
-                                    <td className="px-4 py-2">{item.item_type}</td>
+                                    <td className="px-4 py-2">
+                                        {item.item_type}
+                                    </td>
                                     <td className="px-4 py-2 hover:underline cursor-pointer">
-                                        <a href={item.short_path} target="_blank">
+                                        <a
+                                            href={item.short_path}
+                                            target="_blank"
+                                        >
                                             {item.short_path}
                                         </a>
                                     </td>
@@ -145,7 +150,9 @@ export function AreaShared() {
                                     </td>
                                     <td className="px-4 py-2">{item.visits}</td>
                                     <td className="px-4 py-2">
-                                        {new Date(item.created_at).toLocaleString()}
+                                        {new Date(
+                                            item.created_at,
+                                        ).toLocaleString()}
                                     </td>
                                     <td className="px-4 py-2">
                                         <button

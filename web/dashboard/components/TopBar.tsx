@@ -185,7 +185,7 @@ export function TopBar() {
                     {context.value.loading
                         ? "username (loading)"
                         : context.value.isLoggedIn
-                            ? `${(() => {
+                          ? `${(() => {
                                 const h = new Date().getHours()
                                 if (h < 5) return "晚上"
                                 else if (h < 11) return "上午"
@@ -193,7 +193,7 @@ export function TopBar() {
                                 else if (h < 18) return "下午"
                                 else return "晚上"
                             })()}好，${context.value.name}。`
-                            : "欢迎来到 Spectra。"}
+                          : "欢迎来到 Spectra。"}
                 </div>
                 <div
                     className={
@@ -288,7 +288,12 @@ export function TopBar() {
                                                 自动登录
                                             </Label>
                                         </div>
-                                        <Button className={"mt-4"} onClick={login}>登录</Button>
+                                        <Button
+                                            className={"mt-4"}
+                                            onClick={login}
+                                        >
+                                            登录
+                                        </Button>
                                         <div
                                             className={`mt-6 text-red-700 text-sm text-center ${loginSuccess ? " hidden" : ""}`}
                                         >
@@ -320,8 +325,8 @@ export function TopBar() {
                     alt={"avatar"}
                     className={
                         context.value.loading ||
-                            !context.value.isLoggedIn ||
-                            !context.value.avatar_url
+                        !context.value.isLoggedIn ||
+                        !context.value.avatar_url
                             ? " hidden"
                             : "rounded-full"
                     }

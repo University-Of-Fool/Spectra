@@ -103,13 +103,15 @@ export function TransitionTabs({ activeKey, tabs }: TransitionTabsProps) {
     )
 }
 
-
 interface TransitionHeightProps {
     children: React.ReactNode
     duration?: number
 }
 
-export function TransitionHeight({ children, duration = 300 }: TransitionHeightProps) {
+export function TransitionHeight({
+    children,
+    duration = 300,
+}: TransitionHeightProps) {
     const ref = useRef<HTMLDivElement>(null)
     const [height, setHeight] = useState<number>(0)
 
