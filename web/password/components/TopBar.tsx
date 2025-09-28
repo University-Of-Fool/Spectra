@@ -23,7 +23,6 @@ export function TopBar(props: { name: string; avatar: string | null }) {
                     className={!props.avatar ? " hidden" : "rounded-full"}
                     src={props.avatar || ""}
                 />
-
             </div>
         </div>
     )

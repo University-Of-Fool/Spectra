@@ -73,7 +73,6 @@ export function AreaPasteBin({
                     toast.success("链接已复制到剪贴板")
                 })
                 return
-
             }
             if (resp.status === 409) {
                 setFailedMessage("指定的路径已存在")
@@ -88,7 +87,6 @@ export function AreaPasteBin({
             <div className="font-thin text-2xl mt-6 mb-12">Pastebin</div>
 
             {finalUrl === "" && (
-
                 <>
                     <div className="flex gap-2 items-center">
                         <div className="opacity-50">https://s.akyuu.cn/</div>
