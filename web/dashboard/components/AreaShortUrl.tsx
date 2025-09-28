@@ -15,6 +15,15 @@ import {
 import { wfetch } from "../fetch.ts"
 import { AccountCtx } from "../main.tsx"
 
+function isValidURI(input: string) {
+    try {
+        void new URL(input)
+        return true
+    } catch {
+        return false
+    }
+}
+
 export function AreaShortUrl({
     handleTabClick,
 }: {
@@ -27,6 +36,7 @@ export function AreaShortUrl({
     const [maxvisit, setMaxvisit] = useState(0)
     const [password, setPassword] = useState("")
     const [finalUrl, setFinalUrl] = useState("")
+    const [urlValid, setUrlValid] = useState(true)
 
     const context = useContext(AccountCtx)
 
@@ -40,7 +50,7 @@ export function AreaShortUrl({
                     : new Date(
                           Date.now() + parseInt(expires, 10) * 1000,
                       ).toISOString(),
-            max_visits: parseInt(maxvisit, 10) || undefined,
+            max_visits: maxvisit || undefined,
             password: password || undefined,
         }
         const uploadPath = `/api/item/${random ? "__RANDOM__" : path}`
@@ -92,8 +102,16 @@ export function AreaShortUrl({
                     <div className="mb-2 text-sm">目标链接</div>
                     <Input
                         value={target}
-                        onChange={(e) => setTarget(e.currentTarget.value)}
-                    />
+                        onChange={(e) => {
+                            setTarget(e.currentTarget.value)
+                            setUrlValid(isValidURI(e.currentTarget.value))
+                        }}
+                    />{" "}
+                    <div
+                        className={`mb-2 mt-2 text-sm text-red-700${urlValid ? " hidden" : ""}`}
+                    >
+                        这似乎不是链接，请检查你的输入。
+                    </div>
                 </div>
 
                 <div className="flex items-center justify-center mt-4 gap-4">

@@ -42,7 +42,7 @@ export function AreaPasteBin({
                     : new Date(
                           Date.now() + parseInt(expires, 10) * 1000,
                       ).toISOString(),
-            max_visits: parseInt(maxvisit, 10) || undefined,
+            max_visits: maxvisit || undefined,
             password: password || undefined,
             extra_data: JSON.stringify({
                 title,
