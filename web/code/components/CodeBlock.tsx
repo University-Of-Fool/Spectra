@@ -18,25 +18,27 @@ export default function CodeBlock({
     const codeRef = useRef<HTMLElement>(null)
     const [lineHeights, setLineHeights] = useState<number[]>([])
     const [highlightLine, setHighlightLine] = useState<number | null>(null)
-    const [lineRects, setLineRects] = useState<{ top: number; height: number }[]>([])
+    const [lineRects, setLineRects] = useState<
+        { top: number; height: number }[]
+    >([])
 
     useEffect(() => {
         let active = true
 
-            ; (async () => {
-                const loader = HLJS_LANGS[language]
-                if (!loader) {
-                    console.warn(`Unsupported language: ${language}`)
-                    return
-                }
+        ;(async () => {
+            const loader = HLJS_LANGS[language]
+            if (!loader) {
+                console.warn(`Unsupported language: ${language}`)
+                return
+            }
 
-                const langModule = await loader()
-                hljs.registerLanguage(language, langModule.default)
+            const langModule = await loader()
+            hljs.registerLanguage(language, langModule.default)
 
-                if (active && codeRef.current) {
-                    hljs.highlightElement(codeRef.current)
-                }
-            })()
+            if (active && codeRef.current) {
+                hljs.highlightElement(codeRef.current)
+            }
+        })()
 
         return () => {
             active = false
@@ -55,7 +57,7 @@ export default function CodeBlock({
             const tempSpans: HTMLSpanElement[] = []
 
             // 清理之前的临时span
-            codeEl.querySelectorAll(".temp-line").forEach(el => el.remove())
+            codeEl.querySelectorAll(".temp-line").forEach((el) => el.remove())
 
             const fragment = document.createDocumentFragment()
 
@@ -73,17 +75,16 @@ export default function CodeBlock({
 
             // 计算相对于 pre 的 top 和 height
             const preRect = codeRef.current.getBoundingClientRect()
-            const rects = tempSpans.map(span => {
+            const rects = tempSpans.map((span) => {
                 const r = span.getBoundingClientRect()
                 return { top: r.top - preRect.top, height: r.height }
             })
             setLineRects(rects)
 
-            setLineHeights(tempSpans.map(span => span.offsetHeight))
-
+            setLineHeights(tempSpans.map((span) => span.offsetHeight))
 
             // 移除临时span
-            tempSpans.forEach(span => span.remove())
+            tempSpans.forEach((span) => span.remove())
         }
 
         updateLineHeights()
@@ -129,67 +130,74 @@ export default function CodeBlock({
         return () => clearTimeout(timeout)
     }, [highlightLine])
 
-    useEffect(() => { console.log(lineHeights) }, [lineHeights])
+    useEffect(() => {
+        console.log(lineHeights)
+    }, [lineHeights])
     useEffect(() => {
         console.log(lineRects)
     }, [lineRects])
 
-    return (<>
-        <pre
-            ref={preRef}
-            className={`hljs ${language} rounded-xl relative`}
-            style={{
-                display: "flex",
-                overflowX: wrap ? "hidden" : "auto",
-                whiteSpace: wrap ? "pre-wrap" : "pre",
-                padding: 0,
-            }}
-        >
-            <div
-                className={"pl-6 p-4 opacity-50"}
+    return (
+        <>
+            <pre
+                ref={preRef}
+                className={`hljs ${language} rounded-xl relative`}
                 style={{
-                    textAlign: "right",
-                    userSelect: "none"
+                    display: "flex",
+                    overflowX: wrap ? "hidden" : "auto",
+                    whiteSpace: wrap ? "pre-wrap" : "pre",
+                    padding: 0,
                 }}
             >
-
-                {lineHeights.map((h, i) => (
-                    <div
-                        className={"cursor-pointer"}
-                        key={i}
-                        style={{ height: h }}
-                        id={`L${i + 1}`}
-                        onClick={() => handleLineClick(i)}
-                    >
-                        {i + 1}
-                    </div>
-                ))}
-
-            </div>
-            <code
-                ref={codeRef}
-                className={"hljs p-4 flex-1 overflow-hidden"}
-            >
-                {code}
-            </code>
-            <div
-                id="highlight-bar"
-                style={{
-                    display: highlightLine !== null ? "block" : "none",
-                    position: "absolute",
-                    top: lineHeights
-                        .slice(0, highlightLine !== null ? highlightLine : 0)
-                        .reduce((sum, h) => sum + h, 0) + 16,
-                    left: 0,
-                    width: "100%",
-                    height: lineHeights[highlightLine !== null ? highlightLine : 0],
-                    backgroundColor: "rgba(255, 255, 0, 0)",
-                    pointerEvents: "none",
-                    transition: "",
-                    mixBlendMode: "multiply",
-                }}
-            />
-        </pre>
-    </>
+                <div
+                    className={"pl-6 p-4 opacity-50"}
+                    style={{
+                        textAlign: "right",
+                        userSelect: "none",
+                    }}
+                >
+                    {lineHeights.map((h, i) => (
+                        <div
+                            className={"cursor-pointer"}
+                            key={i}
+                            style={{ height: h }}
+                            id={`L${i + 1}`}
+                            onClick={() => handleLineClick(i)}
+                        >
+                            {i + 1}
+                        </div>
+                    ))}
+                </div>
+                <code
+                    ref={codeRef}
+                    className={"hljs p-4 flex-1 overflow-hidden"}
+                >
+                    {code}
+                </code>
+                <div
+                    id="highlight-bar"
+                    style={{
+                        display: highlightLine !== null ? "block" : "none",
+                        position: "absolute",
+                        top:
+                            lineHeights
+                                .slice(
+                                    0,
+                                    highlightLine !== null ? highlightLine : 0,
+                                )
+                                .reduce((sum, h) => sum + h, 0) + 16,
+                        left: 0,
+                        width: "100%",
+                        height: lineHeights[
+                            highlightLine !== null ? highlightLine : 0
+                        ],
+                        backgroundColor: "rgba(255, 255, 0, 0)",
+                        pointerEvents: "none",
+                        transition: "",
+                        mixBlendMode: "multiply",
+                    }}
+                />
+            </pre>
+        </>
     )
 }
