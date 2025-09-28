@@ -1,6 +1,6 @@
+import "../public/style.css"
 import { render } from "preact"
 import { createContext, useEffect, useState } from "react"
-import "../public/style.css"
 import { Toaster } from "@/components/ui/sonner.tsx"
 import { AreaFileShare } from "./components/AreaFileShare"
 import { AreaOperation } from "./components/AreaOperation"
@@ -29,8 +29,8 @@ export const AccountCtx = createContext({
         avatar_url: string
         turnstile_enabled: boolean
         turnstile_site_key: string
-    }) => {},
-    sharedListUpdTrigger: (_: number) => {},
+    }) => { },
+    sharedListUpdTrigger: (_: number) => { },
     sharedListUpd: 0,
 })
 
