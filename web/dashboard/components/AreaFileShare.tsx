@@ -113,9 +113,9 @@ export function AreaFileShare({
                 references.expires.current === "permanent"
                     ? undefined
                     : new Date(
-                          Date.now() +
-                              parseInt(references.expires.current, 10) * 1000,
-                      ).toISOString(),
+                        Date.now() +
+                        parseInt(references.expires.current, 10) * 1000,
+                    ).toISOString(),
             max_visits: parseInt(references.maxvisit.current, 10) || undefined,
             password: references.password.current || undefined,
             extra_data: references.no_filename.current
@@ -198,14 +198,15 @@ export function AreaFileShare({
             console.error(e)
             return
         }
-        let final_url = `${window.location.origin}/${data.payload.short_path}`
-        if (references.password.current) {
-            final_url += `?password=${references.password.current}`
-            context.sharedListUpdTrigger(context.sharedListUpd + 1)
-        }
-        setFinalUrl(final_url)
+        const url = `${window.location.origin}/${data.payload.short_path}`
+        // RLt: 我认为不应该在URL中包含密码
+        // if (references.password.current) {
+        //     url += `?password=${references.password.current}`
+        //     context.sharedListUpdTrigger(context.sharedListUpd + 1)
+        // }
+        setFinalUrl(url)
         // 复制到剪贴板
-        navigator.clipboard.writeText(finalUrl).then(() => {
+        navigator.clipboard.writeText(url).then(() => {
             toast.success("链接已复制到剪贴板")
         })
     }
@@ -224,6 +225,7 @@ export function AreaFileShare({
                                 (e.target as HTMLInputElement)?.value || ""
                         }}
                         disabled={references.random[0]}
+                        value={references.random[0] ? "[随机]" : references.path.current}
                     />
                     <div className="flex items-center gap-2 ml-2">
                         <Checkbox
@@ -259,11 +261,10 @@ export function AreaFileShare({
                         {/* 文件选择区域 - 只在没有选择文件时显示 */}
                         {selectedFiles.length === 0 && (
                             <div
-                                className={`w-full h-40 border-2 flex items-center justify-center transition-colors rounded-md ${
-                                    isDragging
-                                        ? "border-neutral-400 bg-neutral-200"
-                                        : "border-neutral-200 hover:border-neutral-300"
-                                }`}
+                                className={`w-full h-40 border-2 flex items-center justify-center transition-colors rounded-md ${isDragging
+                                    ? "border-neutral-400 bg-neutral-200"
+                                    : "border-neutral-200 hover:border-neutral-300"
+                                    }`}
                                 onClick={handleClickSelect}
                                 onDragEnter={handleDragEnter}
                                 onDragLeave={handleDragLeave}
@@ -459,7 +460,7 @@ export function AreaFileShare({
                         {failedMessage !== "" && (
                             <div
                                 className={
-                                    "text-red-500 mt-4 text-sm text-center"
+                                    "text-red-700 mt-4 text-sm text-center"
                                 }
                             >
                                 {failedMessage}
@@ -568,6 +569,15 @@ export function AreaFileShare({
                                 }}
                             >
                                 再次复制
+                            </Button>
+                            <Button
+                                variant={"outline"}
+                                className={"flex-1"}
+                                onClick={() => {
+                                    window.open(finalUrl, "_blank")
+                                }}
+                            >
+                                打开链接
                             </Button>
                         </div>
                     </div>

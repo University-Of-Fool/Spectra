@@ -34,7 +34,7 @@ export function AuthCard(props: { error: boolean }) {
                     </Button>
                 </div>
                 {props.error && (
-                    <div className={"text-sm opacity-75 mt-1 text-red-500"}>
+                    <div className={"text-sm opacity-75 mt-1 text-red-700"}>
                         密码错误，请重试
                     </div>
                 )}

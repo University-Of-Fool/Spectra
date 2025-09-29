@@ -49,8 +49,8 @@ export function AreaShortUrl({
                 expires === "permanent"
                     ? undefined
                     : new Date(
-                          Date.now() + parseInt(expires, 10) * 1000,
-                      ).toISOString(),
+                        Date.now() + parseInt(expires, 10) * 1000,
+                    ).toISOString(),
             max_visits: maxvisit || undefined,
             password: password || undefined,
         }
@@ -68,9 +68,11 @@ export function AreaShortUrl({
             const data = await resp.json()
             if (resp.status === 200 && data.success) {
                 context.sharedListUpdTrigger(context.sharedListUpd + 1)
-                setFinalUrl(
-                    `${window.location.origin}/${data.payload.short_path}`,
-                )
+                const url = `${window.location.origin}/${data.payload.short_path}`
+                setFinalUrl(url)
+                navigator.clipboard.writeText(url).then(() => {
+                    toast.success("链接已复制到剪贴板")
+                })
                 setFailedMessage("")
                 return
             }
@@ -201,14 +203,14 @@ export function AreaShortUrl({
                                 onClick={handleUpload}
                                 disabled={target === ""}
                             >
-                                创建短链接
+                                创建
                             </Button>
                         </div>
 
                         {failedMessage !== "" && (
                             <div
                                 className={
-                                    "text-red-500 mt-4 text-sm text-center"
+                                    "text-red-700 mt-4 text-sm text-center"
                                 }
                             >
                                 {failedMessage}

@@ -41,8 +41,8 @@ export function AreaPasteBin({
                 expires === "permanent"
                     ? undefined
                     : new Date(
-                          Date.now() + parseInt(expires, 10) * 1000,
-                      ).toISOString(),
+                        Date.now() + parseInt(expires, 10) * 1000,
+                    ).toISOString(),
             max_visits: maxvisit || undefined,
             password: password || undefined,
             extra_data: JSON.stringify({
@@ -65,11 +65,9 @@ export function AreaPasteBin({
             if (resp.status === 200 && data.success) {
                 setFailedMessage("")
                 context.sharedListUpdTrigger(context.sharedListUpd + 1)
-
-                setFinalUrl(
-                    `${window.location.origin}/${data.payload.short_path}`,
-                )
-                navigator.clipboard.writeText(finalUrl).then(() => {
+                const url = `${window.location.origin}/${data.payload.short_path}`
+                setFinalUrl(url)
+                navigator.clipboard.writeText(url).then(() => {
                     toast.success("链接已复制到剪贴板")
                 })
                 return
@@ -274,14 +272,14 @@ export function AreaPasteBin({
                                 onClick={() => handleUpload()}
                                 disabled={content.length === 0}
                             >
-                                创建短链接
+                                上传
                             </Button>
                         </div>
 
                         {failedMessage !== "" && (
                             <div
                                 className={
-                                    "text-red-500 mt-4 text-sm text-center"
+                                    "text-red-700 mt-4 text-sm text-center"
                                 }
                             >
                                 {failedMessage}
