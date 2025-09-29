@@ -113,9 +113,9 @@ export function AreaFileShare({
                 references.expires.current === "permanent"
                     ? undefined
                     : new Date(
-                        Date.now() +
-                        parseInt(references.expires.current, 10) * 1000,
-                    ).toISOString(),
+                          Date.now() +
+                              parseInt(references.expires.current, 10) * 1000,
+                      ).toISOString(),
             max_visits: parseInt(references.maxvisit.current, 10) || undefined,
             password: references.password.current || undefined,
             extra_data: references.no_filename.current
@@ -225,7 +225,11 @@ export function AreaFileShare({
                                 (e.target as HTMLInputElement)?.value || ""
                         }}
                         disabled={references.random[0]}
-                        value={references.random[0] ? "[随机]" : references.path.current}
+                        value={
+                            references.random[0]
+                                ? "[随机]"
+                                : references.path.current
+                        }
                     />
                     <div className="flex items-center gap-2 ml-2">
                         <Checkbox
@@ -261,10 +265,11 @@ export function AreaFileShare({
                         {/* 文件选择区域 - 只在没有选择文件时显示 */}
                         {selectedFiles.length === 0 && (
                             <div
-                                className={`w-full h-40 border-2 flex items-center justify-center transition-colors rounded-md ${isDragging
-                                    ? "border-neutral-400 bg-neutral-200"
-                                    : "border-neutral-200 hover:border-neutral-300"
-                                    }`}
+                                className={`w-full h-40 border-2 flex items-center justify-center transition-colors rounded-md ${
+                                    isDragging
+                                        ? "border-neutral-400 bg-neutral-200"
+                                        : "border-neutral-200 hover:border-neutral-300"
+                                }`}
                                 onClick={handleClickSelect}
                                 onDragEnter={handleDragEnter}
                                 onDragLeave={handleDragLeave}
