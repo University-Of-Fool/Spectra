@@ -74,12 +74,6 @@ export function TopBar() {
     useEffect(() => {
         fetch("/api/config")
             .then((resp) => resp.json())
-            .then((data) =>
-                get_userinfo(
-                    data.payload.turnstile_enabled,
-                    data.payload.turnstile_site_key,
-                ),
-            )
             .catch((err) => {
                 const value = {
                     ...context.value,
@@ -91,6 +85,12 @@ export function TopBar() {
                 toast.error("无法连接到服务器。")
                 console.error(err)
             })
+            .then((data) =>
+                get_userinfo(
+                    data.payload.turnstile_enabled,
+                    data.payload.turnstile_site_key,
+                ),
+            )
     }, [])
 
     const login = async () => {

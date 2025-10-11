@@ -1,6 +1,5 @@
 import { X } from "lucide-react"
 import { useContext, useRef, useState } from "react"
-import Turnstile, { useTurnstile } from "react-turnstile"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button.tsx"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -18,16 +17,12 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { wfetch } from "../fetch.ts"
 import { AccountCtx } from "../main.tsx"
+import { FinishedCard } from "./FinishedCard.tsx"
+import { Turnstile } from "./Turnstile.tsx"
 
-export function AreaFileShare({
-    handleTabClick,
-}: {
-    handleTabClick: (tab: string) => void
-}) {
-    useTurnstile()
-
+export function AreaFileShare() {
     const context = useContext(AccountCtx)
-    const turnstileToken = useRef("")
+    const [turnstileToken, setTurnstileToken] = useState("")
     const [progress, setProgress] = useState(0)
     const [finalUrl, setFinalUrl] = useState("")
     const [selectedFiles, setSelectedFiles] = useState<File[]>([])
@@ -125,7 +120,7 @@ export function AreaFileShare({
 
         let path = `/api/item/${references.random[0] || !context.value.isLoggedIn ? "__RANDOM__" : references.path.current}`
         if (context.value.turnstile_enabled && !context.value.isLoggedIn) {
-            path += `?turnstile-token=${turnstileToken.current}`
+            path += `?turnstile-token=${turnstileToken}`
         }
         const resp = await wfetch(path, {
             method: "POST",
@@ -199,16 +194,8 @@ export function AreaFileShare({
             return
         }
         const url = `${window.location.origin}/${data.payload.short_path}`
-        // RLt: 我认为不应该在URL中包含密码
-        // if (references.password.current) {
-        //     url += `?password=${references.password.current}`
-        //     context.sharedListUpdTrigger(context.sharedListUpd + 1)
-        // }
+        context.sharedListUpdTrigger(context.sharedListUpd + 1)
         setFinalUrl(url)
-        // 复制到剪贴板
-        navigator.clipboard.writeText(url).then(() => {
-            toast.success("链接已复制到剪贴板")
-        })
     }
 
     return (
@@ -417,35 +404,17 @@ export function AreaFileShare({
                                 }}
                             />
                         </div>
-
-                        {!context.value.loading && !context.value.isLoggedIn ? (
-                            context.value.turnstile_enabled ? (
-                                <Turnstile
-                                    sitekey={context.value.turnstile_site_key}
-                                    className="mt-6 mb-[-16px] text-center"
-                                    onVerify={(token) => {
-                                        turnstileToken.current = token
-                                    }}
-                                    refreshExpired={"auto"}
-                                />
-                            ) : (
-                                <div
-                                    className={
-                                        "mt-8 text-center text-sm opacity-50"
-                                    }
-                                >
-                                    当前站点未开启游客上传功能，请先登录。
-                                </div>
-                            )
-                        ) : (
-                            <></>
-                        )}
+                        <Turnstile
+                            onVerify={(token) => setTurnstileToken(token)}
+                        />
 
                         <div className={"flex gap-4 mt-8"}>
                             <Button
                                 className={"flex-1 cursor-pointer"}
                                 variant={"outline"}
-                                onClick={() => handleTabClick("operation")}
+                                onClick={() =>
+                                    context.handleTabClick("operation")
+                                }
                             >
                                 取消
                             </Button>
@@ -456,7 +425,8 @@ export function AreaFileShare({
                                     selectedFiles.length === 0 ||
                                     context.value.loading ||
                                     (!context.value.isLoggedIn &&
-                                        !context.value.turnstile_enabled)
+                                        (!context.value.turnstile_enabled ||
+                                            turnstileToken === ""))
                                 }
                             >
                                 上传
@@ -503,7 +473,7 @@ export function AreaFileShare({
                                 className={"mt-8 w-full"}
                                 variant={"outline"}
                                 onClick={() => {
-                                    handleTabClick("operation")
+                                    context.handleTabClick("operation")
                                 }}
                             >
                                 返回
@@ -539,54 +509,7 @@ export function AreaFileShare({
                     </div>
                 )}
 
-                {finalUrl !== "" && (
-                    <div className={"mt-8 w-full flex flex-col items-center"}>
-                        <div className={"mb-6 opacity-75"}>
-                            上传成功，链接已复制。
-                        </div>
-                        <Input
-                            className={"w-full"}
-                            type="text"
-                            value={finalUrl}
-                            readOnly
-                        />
-
-                        <div
-                            className={
-                                "flex mt-8 gap-4 items-center justify-center w-full"
-                            }
-                        >
-                            <Button
-                                variant={"outline"}
-                                className={"flex-1"}
-                                onClick={() => handleTabClick("operation")}
-                            >
-                                返回
-                            </Button>
-                            <Button
-                                className={"flex-5"}
-                                onClick={() => {
-                                    navigator.clipboard
-                                        .writeText(finalUrl)
-                                        .then(() => {
-                                            toast.success("链接已复制到剪贴板")
-                                        })
-                                }}
-                            >
-                                再次复制
-                            </Button>
-                            <Button
-                                variant={"outline"}
-                                className={"flex-1"}
-                                onClick={() => {
-                                    window.open(finalUrl, "_blank")
-                                }}
-                            >
-                                打开链接
-                            </Button>
-                        </div>
-                    </div>
-                )}
+                <FinishedCard finalUrl={finalUrl} filePage />
             </div>
         </div>
     )

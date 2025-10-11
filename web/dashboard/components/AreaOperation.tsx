@@ -1,8 +1,8 @@
-export function AreaOperation({
-    handleTabClick,
-}: {
-    handleTabClick: (tab: string) => void
-}) {
+import { useContext } from "react"
+import { AccountCtx } from "../main.tsx"
+
+export function AreaOperation() {
+    const context = useContext(AccountCtx)
     return (
         <div className={"flex flex-col items-center"}>
             <div className={"font-thin text-2xl mt-6 mb-12"}>
@@ -13,7 +13,7 @@ export function AreaOperation({
                     className={
                         "card card-clickable w-60 h-75 flex flex-col p-5 hover-float"
                     }
-                    onClick={() => handleTabClick("fileShare")}
+                    onClick={() => context.handleTabClick("fileShare")}
                 >
                     <div className={"flex flex-1 items-center justify-center"}>
                         <span
@@ -37,7 +37,7 @@ export function AreaOperation({
                     className={
                         "card card-clickable w-60 h-75 flex flex-col p-5 hover-float"
                     }
-                    onClick={() => handleTabClick("pasteBin")}
+                    onClick={() => context.handleTabClick("pasteBin")}
                 >
                     <div className={"flex flex-1 items-center justify-center"}>
                         <span
@@ -63,7 +63,7 @@ export function AreaOperation({
                     className={
                         "card card-clickable w-60 h-75 flex flex-col p-5 hover-float"
                     }
-                    onClick={() => handleTabClick("shortUrl")}
+                    onClick={() => context.handleTabClick("shortUrl")}
                 >
                     <div className={"flex flex-1 items-center justify-center"}>
                         <span

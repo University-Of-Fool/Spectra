@@ -32,6 +32,7 @@ export const AccountCtx = createContext({
     }) => {},
     sharedListUpdTrigger: (_: number) => {},
     sharedListUpd: 0,
+    handleTabClick: (_: string) => {},
 })
 
 export function Dashboard() {
@@ -67,7 +68,13 @@ export function Dashboard() {
     }, [])
     return (
         <AccountCtx.Provider
-            value={{ value, setValue, sharedListUpdTrigger, sharedListUpd }}
+            value={{
+                value,
+                setValue,
+                sharedListUpdTrigger,
+                sharedListUpd,
+                handleTabClick,
+            }}
         >
             <div>
                 <TopBar />
@@ -77,31 +84,19 @@ export function Dashboard() {
                     tabs={[
                         {
                             key: "operation",
-                            node: (
-                                <AreaOperation
-                                    handleTabClick={handleTabClick}
-                                />
-                            ),
+                            node: <AreaOperation />,
                         },
                         {
                             key: "fileShare",
-                            node: (
-                                <AreaFileShare
-                                    handleTabClick={handleTabClick}
-                                />
-                            ),
+                            node: <AreaFileShare />,
                         },
                         {
                             key: "pasteBin",
-                            node: (
-                                <AreaPasteBin handleTabClick={handleTabClick} />
-                            ),
+                            node: <AreaPasteBin />,
                         },
                         {
                             key: "shortUrl",
-                            node: (
-                                <AreaShortUrl handleTabClick={handleTabClick} />
-                            ),
+                            node: <AreaShortUrl />,
                         },
                     ]}
                 />

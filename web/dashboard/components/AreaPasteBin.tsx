@@ -1,5 +1,4 @@
 import { useContext, useState } from "react"
-import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -15,12 +14,10 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { wfetch } from "../fetch.ts"
 import { AccountCtx } from "../main.tsx"
+import { FinishedCard } from "./FinishedCard.tsx"
+import { Turnstile } from "./Turnstile.tsx"
 
-export function AreaPasteBin({
-    handleTabClick,
-}: {
-    handleTabClick: (tab: string) => void
-}) {
+export function AreaPasteBin() {
     const [path, setPath] = useState("")
     const [random, setRandom] = useState(true)
     const [highlight, setHighlight] = useState("text")
@@ -31,6 +28,7 @@ export function AreaPasteBin({
     const [password, setPassword] = useState("")
     const [finalUrl, setFinalUrl] = useState("")
     const [failedMessage, setFailedMessage] = useState("")
+    const [turnstileToken, setTurnstileToken] = useState("")
     const context = useContext(AccountCtx)
 
     async function handleUpload() {
@@ -51,33 +49,31 @@ export function AreaPasteBin({
             }),
         }
         const uploadPath = `/api/item/${random ? "__RANDOM__" : path}`
-
-        if (!(context.value.turnstile_enabled && !context.value.isLoggedIn)) {
-            const resp = await wfetch(uploadPath, {
-                method: "POST",
-                body: JSON.stringify(body),
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                credentials: "include",
-            })
-            const data = await resp.json()
-            if (resp.status === 200 && data.success) {
-                setFailedMessage("")
-                context.sharedListUpdTrigger(context.sharedListUpd + 1)
-                const url = `${window.location.origin}/${data.payload.short_path}`
-                setFinalUrl(url)
-                navigator.clipboard.writeText(url).then(() => {
-                    toast.success("链接已复制到剪贴板")
-                })
-                return
-            }
-            if (resp.status === 409) {
-                setFailedMessage("指定的路径已存在")
-                return
-            }
-            setFailedMessage(`未知错误：${resp.status} ${data.payload}`)
+        let query = ""
+        if (context.value.turnstile_enabled && !context.value.isLoggedIn) {
+            query = `?turnstile-token=${turnstileToken}`
         }
+        const resp = await wfetch(uploadPath + query, {
+            method: "POST",
+            body: JSON.stringify(body),
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+        })
+        const data = await resp.json()
+        if (resp.status === 200 && data.success) {
+            setFailedMessage("")
+            context.sharedListUpdTrigger(context.sharedListUpd + 1)
+            const url = `${window.location.origin}/${data.payload.short_path}`
+            setFinalUrl(url)
+            return
+        }
+        if (resp.status === 409) {
+            setFailedMessage("指定的路径已存在")
+            return
+        }
+        setFailedMessage(`未知错误：${resp.status} ${data.payload}`)
     }
 
     return (
@@ -258,12 +254,15 @@ export function AreaPasteBin({
                                 placeholder={"无密码"}
                             />
                         </div>
+                        <Turnstile onVerify={setTurnstileToken} />
 
                         <div className="flex gap-4 mt-8">
                             <Button
                                 className="flex-1"
                                 variant="outline"
-                                onClick={() => handleTabClick("operation")}
+                                onClick={() =>
+                                    context.handleTabClick("operation")
+                                }
                             >
                                 取消
                             </Button>
@@ -288,54 +287,10 @@ export function AreaPasteBin({
                     </div>
                 </>
             )}
-            {finalUrl !== "" && (
-                <div className={"mt-8 w-150 flex flex-col items-center"}>
-                    <div className={"mb-6 opacity-75"}>
-                        项目创建完成，链接已复制。
-                    </div>
-                    <Input
-                        className={"w-full"}
-                        type="text"
-                        value={finalUrl}
-                        readOnly
-                    />
-
-                    <div
-                        className={
-                            "flex mt-8 gap-4 items-center justify-center w-full"
-                        }
-                    >
-                        <Button
-                            variant={"outline"}
-                            className={"flex-1"}
-                            onClick={() => handleTabClick("operation")}
-                        >
-                            返回
-                        </Button>
-                        <Button
-                            className={"flex-5"}
-                            onClick={() => {
-                                navigator.clipboard
-                                    .writeText(finalUrl)
-                                    .then(() => {
-                                        toast.success("链接已复制到剪贴板")
-                                    })
-                            }}
-                        >
-                            再次复制
-                        </Button>
-                        <Button
-                            variant={"outline"}
-                            className={"flex-1"}
-                            onClick={() => {
-                                window.open(finalUrl, "_blank")
-                            }}
-                        >
-                            打开链接
-                        </Button>
-                    </div>
-                </div>
-            )}
+            <FinishedCard
+                className={"mt-8 w-150 flex flex-col items-center"}
+                finalUrl={finalUrl}
+            />
         </div>
     )
 }
