@@ -29,6 +29,7 @@ use crate::types::{AppState, TurnstileConfig};
 
 shadow!(shadow);
 const DEFAULT_CONFIG_FILE: &str = include_str!("../assets/config_example.toml");
+const DEFAULT_SYSTEMD_UNIT_FILE: &str = include_str!("../assets/spectra.service");
 
 #[tokio::main]
 async fn main() {
@@ -85,6 +86,18 @@ async fn main() {
                 .default_value("1x0000000000000000000000000000000AA"),
         );
     }
+    if std::env::consts::OS == "linux" {
+        cmd_builder = cmd_builder.subcommand(
+            Command::new("systemd")
+                .about("Generate systemd unit file")
+                .arg(
+                    arg!(-o --output <FILE> "The path to the systemd unit file")
+                        .value_parser(value_parser!(PathBuf))
+                        .required(false)
+                        .default_value("/etc/systemd/system/spectra.service"),
+                ),
+        );
+    }
     let matches = cmd_builder.get_matches();
 
     let filter = std::env::var("RUST_LOG").unwrap_or(
@@ -130,6 +143,72 @@ async fn main() {
         eprintln!(
             "\nNote that this command did not modify the configuration.\nYou may need to manually edit the file to use the new key."
         );
+        std::process::exit(0);
+    }
+
+    if let Some(("systemd", subcommand)) = matches.subcommand() {
+        let output = subcommand.get_one::<PathBuf>("output").unwrap();
+        fs::write(
+            &output,
+            DEFAULT_SYSTEMD_UNIT_FILE
+                .replace(
+                    "{SPECTRA_BIN_PATH}",
+                    std::env::current_exe().unwrap().to_str().unwrap(),
+                )
+                .replace(
+                    "{SPECTRA_CONFIG_PATH}",
+                    std::env::current_exe()
+                        .unwrap()
+                        .parent()
+                        .unwrap()
+                        .join("config.toml")
+                        .to_str()
+                        .unwrap(),
+                )
+                .replace(
+                    "{SPECTRA_DATA_DIR}",
+                    std::env::current_exe()
+                        .unwrap()
+                        .parent()
+                        .unwrap()
+                        .join("data/")
+                        .to_str()
+                        .unwrap(),
+                ),
+        )
+        .unwrap_or_else(|e| {
+            error!(
+                "Error happened during writing to systemd unit file: {:?}",
+                e
+            );
+            std::process::exit(1);
+        });
+        println!(
+            "Systemd unit file generated successfully: {}",
+            output.display()
+        );
+        println!(
+            "Note that the unit file sets the data directory to {},",
+            std::env::current_exe()
+                .unwrap()
+                .parent()
+                .unwrap()
+                .join("data/")
+                .to_str()
+                .unwrap()
+        );
+        println!(
+            "and the configuration file to {}; Edit it on your demand.",
+            std::env::current_exe()
+                .unwrap()
+                .parent()
+                .unwrap()
+                .join("config.toml")
+                .to_str()
+                .unwrap()
+        );
+        println!("You may need to reload systemd daemon after editing the unit file:");
+        println!("\n    $ sudo systemctl daemon-reload");
         std::process::exit(0);
     }
 
