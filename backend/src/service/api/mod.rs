@@ -31,6 +31,7 @@ pub fn make_router() -> Router<AppState> {
         .route("/users", get(user::get_users))
         .route("/user/{id}", delete(user::remove_user))
         .route("/user/{id}", get(user::get_user))
+        .route("/user", post(user::create_user))
         .route("/about", get(misc::get_information))
         .route("/config", get(misc::get_config));
 

@@ -57,6 +57,15 @@ impl From<User> for ApiUser {
     }
 }
 
+#[derive(Deserialize)]
+pub struct ApiUserCreate {
+    pub name: String,
+    pub email: String,
+    pub password: String,
+    pub descriptor: Vec<UserPermission>,
+    pub avatar: Option<String>,
+}
+
 #[derive(Serialize)]
 pub struct ApiCode {
     pub id: String,

@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
 use chrono::Local;
+use sha2::{Digest, Sha256};
 use sqlx::types::chrono::NaiveDateTime;
 use sqlx::{Pool, Sqlite, sqlite::SqlitePoolOptions};
 use std::path::PathBuf;
@@ -47,6 +48,7 @@ impl DatabaseAccessor {
         avatar: Option<String>,
     ) -> Result<User> {
         let now = Local::now().naive_local();
+        let password = format!("{:x}", Sha256::digest(password.as_bytes()));
         let user = sqlx::query_as!(
             User,
             r#"

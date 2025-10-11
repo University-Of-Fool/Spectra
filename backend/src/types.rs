@@ -76,7 +76,7 @@ impl Token {
 // 用户权限，以一个数字存储。
 // 下面枚举后注释中的数字是代表该权限的二进制位（从低到高）
 // 如 3 -> 0100 （从低到高第三位）
-#[derive(Serialize, Debug, Clone, PartialEq, EnumIter)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, EnumIter)]
 pub enum UserPermission {
     Manage, // 1
     Link,   // 2

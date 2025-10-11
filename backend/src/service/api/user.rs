@@ -1,5 +1,5 @@
 use crate::service::api::result::{ApiError, ApiResult};
-use crate::service::api::types::ApiUser;
+use crate::service::api::types::{ApiUser, ApiUserCreate};
 use crate::types::{AppState, ToPermission, Token, UserPermission};
 use crate::{fail, success};
 use axum::Json;
@@ -10,6 +10,7 @@ use cookie::time::Duration;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use tracing::{debug, instrument};
+use uuid::Uuid;
 
 #[instrument(skip(state, jar))]
 pub async fn login(
@@ -177,4 +178,48 @@ pub async fn get_user(
         fail!(404, "User not found");
     }
     success!(ApiUser::from(user.unwrap()))
+}
+
+pub async fn create_user(
+    State(state): State<AppState>,
+    jar: PrivateCookieJar,
+    Json(user): Json<ApiUserCreate>,
+) -> ApiResult {
+    let token = jar.get("token").map(|c| c.value().to_string());
+    if token.is_none() {
+        fail!(401, "Unauthorized");
+    }
+    let token = state.user_tokens.get(&token.unwrap());
+    if token.is_none() {
+        fail!(401, "Unauthorized");
+    }
+    let current_user = state
+        .database_accessor
+        .get_user_by_id(&token.unwrap().user_id)
+        .await?;
+    if current_user.is_none() {
+        fail!(401, "Unauthorized");
+    }
+    let current_user = current_user.unwrap();
+    if !current_user.descriptor.contains(UserPermission::Manage) {
+        fail!(403, "Forbidden");
+    }
+    let descriptor_sum: i64 = user
+        .descriptor
+        .into_iter()
+        .map(|permission| permission.into_i64())
+        .sum();
+    let id = Uuid::new_v4().to_string();
+    let user = state
+        .database_accessor
+        .create_user(
+            &id,
+            &user.name,
+            &user.email,
+            &user.password,
+            descriptor_sum,
+            user.avatar,
+        )
+        .await?;
+    success!(ApiUser::from(user))
 }

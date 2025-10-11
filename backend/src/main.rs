@@ -355,7 +355,7 @@ async fn main() {
                 "00000000-0000-0000-0000-000000000000",
                 "admin",
                 "admin@example.com",
-                format!("{:x}", Sha256::digest(new_password.as_bytes())).as_str(),
+                &new_password,
                 9223372036854775807,
                 None,
             )
