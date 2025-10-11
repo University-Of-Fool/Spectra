@@ -166,12 +166,11 @@ async fn main() {
                         .unwrap(),
                 )
                 .replace(
-                    "{SPECTRA_DATA_DIR}",
+                    "{SPECTRA_WORKING_DIR}",
                     std::env::current_exe()
                         .unwrap()
                         .parent()
                         .unwrap()
-                        .join("data/")
                         .to_str()
                         .unwrap(),
                 ),
@@ -188,17 +187,7 @@ async fn main() {
             output.display()
         );
         println!(
-            "Note that the unit file sets the data directory to {},",
-            std::env::current_exe()
-                .unwrap()
-                .parent()
-                .unwrap()
-                .join("data/")
-                .to_str()
-                .unwrap()
-        );
-        println!(
-            "and the configuration file to {}; Edit it on your demand.",
+            "Note that the unit file sets the configuration file to {}",
             std::env::current_exe()
                 .unwrap()
                 .parent()
@@ -207,8 +196,9 @@ async fn main() {
                 .to_str()
                 .unwrap()
         );
-        println!("You may need to reload systemd daemon after editing the unit file:");
-        println!("\n    $ sudo systemctl daemon-reload");
+        println!("You may edit it on your demand.\n");
+        println!("Please reload systemd daemon or it will not work:");
+        println!("$ sudo systemctl daemon-reload");
         std::process::exit(0);
     }
 

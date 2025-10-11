@@ -1,10 +1,13 @@
 [Unit]
 Description=Spectra Online Service
+After=network.target
 
 [Install]
 WantedBy=multi-user.target
 
 [Service]
 Type=simple
-ExecStart={SPECTRA_BIN_PATH} --config {SPECTRA_CONFIG_PATH} --data-dir {SPECTRA_DATA_DIR}
+# User=spectra
+ExecStart={SPECTRA_BIN_PATH} --config {SPECTRA_CONFIG_PATH}
+WorkingDirectory={SPECTRA_WORKING_DIR}
 Restart=on-failure
