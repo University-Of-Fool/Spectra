@@ -1,4 +1,4 @@
-import {cn} from "@/lib/utils.ts";
+import { cn } from "@/lib/utils.ts"
 
 export function TopBar(props: {
     name: string
@@ -8,10 +8,10 @@ export function TopBar(props: {
 }) {
     return (
         <div
-            className={
-                cn("flex items-center p-10 px-15 bg-gradient-to-b from-neutral-100/100 to-neutral-100/0 from-25% top-0 left-0 w-full z-50",
-                props.className)
-            }
+            className={cn(
+                "flex items-center p-10 px-15 bg-gradient-to-b from-neutral-100/100 to-neutral-100/0 from-25% top-0 left-0 w-full z-50",
+                props.className,
+            )}
         >
             <img
                 alt={"logo"}

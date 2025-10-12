@@ -1,8 +1,7 @@
 import { useContext } from "react"
 import TurnstileO, { useTurnstile } from "react-turnstile"
-
+import { cn } from "@/lib/utils.ts"
 import { AccountCtx } from "../main"
-import {cn} from "@/lib/utils.ts";
 
 export function Turnstile(props: {
     className?: string
@@ -16,9 +15,10 @@ export function Turnstile(props: {
                 context.value.turnstile_enabled ? (
                     <TurnstileO
                         sitekey={context.value.turnstile_site_key}
-                        className={
-                            cn(props.className, "mt-6 mb-[-16px] text-center")
-                        }
+                        className={cn(
+                            props.className,
+                            "mt-6 mb-[-16px] text-center",
+                        )}
                         onVerify={(token) => props.onVerify(token)}
                         size={"flexible"}
                         refreshExpired={"auto"}
