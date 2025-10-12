@@ -15,6 +15,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { cn } from "@/lib/utils.ts"
 import { wfetch } from "../fetch.ts"
 import { AccountCtx } from "../main.tsx"
 import { FinishedCard } from "./FinishedCard.tsx"
@@ -252,11 +253,13 @@ export function AreaFileShare() {
                         {/* 文件选择区域 - 只在没有选择文件时显示 */}
                         {selectedFiles.length === 0 && (
                             <div
-                                className={`w-full h-40 border-2 flex items-center justify-center transition-colors rounded-md ${
-                                    isDragging
-                                        ? "border-neutral-400 bg-neutral-200"
-                                        : "border-neutral-200 hover:border-neutral-300"
-                                }`}
+                                className={cn(
+                                    "w-full h-40 border-2 flex items-center justify-center transition-colors rounded-md",
+                                    isDragging &&
+                                        "border-neutral-400 bg-neutral-200",
+                                    !isDragging &&
+                                        "border-neutral-200 hover:border-neutral-300",
+                                )}
                                 onClick={handleClickSelect}
                                 onDragEnter={handleDragEnter}
                                 onDragLeave={handleDragLeave}

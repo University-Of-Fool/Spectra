@@ -2,6 +2,7 @@ import { useContext, useEffect } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button.tsx"
 import { Input } from "@/components/ui/input.tsx"
+import { cn } from "@/lib/utils.ts"
 import { AccountCtx } from "../main.tsx"
 
 export function FinishedCard(props: {
@@ -22,9 +23,10 @@ export function FinishedCard(props: {
     }, [props.finalUrl])
     return (
         <div
-            className={
-                props.className || "mt-8 w-full flex flex-col items-center"
-            }
+            className={cn(
+                "mt-8 w-full flex flex-col items-center",
+                props.className,
+            )}
         >
             <div className={"mb-6 opacity-75"}>
                 {props.filePage

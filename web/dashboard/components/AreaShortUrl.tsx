@@ -16,6 +16,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { cn } from "@/lib/utils.ts"
 import { wfetch } from "../fetch.ts"
 import { AccountCtx } from "../main.tsx"
 import { FinishedCard } from "./FinishedCard.tsx"
@@ -138,7 +139,10 @@ export function AreaShortUrl() {
                                 }}
                             />{" "}
                             <div
-                                className={`mb-2 mt-2 text-sm text-red-700${urlValid ? " hidden" : ""}`}
+                                className={cn(
+                                    "mb-2 mt-2 text-sm text-red-700",
+                                    urlValid && "hidden",
+                                )}
                             >
                                 这似乎不是链接，请检查你的输入。
                             </div>
@@ -219,12 +223,11 @@ export function AreaShortUrl() {
                             <HoverCard openDelay={1200}>
                                 <HoverCardTrigger asChild>
                                     <Button
-                                        className={
-                                            "flex-5" +
-                                            (uploadDisabled() || !urlValid
-                                                ? " opacity-50 cursor-default hover:bg-primary/100"
-                                                : "")
-                                        }
+                                        className={cn(
+                                            "flex-5",
+                                            (uploadDisabled() || !urlValid) &&
+                                                " opacity-50 cursor-default hover:bg-primary/100",
+                                        )}
                                         onClick={handleUpload}
                                     >
                                         创建

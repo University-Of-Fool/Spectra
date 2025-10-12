@@ -9,6 +9,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
+import { cn } from "@/lib/utils.ts"
 import { AccountCtx } from "../main.tsx"
 
 export function TopBar() {
@@ -171,18 +172,17 @@ export function TopBar() {
             ></img>
             <div className={"text-xl font-mono font-medium"}>Spectra</div>
             <div
-                className={
-                    "flex flex-col items-end ml-auto mr-4 gap-1" +
-                    (context.value.loading ? " animate-pulse" : "")
-                }
+                className={cn(
+                    "flex flex-col items-end ml-auto mr-4 gap-1",
+                    context.value.loading && " animate-pulse",
+                )}
             >
                 <div
-                    className={
-                        "opacity-90" +
-                        (context.value.loading
-                            ? " h-2 bg-black/10 rounded text-black/0"
-                            : "")
-                    }
+                    className={cn(
+                        "opacity-90",
+                        context.value.loading &&
+                            " h-2 bg-black/10 rounded text-black/0",
+                    )}
                 >
                     {context.value.loading
                         ? "username (loading)"
@@ -198,21 +198,17 @@ export function TopBar() {
                           : "欢迎来到 Spectra。"}
                 </div>
                 <div
-                    className={
-                        "opacity-50 text-xs flex gap-1.5 items-center" +
-                        (context.value.loading
-                            ? " h-2 bg-black/10 rounded text-black/0"
-                            : "")
-                    }
+                    className={cn(
+                        "opacity-50 text-xs flex gap-1.5 items-center",
+                        context.value.loading &&
+                            " h-2 bg-black/10 rounded text-black/0",
+                    )}
                 >
                     {context.value.isLoggedIn ? (
                         <>
                             <div className={"cursor-pointer"} onClick={logout}>
                                 登出
                             </div>
-                            {/*<div className={"cursor-pointer"}>*/}
-                            {/*    切换账号*/}
-                            {/*</div>*/}
                         </>
                     ) : (
                         <div
@@ -297,7 +293,10 @@ export function TopBar() {
                                             登录
                                         </Button>
                                         <div
-                                            className={`mt-6 text-red-700 text-sm text-center ${loginSuccess ? " hidden" : ""}`}
+                                            className={cn(
+                                                "mt-6 text-red-700 text-sm text-center",
+                                                loginSuccess && " hidden",
+                                            )}
                                         >
                                             用户名或密码不正确，请重试。
                                         </div>
@@ -318,20 +317,19 @@ export function TopBar() {
                 </div>
             </div>
             <div
-                className={
-                    "w-12 h-12 rounded-full bg-black/10" +
-                    (context.value.loading ? " animate-pulse" : "")
-                }
+                className={cn(
+                    "w-12 h-12 rounded-full bg-black/10",
+                    context.value.loading && " animate-pulse",
+                )}
             >
                 <img
                     alt={"avatar"}
-                    className={
-                        context.value.loading ||
-                        !context.value.isLoggedIn ||
-                        !context.value.avatar_url
-                            ? " hidden"
-                            : "rounded-full"
-                    }
+                    className={cn("rounded-full", {
+                        hidden:
+                            context.value.loading ||
+                            !context.value.isLoggedIn ||
+                            !context.value.avatar_url,
+                    })}
                     src={context.value.avatar_url}
                 />
             </div>

@@ -1,3 +1,5 @@
+import {cn} from "@/lib/utils.ts";
+
 export function TopBar(props: {
     name: string
     avatar: string | null
@@ -7,8 +9,8 @@ export function TopBar(props: {
     return (
         <div
             className={
-                "flex items-center p-10 px-15 bg-gradient-to-b from-neutral-100/100 to-neutral-100/0 from-25% top-0 left-0 w-full z-50 " +
-                props.className
+                cn("flex items-center p-10 px-15 bg-gradient-to-b from-neutral-100/100 to-neutral-100/0 from-25% top-0 left-0 w-full z-50",
+                props.className)
             }
         >
             <img
@@ -28,7 +30,10 @@ export function TopBar(props: {
             <div className={"w-12 h-12 rounded-full bg-black/10"}>
                 <img
                     alt={"avatar"}
-                    className={!props.avatar ? " hidden" : "rounded-full"}
+                    className={cn({
+                        hidden: !props.avatar,
+                        "rounded-full": !!props.avatar,
+                    })}
                     src={props.avatar || ""}
                 />
             </div>

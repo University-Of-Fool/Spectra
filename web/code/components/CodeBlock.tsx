@@ -135,18 +135,11 @@ export default function CodeBlock({
         }, 3000)
         return () => clearTimeout(timeout)
     }, [highlightLine])
-
-    // useEffect(() => {
-    //     console.log(lineHeights)
-    // }, [lineHeights])
-    // useEffect(() => {
-    //     console.log(lineRects)
-    // }, [lineRects])
-
     return (
         <>
             <pre
                 ref={preRef}
+                // 这里的 language 不是 Tailwind 类名，故不应用 cn()
                 className={`hljs ${language} rounded-xl relative`}
                 style={{
                     display: "flex",
