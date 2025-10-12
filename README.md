@@ -65,7 +65,7 @@ server {
     server_name  spectra.example.com;
 
     ssl_certificate "/path/to/cert.pem";
-    ssl_certificate_key "/path/to/key.pem;
+    ssl_certificate_key "/path/to/key.pem";
     ssl_session_cache shared:SSL:1m;
     ssl_session_timeout  10m;
     ssl_ciphers PROFILE=SYSTEM;

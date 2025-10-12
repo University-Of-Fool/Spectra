@@ -17,7 +17,7 @@ cookie_key = "{SPECTRA_COOKIE_KEY}"
 refresh_time = "0 0 4 * * ?"
 
 
-# Configuration for Cloudflare Turnstiles
+# Configuration for Cloudflare Turnstile
 # ---------------------------------------
 [turnstile]
 
