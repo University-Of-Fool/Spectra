@@ -50,7 +50,7 @@ export default function CodeBlock({
         return () => {
             active = false
         }
-    }, [language])
+    }, [language, code])
 
     useEffect(() => {
         const updateLineHeights = () => {
@@ -102,7 +102,7 @@ export default function CodeBlock({
         updateLineHeights()
         window.addEventListener("resize", updateLineHeights)
         return () => window.removeEventListener("resize", updateLineHeights)
-    }, [code])
+    }, [code, wrap])
 
     useEffect(() => {
         const scrollToHash = () => {
@@ -120,7 +120,7 @@ export default function CodeBlock({
         const timeout = setTimeout(scrollToHash, 50)
 
         return () => clearTimeout(timeout)
-    }, []) // 每次 code 更新都尝试滚动
+    }, [code]) // 每次 code 更新都尝试滚动
 
     const handleLineClick = (lineNumber: number) => {
         const url = new URL(window.location.href)
@@ -141,7 +141,7 @@ export default function CodeBlock({
             bar.style.transition = "background-color 1s ease"
         }, 3000)
         return () => clearTimeout(timeout)
-    }, [])
+    }, [highlightLine])
     return (
         <>
             <link

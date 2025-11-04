@@ -37,7 +37,7 @@ export function TransitionTabs({ activeKey, tabs }: TransitionTabsProps) {
         ro.observe(activeEl)
 
         return () => ro.disconnect()
-    }, [])
+    }, [activeKey, rendered])
 
     useLayoutEffect(() => {
         const el = containerRef.current
@@ -50,7 +50,7 @@ export function TransitionTabs({ activeKey, tabs }: TransitionTabsProps) {
                 activeEl.scrollHeight + 8 /* 给shadow预留余量 */
             el.style.height = `${targetHeight}px`
         }
-    }, [])
+    }, [activeKey, rendered])
 
     const handleAnimationEnd = (key: string) => {
         // 动画结束后移除旧tab
@@ -129,7 +129,7 @@ export function TransitionHeight({
         observer.observe(el)
 
         return () => observer.disconnect()
-    }, [])
+    }, [children])
 
     return (
         <div

@@ -67,9 +67,15 @@ function getNativeRustTarget() {
 
     console.warn("[!] 正在构建 Rust 程序...")
     const cargoArgs = ["build", "--release"]
-    if (target) cargoArgs.push("--target", target)
+    if (target) cargoArgs.push("--target="+ target)
+    const options = {};
+    if(target?.includes("musl")){
+        options["env"]={
+            "OPENSSL_STATIC":"1",
+        }
+    }
     try {
-        await runCommand("cargo", cargoArgs)
+        await runCommand("cargo", cargoArgs, options)
         console.warn("✅ Rust 程序构建完成。")
     } catch (e) {
         console.error(`[!] Rust 构建失败: ${e.message}`)
