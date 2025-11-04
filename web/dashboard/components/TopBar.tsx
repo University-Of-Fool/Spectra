@@ -11,8 +11,18 @@ import {
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils.ts"
 import { AccountCtx } from "../main.tsx"
+import { SpectraLogo } from "../../components/Logo.tsx"
+import { useTheme } from "../../../src/components/ThemeProvider.tsx"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu.tsx"
+import { Moon, Sun } from "lucide-react"
 
 export function TopBar() {
+    const { setTheme } = useTheme()
     const context = useContext(AccountCtx)
     const references = {
         email: useRef(""),
@@ -162,14 +172,10 @@ export function TopBar() {
     return (
         <div
             className={
-                "flex items-center p-10 px-15 bg-gradient-to-b from-neutral-100/100 to-neutral-100/0 from-70% to-100% sticky top-0 left-0 w-full z-50"
+                "flex items-center p-10 px-15 bg-gradient-to-b from-background to-transparent from-70% to-100% sticky top-0 left-0 w-full z-50"
             }
         >
-            <img
-                alt={"logo"}
-                src="/logo_demo.svg"
-                className={"h-12 mr-4"}
-            ></img>
+            <SpectraLogo className={"h-12 mr-4"} />
             <div className={"text-xl font-mono font-medium"}>Spectra</div>
             <div
                 className={cn(
@@ -306,19 +312,40 @@ export function TopBar() {
                         </div>
                     )}
 
-                    <span
+                    {/* <span
                         id="dark-mode-icon"
                         className={
                             "material-symbols-outlined point cursor-pointer text-[1.25rem]!"
                         }
                     >
                         dark_mode
-                    </span>
+                    </span> */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <span className={"cursor-pointer"}>
+                                <Sun className="h-[1.2rem] w-[1.2rem] inline dark:w-0 dark:h-0" />
+                                <Moon className="w-0 h-0 dark:h-[1.2rem] dark:w-[1.2rem] inline" />
+                            </span>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => setTheme("light")}>
+                                亮色模式
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setTheme("dark")}>
+                                暗色模式
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                onClick={() => setTheme("system")}
+                            >
+                                跟随系统
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
             <div
                 className={cn(
-                    "w-12 h-12 rounded-full bg-black/10",
+                    "w-12 h-12 rounded-full bg-foreground/5",
                     context.value.loading && " animate-pulse",
                 )}
             >

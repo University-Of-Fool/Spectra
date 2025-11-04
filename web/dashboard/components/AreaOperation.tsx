@@ -1,6 +1,34 @@
-import { useContext } from "react"
+import { useContext, type ReactNode } from "react"
 import { AccountCtx } from "../main.tsx"
+import { cn } from "@/lib/utils.ts"
+/*
+.card {
+    @apply bg-background shadow-lg border-1 border-border rounded-lg;
+}
 
+.card-clickable {
+    @apply cursor-pointer transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-50/10;
+}
+*/
+interface CardProps {
+    children?: ReactNode
+    className?: string
+    onClick?: () => void
+}
+
+function Card({ children, className = "", onClick }: CardProps) {
+    return (
+        <div
+            className={cn(
+                "bg-background shadow-lg border-1 border-border rounded-lg cursor-pointer transition-colors hover:bg-foreground/5",
+                className,
+            )}
+            onClick={onClick}
+        >
+            {children}
+        </div>
+    )
+}
 export function AreaOperation() {
     const context = useContext(AccountCtx)
     return (
@@ -9,10 +37,8 @@ export function AreaOperation() {
                 接下来要进行什么操作？
             </div>
             <div className={"flex gap-8"}>
-                <div
-                    className={
-                        "card card-clickable w-60 h-75 flex flex-col p-5 hover-float"
-                    }
+                <Card
+                    className={"w-60 h-75 flex flex-col p-5 hover-float"}
                     onClick={() => context.handleTabClick("fileShare")}
                 >
                     <div className={"flex flex-1 items-center justify-center"}>
@@ -32,11 +58,9 @@ export function AreaOperation() {
                         文件快传
                     </div>
                     <div className={"text-sm opacity-50"}>分享本地文件。</div>
-                </div>
-                <div
-                    className={
-                        "card card-clickable w-60 h-75 flex flex-col p-5 hover-float"
-                    }
+                </Card>
+                <Card
+                    className={"w-60 h-75 flex flex-col p-5 hover-float"}
                     onClick={() => context.handleTabClick("pasteBin")}
                 >
                     <div className={"flex flex-1 items-center justify-center"}>
@@ -58,11 +82,9 @@ export function AreaOperation() {
                     <div className={"text-sm opacity-50"}>
                         分享代码/文本/日志文件。
                     </div>
-                </div>
-                <div
-                    className={
-                        "card card-clickable w-60 h-75 flex flex-col p-5 hover-float"
-                    }
+                </Card>
+                <Card
+                    className={"w-60 h-75 flex flex-col p-5 hover-float"}
                     onClick={() => context.handleTabClick("shortUrl")}
                 >
                     <div className={"flex flex-1 items-center justify-center"}>
@@ -84,7 +106,7 @@ export function AreaOperation() {
                     <div className={"text-sm opacity-50"}>
                         创建简短的跳转链接。
                     </div>
-                </div>
+                </Card>
             </div>
         </div>
     )

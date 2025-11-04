@@ -254,11 +254,9 @@ export function AreaFileShare() {
                         {selectedFiles.length === 0 && (
                             <div
                                 className={cn(
-                                    "w-full h-40 border-2 flex items-center justify-center transition-colors rounded-md",
+                                    "w-full h-40 border-2 border-border flex items-center justify-center transition-colors rounded-md",
                                     isDragging &&
-                                        "border-neutral-400 bg-neutral-200",
-                                    !isDragging &&
-                                        "border-neutral-200 hover:border-neutral-300",
+                                        "border-foreground bg-foreground/30",
                                 )}
                                 onClick={handleClickSelect}
                                 onDragEnter={handleDragEnter}
@@ -391,7 +389,7 @@ export function AreaFileShare() {
                             />
                         </div>
 
-                        <div className="mt-8 flex items-center border-1 border-neutral-200 rounded-md p-4 shadow-sm">
+                        <div className="mt-8 flex items-center border-1 border-border rounded-md p-4 shadow-sm">
                             <div>
                                 <Label htmlFor="airplane-mode">图床模式</Label>
                                 <div className={"mt-1.5 opacity-50 text-xs"}>

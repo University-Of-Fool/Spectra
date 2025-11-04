@@ -9,6 +9,7 @@ import { AreaShared } from "./components/AreaShared"
 import { AreaShortUrl } from "./components/AreaShortUrl"
 import { TopBar } from "./components/TopBar"
 import { TransitionTabs } from "./HeightTransition"
+import { ThemeProvider } from "@/components/ThemeProvider"
 
 const root = document.getElementById("app")
 if (!root) throw new Error("Launch failed: Root element not found")
@@ -67,56 +68,58 @@ export function Dashboard() {
         }
     }, [])
     return (
-        <AccountCtx.Provider
-            value={{
-                value,
-                setValue,
-                sharedListUpdTrigger,
-                sharedListUpd,
-                handleTabClick,
-            }}
-        >
-            <div>
-                <TopBar />
+        <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+            <AccountCtx.Provider
+                value={{
+                    value,
+                    setValue,
+                    sharedListUpdTrigger,
+                    sharedListUpd,
+                    handleTabClick,
+                }}
+            >
+                <div>
+                    <TopBar />
 
-                <TransitionTabs
-                    activeKey={activeTab}
-                    tabs={[
-                        {
-                            key: "operation",
-                            node: <AreaOperation />,
-                        },
-                        {
-                            key: "fileShare",
-                            node: <AreaFileShare />,
-                        },
-                        {
-                            key: "pasteBin",
-                            node: <AreaPasteBin />,
-                        },
-                        {
-                            key: "shortUrl",
-                            node: <AreaShortUrl />,
-                        },
-                    ]}
-                />
+                    <TransitionTabs
+                        activeKey={activeTab}
+                        tabs={[
+                            {
+                                key: "operation",
+                                node: <AreaOperation />,
+                            },
+                            {
+                                key: "fileShare",
+                                node: <AreaFileShare />,
+                            },
+                            {
+                                key: "pasteBin",
+                                node: <AreaPasteBin />,
+                            },
+                            {
+                                key: "shortUrl",
+                                node: <AreaShortUrl />,
+                            },
+                        ]}
+                    />
 
-                <div className="flex justify-center">
-                    <div className="w-100 mt-20 mb-20 border-t-1 border-neutral-200"></div>
+                    <div className="flex justify-center">
+                        <div className="w-100 mt-20 mb-20 border-t-1 border-foreground/20"></div>
+                    </div>
+
+                    {!value.loading && !value.isLoggedIn && (
+                        <>
+                            <div className="text-center opacity-25 text-sm mb-20">
+                                要查看历史分享项目，请先登录。
+                            </div>
+                        </>
+                    )}
+
+                    {!value.loading && value.isLoggedIn && <AreaShared />}
                 </div>
-
-                {!value.loading && !value.isLoggedIn && (
-                    <>
-                        <div className="text-center opacity-25 text-sm mb-20">
-                            要查看历史分享项目，请先登录。
-                        </div>
-                    </>
-                )}
-
-                {!value.loading && value.isLoggedIn && <AreaShared />}
-            </div>
-            <Toaster richColors></Toaster>
-        </AccountCtx.Provider>
+                <Toaster richColors></Toaster>
+            </AccountCtx.Provider>
+        </ThemeProvider>
     )
 }
 
