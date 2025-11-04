@@ -1,3 +1,4 @@
+import { ThemeSwitcher } from "@/components/ThemeProvider"
 import { cn } from "@/lib/utils.ts"
 import { SpectraLogo } from "./Logo"
 
@@ -20,11 +21,12 @@ export function TopBar(props: {
                 Spectra.{props.page}
             </div>
             <div className={"flex flex-col items-end ml-auto mr-4 gap-1"}>
-                <div className={"opacity-75 text-sm"}>
-                    由 @{props.name} 分享的内容
-                </div>
+                <div className={"opacity-90"}>由 @{props.name} 分享的内容</div>
+                <ThemeSwitcher className={"opacity-50"}></ThemeSwitcher>
             </div>
-            <div className={"w-12 h-12 rounded-full bg-black/10"}>
+            <div
+                className={"w-12 h-12 rounded-full bg-black/10 dark:bg-white/5"}
+            >
                 <img
                     alt={"avatar"}
                     className={cn({

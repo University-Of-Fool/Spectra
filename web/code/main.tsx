@@ -1,6 +1,6 @@
 import "../public/style.css"
-import "highlight.js/styles/github.css"
 import { render } from "preact"
+import { ThemeProvider } from "@/components/ThemeProvider.tsx"
 import { Toaster } from "@/components/ui/sonner.tsx"
 import { TopBar } from "../components/TopBar.tsx"
 import CodeBlock from "./components/CodeBlock.tsx"
@@ -21,7 +21,7 @@ const extraData = JSON.parse(backendData.extra_data) as {
 
 function Main() {
     return (
-        <>
+        <ThemeProvider>
             <TopBar
                 name={backendData.creator_name}
                 avatar={backendData.creator_avatar}
@@ -35,10 +35,12 @@ function Main() {
                                 "flex items-baseline mb-2 mx-1 font-mono"
                             }
                         >
-                            <div className={"text-lg opacity-100"}>
-                                {extraData.title}
-                            </div>
-                            <div className={"text-sm opacity-75 ml-auto"}>
+                            <div className={"text-lg"}>{extraData.title}</div>
+                            <div
+                                className={
+                                    "text-sm text-muted-foreground ml-auto"
+                                }
+                            >
                                 {extraData.language}
                             </div>
                         </div>
@@ -53,7 +55,7 @@ function Main() {
                 </div>
             </div>
             <Toaster richColors></Toaster>
-        </>
+        </ThemeProvider>
     )
 }
 

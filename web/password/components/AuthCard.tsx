@@ -8,7 +8,11 @@ export function AuthCard(props: { error: boolean }) {
 
     return (
         <div className={"h-full flex items-center justify-center"}>
-            <div className={"card p-8 flex flex-col items-start gap-4"}>
+            <div
+                className={
+                    "not-dark:bg-white dark:bg- shadow-lg border-1 border-border rounded-lg p-8 flex flex-col items-start gap-4"
+                }
+            >
                 <div className={"text-sm opacity-75 mb-1"}>
                     该内容需要验证密码。
                 </div>

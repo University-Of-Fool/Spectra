@@ -1,15 +1,7 @@
-import { useContext, type ReactNode } from "react"
-import { AccountCtx } from "../main.tsx"
+import { type ReactNode, useContext } from "react"
 import { cn } from "@/lib/utils.ts"
-/*
-.card {
-    @apply bg-background shadow-lg border-1 border-border rounded-lg;
-}
+import { AccountCtx } from "../main.tsx"
 
-.card-clickable {
-    @apply cursor-pointer transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-50/10;
-}
-*/
 interface CardProps {
     children?: ReactNode
     className?: string
@@ -20,7 +12,7 @@ function Card({ children, className = "", onClick }: CardProps) {
     return (
         <div
             className={cn(
-                "bg-background shadow-lg border-1 border-border rounded-lg cursor-pointer transition-colors hover:bg-foreground/5",
+                "bg-white hover:bg-neutral-100 shadow-lg border-1 border-border rounded-lg cursor-pointer transition-colors dark:bg-foreground/10 dark:hover:bg-foreground/18",
                 className,
             )}
             onClick={onClick}
@@ -33,7 +25,7 @@ export function AreaOperation() {
     const context = useContext(AccountCtx)
     return (
         <div className={"flex flex-col items-center"}>
-            <div className={"font-thin text-2xl mt-6 mb-12"}>
+            <div className={"font-thin dark:font-light text-2xl mt-6 mb-12"}>
                 接下来要进行什么操作？
             </div>
             <div className={"flex gap-8"}>

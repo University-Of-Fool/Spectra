@@ -1,6 +1,7 @@
 import "../public/style.css"
 import { render } from "preact"
 import { createContext, useEffect, useState } from "react"
+import { ThemeProvider } from "@/components/ThemeProvider"
 import { Toaster } from "@/components/ui/sonner.tsx"
 import { AreaFileShare } from "./components/AreaFileShare"
 import { AreaOperation } from "./components/AreaOperation"
@@ -9,7 +10,6 @@ import { AreaShared } from "./components/AreaShared"
 import { AreaShortUrl } from "./components/AreaShortUrl"
 import { TopBar } from "./components/TopBar"
 import { TransitionTabs } from "./HeightTransition"
-import { ThemeProvider } from "@/components/ThemeProvider"
 
 const root = document.getElementById("app")
 if (!root) throw new Error("Launch failed: Root element not found")

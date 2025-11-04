@@ -1,6 +1,9 @@
 import hljs from "highlight.js/lib/core"
+import githubLight from "highlight.js/styles/github.min.css?url"
+import githubDark from "highlight.js/styles/github-dark.min.css?url"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
+import { useTheme } from "@/components/ThemeProvider.tsx"
 import { HLJS_LANGS } from "../hljs.ts"
 
 interface CodeBlockProps {
@@ -18,14 +21,18 @@ export default function CodeBlock({
     const codeRef = useRef<HTMLElement>(null)
     const [lineHeights, setLineHeights] = useState<number[]>([])
     const [highlightLine, setHighlightLine] = useState<number | null>(null)
-    // const [lineRects, setLineRects] = useState<
-    //     { top: number; height: number }[]
-    // >([])
+    let { theme } = useTheme()
+    if (theme === "system") {
+        const root = document.documentElement
+        const isDark = root.classList.contains("dark")
+        theme = isDark ? "dark" : "light"
+    }
 
     useEffect(() => {
         let active = true
 
         ;(async () => {
+            // 动态加载语言模块
             const loader = HLJS_LANGS[language]
             if (!loader) {
                 console.warn(`Unsupported language: ${language}`)
@@ -137,6 +144,10 @@ export default function CodeBlock({
     }, [highlightLine])
     return (
         <>
+            <link
+                rel={"stylesheet"}
+                href={theme === "dark" ? githubDark : githubLight}
+            />
             <pre
                 ref={preRef}
                 // 这里的 language 不是 Tailwind 类名，故不应用 cn()
@@ -196,7 +207,7 @@ export default function CodeBlock({
                         backgroundColor: "rgba(255, 255, 0, 0)",
                         pointerEvents: "none",
                         transition: "",
-                        mixBlendMode: "multiply",
+                        mixBlendMode: theme === "dark" ? "normal" : "multiply",
                     }}
                 />
             </pre>

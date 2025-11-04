@@ -157,11 +157,11 @@ export function AreaShared() {
                                     <td className="px-4 py-2">
                                         <button
                                             type="button"
-                                            className={"button-icon"}
                                             onClick={getOnClickDelete(
                                                 item.id,
                                                 item.short_path,
                                             )}
+                                            class={"button-icon"}
                                         >
                                             <span
                                                 className={

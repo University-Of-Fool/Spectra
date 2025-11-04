@@ -1,5 +1,6 @@
 import { useContext, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
+import { ThemeSwitcher } from "@/components/ThemeProvider.tsx"
 import { Button } from "@/components/ui/button.tsx"
 import { Checkbox } from "@/components/ui/checkbox.tsx"
 import { Input } from "@/components/ui/input.tsx"
@@ -10,19 +11,10 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils.ts"
-import { AccountCtx } from "../main.tsx"
 import { SpectraLogo } from "../../components/Logo.tsx"
-import { useTheme } from "../../../src/components/ThemeProvider.tsx"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu.tsx"
-import { Moon, Sun } from "lucide-react"
+import { AccountCtx } from "../main.tsx"
 
 export function TopBar() {
-    const { setTheme } = useTheme()
     const context = useContext(AccountCtx)
     const references = {
         email: useRef(""),
@@ -187,7 +179,7 @@ export function TopBar() {
                     className={cn(
                         "opacity-90",
                         context.value.loading &&
-                            " h-2 bg-black/10 rounded text-black/0",
+                            "h-2 bg-black/10 rounded text-black/0",
                     )}
                 >
                     {context.value.loading
@@ -311,36 +303,7 @@ export function TopBar() {
                             </Popover>
                         </div>
                     )}
-
-                    {/* <span
-                        id="dark-mode-icon"
-                        className={
-                            "material-symbols-outlined point cursor-pointer text-[1.25rem]!"
-                        }
-                    >
-                        dark_mode
-                    </span> */}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <span className={"cursor-pointer"}>
-                                <Sun className="h-[1.2rem] w-[1.2rem] inline dark:w-0 dark:h-0" />
-                                <Moon className="w-0 h-0 dark:h-[1.2rem] dark:w-[1.2rem] inline" />
-                            </span>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => setTheme("light")}>
-                                亮色模式
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setTheme("dark")}>
-                                暗色模式
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={() => setTheme("system")}
-                            >
-                                跟随系统
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <ThemeSwitcher></ThemeSwitcher>
                 </div>
             </div>
             <div

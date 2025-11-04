@@ -1,4 +1,12 @@
+import { Moon, Sun } from "lucide-react"
 import { createContext, useContext, useEffect, useState } from "react"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
 
 type Theme = "dark" | "light" | "system"
 
@@ -71,4 +79,29 @@ export const useTheme = () => {
         throw new Error("useTheme must be used within a ThemeProvider")
 
     return context
+}
+
+export function ThemeSwitcher({ className }: { className?: string }) {
+    const { setTheme } = useTheme()
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <span className={cn("cursor-pointer", className)}>
+                    <Sun className="h-[1.2rem] w-[1.2rem] inline not-dark:hidden" />
+                    <Moon className="h-[1.2rem] w-[1.2rem] inline dark:hidden" />
+                </span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setTheme("light")}>
+                    亮色模式
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("dark")}>
+                    暗色模式
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("system")}>
+                    跟随系统
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    )
 }

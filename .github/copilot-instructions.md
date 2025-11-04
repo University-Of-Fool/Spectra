@@ -21,7 +21,7 @@ Spectra 是一个自托管的在线工具集合，面向个人分享与协作，
 - 前端：基于 Preact + Vite，代码在 `web/`（dashboard 位于 `web/dashboard/`）。入口：`web/dashboard/main.tsx`。UI 组件在 `web/src/components` 与 `web/dashboard/components`。
 - 构建/打包：前端通过 `pnpm`（见 `package.json`），脚本 `dev`/`build` 由 `scripts/dev.js` 和 `scripts/build.js` 协调。后端使用 Cargo（workspace 在仓库根 `Cargo.toml` 指向 `backend/`）。
 
-## 关键开发命令（可拷贝执行）
+## 关键开发命令
 
 - 本地开发（按 README 中步骤执行）：
   - 创建 `.env`，例如：`DATABASE_URL=sqlite:./data.db`
@@ -65,15 +65,3 @@ Spectra 是一个自托管的在线工具集合，面向个人分享与协作，
 - 当修改后端 API 或数据模型时，同时更新 `migrations/` 与前端调用处（`web/dashboard/components/*`）。
 - 优先查阅并修改 `backend/src/types.rs` 与 `backend/src/data.rs` 以保证状态与 DB 一致性。
 - 在添加新后端依赖或需要本地 DB 迁移时，说明要同时运行 `cargo install sqlx-cli` 与 `sqlx database setup`。
-
-## 变更示例（快速示范说明如何定位）
-
-- 若要修改短链接功能：查看 `web/dashboard/components/AreaShortUrl.tsx`（前端）和 `backend/src/service/api/*`（对应的后端 API 实现）。
-
-## 最后说明与反馈
-
-我已根据仓库可发现的文件生成了以上说明（没有找到已有的 `.github/copilot-instructions.md`）。请审阅：
-- 是否需要补充 CI/发布流程（如果你们有 GitHub Actions 或自定义发布脚本，请指出对应文件）；
-- 是否要把某些内部约定（例如更严格的分支策略、代码风格检查规则）也写进本文件？
-
-如需我现在把 CI 步骤或更多路径自动化加入到本文件中，请回复要补充的细节或允许我去探索 `.github/workflows/` 目录。 

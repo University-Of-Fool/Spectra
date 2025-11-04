@@ -201,7 +201,9 @@ export function AreaFileShare() {
 
     return (
         <div className="flex flex-col items-center">
-            <div className="font-thin text-2xl mt-6 mb-12">文件快传</div>
+            <div className="font-thin dark:font-light text-2xl mt-6 mb-12">
+                文件快传
+            </div>
 
             {progress === 0 && (
                 <div className="flex gap-2 items-center">
