@@ -1,5 +1,5 @@
 {
-    "$schema": "https://biomejs.dev/schemas/2.2.4/schema.json",
+    "$schema": "https://biomejs.dev/schemas/2.3.3/schema.json",
     "vcs": {
         "enabled": false,
         "clientKind": "git",
@@ -21,14 +21,24 @@
             "complexity": {
                 "noUselessFragments": "off"
             },
-
+            "correctness": {
+                "useExhaustiveDependencies": "off"
+            },
             "a11y": "off"
+        },
+        "domains": {
+            "react": "recommended"
         }
     },
     "javascript": {
         "formatter": {
             "quoteStyle": "double",
             "semicolons": "asNeeded"
+        }
+    },
+    "css": {
+        "parser": {
+            "tailwindDirectives": true
         }
     },
     "assist": {

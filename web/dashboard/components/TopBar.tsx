@@ -94,7 +94,7 @@ export function TopBar() {
                     data.payload.turnstile_site_key,
                 ),
             )
-    }, [])
+    }, [context.setValue, context.value])
 
     const login = async () => {
         const value = {

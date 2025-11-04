@@ -10,10 +10,6 @@ export function FinishedCard(props: {
     filePage?: boolean
     className?: string
 }) {
-    const context = useContext(AccountCtx)
-    if (props.finalUrl === "") {
-        return null
-    }
     useEffect(() => {
         if (props.finalUrl !== "") {
             navigator.clipboard.writeText(props.finalUrl).then(() => {
@@ -21,6 +17,10 @@ export function FinishedCard(props: {
             })
         }
     }, [props.finalUrl])
+    const context = useContext(AccountCtx)
+    if (props.finalUrl === "") {
+        return null
+    }
     return (
         <div
             className={cn(

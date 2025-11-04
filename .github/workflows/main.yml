@@ -34,7 +34,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -42,7 +42,7 @@ jobs:
       - name: Setup Biome
         uses: biomejs/setup-biome@v2
         with:
-          version: latest
+          version: "2.3.3"
 
       - name: Run rustfmt
         run: cargo fmt --all
@@ -84,27 +84,26 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      
+
       - name: Setup Biome
         uses: biomejs/setup-biome@v2
-
 
       - name: Cache cargo binaries
         uses: actions/cache@v3
         with:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bins-${{ hashFiles('**/Cargo.lock') }}
-        
+
       - name: Setup sqlx cli
         run: |
           if ! command -v sqlx &> /dev/null; then
             cargo install sqlx-cli --no-default-features --features sqlite-unbundled
           fi
-        
+
       - name: Run cargo check
         env:
           DATABASE_URL: "sqlite:./data.db"
@@ -114,8 +113,7 @@ jobs:
 
       # biome check will throw error if there are any formatting issues
       - name: Run Biome format
-        run:
-          biome format --write
+        run: biome format --write
 
       - name: Run Biome lint
         run: biome ci
