@@ -31,23 +31,13 @@ async fn to_frontend(
         .body(Body::empty())
         .unwrap();
     let orig_response = next.run(next_req).await;
-    let mut body = String::from_utf8(
-        orig_response
-            .into_body()
-            .collect()
-            .await
-            .unwrap()
-            .to_bytes()
-            .to_vec(),
-    )
-    .unwrap();
+    let (parts, body_raw) = orig_response.into_parts();
+    let mut body =
+        String::from_utf8(body_raw.collect().await.unwrap().to_bytes().to_vec()).unwrap();
     if let Some((pattern, replacement)) = replace_pattern {
         body = body.replace(pattern, &replacement);
     }
-    Response::builder()
-        .status(200)
-        .body(Body::from(body))
-        .unwrap()
+    (parts, Body::from(body)).into_response()
 }
 
 async fn resp_404(next: Next) -> Response {
