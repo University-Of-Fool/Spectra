@@ -124,7 +124,7 @@ export function AreaPasteBin() {
                                     value={highlight}
                                     onValueChange={setHighlight}
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className={"w-full"}>
                                         <SelectValue placeholder="语法高亮" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -217,7 +217,7 @@ export function AreaPasteBin() {
                                     value={expires}
                                     onValueChange={setExpires}
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className={"w-full"}>
                                         <SelectValue placeholder="有效时长" />
                                     </SelectTrigger>
                                     <SelectContent>

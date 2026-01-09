@@ -159,7 +159,7 @@ export function AreaShortUrl() {
                                     value={expires}
                                     onValueChange={setExpires}
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className={"w-full"}>
                                         <SelectValue placeholder="有效时长" />
                                     </SelectTrigger>
                                     <SelectContent>

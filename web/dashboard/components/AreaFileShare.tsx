@@ -336,7 +336,7 @@ export function AreaFileShare() {
                                         references.expires.current = value
                                     }}
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className={"w-full"}>
                                         <SelectValue placeholder="有效时长" />
                                     </SelectTrigger>
                                     <SelectContent>

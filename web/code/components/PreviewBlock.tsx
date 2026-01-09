@@ -1,13 +1,14 @@
+import { loadFonts } from "@myriaddreamin/typst.ts"
 import { MathJax, MathJaxContext } from "better-react-mathjax"
+import DOMPurify from "dompurify"
 import ghCssSystem from "github-markdown-css/github-markdown.css?url"
 import ghCssDark from "github-markdown-css/github-markdown-dark.css?url"
 import ghCssLight from "github-markdown-css/github-markdown-light.css?url"
 import { useEffect, useRef, useState } from "react"
 import { useTheme } from "@/components/ThemeProvider.tsx"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
-import { TypstDocument } from "./TypstDocument"
+import { TypstDocument } from "./typst.react/TypstDocument"
 
 const mdRenderCache = new Map<string, string>()
 
@@ -50,61 +51,79 @@ function MarkdownPreviewer(props: { code: string }) {
         }
 
         isLoadingRef.current = true
-
-        // 请求 GitHub 的 Markdown 渲染 API
-        ;(async () => {
-            try {
-                const resp = await fetch("https://api.github.com/markdown", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Accept: "text/html",
-                        "X-GitHub-Api-Version": "2022-11-28",
-                    },
-                    body: JSON.stringify({
-                        text: props.code,
-                    }),
-                })
-                if (resp.ok) {
-                    const html = await resp.text()
-                    // 存储到缓存
-                    mdRenderCache.set(props.code, html)
-                    setMdHtml(html)
-                }
-            } finally {
-                isLoadingRef.current = false
-            }
-        })()
     }, [props.code])
+
+    ;(async () => {
+        // 由于我们不确定用户给的 Markdown 里有什么语言，这里就不按需加载语言了
+        const hljs = (await import("highlight.js")).default
+        const { Marked } = await import("marked")
+        const { markedHighlight } = await import("marked-highlight")
+        const marked = new Marked(
+            markedHighlight({
+                emptyLangClass: "hljs",
+                langPrefix: "hljs language-",
+                highlight(code, lang) {
+                    const language = hljs.getLanguage(lang) ? lang : "plaintext"
+                    return hljs.highlight(code, { language }).value
+                },
+            }),
+        )
+        const parsedHtml = DOMPurify.sanitize(
+            await marked.parse(
+                // See: https://github.com/markedjs/marked/issues/2139
+                props.code.replace(
+                    /^[\u200B\u200E\u200F\uFEFF\u200C\u200D]/u,
+                    "",
+                ),
+                {
+                    gfm: true,
+                },
+            ),
+        )
+        mdRenderCache.set(props.code, parsedHtml)
+        setMdHtml(parsedHtml)
+        isLoadingRef.current = false
+    })()
 
     return (
         <>
-            <link
-                href={
-                    theme === "dark"
-                        ? ghCssDark
-                        : theme === "light"
-                          ? ghCssLight
-                          : ghCssSystem
-                }
-                rel={"stylesheet"}
-            />
-            <div
-                className={"m-15 sm-m-5"}
-                // biome-ignore lint/security/noDangerouslySetInnerHtml: 🤔我觉得 GitHub API 是值得信任的（？
-                dangerouslySetInnerHTML={{ __html: mdHtml }}
-            ></div>
+            {/* Markdown 里是很有可能出现 LaTeX 格式的公式的，因此这里套一层 MathJax 渲染 */}
+            <MathJaxContext
+                config={{
+                    tex: {
+                        inlineMath: [
+                            ["$", "$"],
+                            ["\\(", "\\)"],
+                        ],
+                        processEnvironments: false,
+                    },
+                }}
+            >
+                <MathJax dynamic>
+                    <link
+                        href={
+                            theme === "dark"
+                                ? ghCssDark
+                                : theme === "light"
+                                  ? ghCssLight
+                                  : ghCssSystem
+                        }
+                        rel={"stylesheet"}
+                    />
+                    <div
+                        className={"m-15 sm-m-5"}
+                        // biome-ignore lint/security/noDangerouslySetInnerHtml: 已经通过 DOMPurify 处理过了
+                        dangerouslySetInnerHTML={{ __html: mdHtml }}
+                    ></div>
+                </MathJax>
+            </MathJaxContext>
         </>
     )
 }
 
 function LaTeXPreviewer(props: { code: string }) {
-    // 防止脚本注入
-    let code = props.code.replaceAll(/<script[\s\S]*<\/script>/g, "")
-    // 防止样式注入
-    code = code.replaceAll(/<style[\s\S]*<\/style>/g, "")
-    // 防止 <link> 注入
-    code = code.replaceAll(/<link[\s\S]*?>/g, "")
+    // 防止代码注入
+    let code = DOMPurify.sanitize(props.code)
 
     // 手动添加换行
     code = code
@@ -157,62 +176,11 @@ function LaTeXPreviewer(props: { code: string }) {
 
 function TypstPreviewer(props: { code: string }) {
     const [renderState, setRenderState] = useState<
-        "idle" | "countdown" | "loading" | "rendering" | "success" | "error"
+        "idle" | "loading" | "rendering" | "success" | "error"
     >("idle")
     const [vectorArtifact, setVectorArtifact] =
         useState<Uint8Array<ArrayBufferLike> | null>(null)
     const [errorMsg, setErrorMsg] = useState<string>("")
-    const [progress, setProgress] = useState(100)
-    const countdownTimerRef = useRef<number | null>(null)
-    const progressIntervalRef = useRef<number | null>(null)
-
-    const startCountdown = () => {
-        setRenderState("countdown")
-        setProgress(100)
-
-        // 进度条动画（1.5秒，每15ms更新一次）
-        progressIntervalRef.current = window.setInterval(() => {
-            setProgress((prev) => {
-                const next = prev - 1
-                return next >= 100 ? 100 : next
-            })
-        }, 15)
-
-        // 1.5秒后开始渲染
-        countdownTimerRef.current = window.setTimeout(() => {
-            if (progressIntervalRef.current) {
-                clearInterval(progressIntervalRef.current)
-                progressIntervalRef.current = null
-            }
-            handleRender()
-        }, 1500)
-    }
-
-    const cancelCountdown = () => {
-        if (countdownTimerRef.current) {
-            clearTimeout(countdownTimerRef.current)
-            countdownTimerRef.current = null
-        }
-        if (progressIntervalRef.current) {
-            clearInterval(progressIntervalRef.current)
-            progressIntervalRef.current = null
-        }
-        setProgress(0)
-        setRenderState("idle")
-    }
-
-    // 清理定时器
-    useEffect(() => {
-        startCountdown()
-        return () => {
-            if (countdownTimerRef.current) {
-                clearTimeout(countdownTimerRef.current)
-            }
-            if (progressIntervalRef.current) {
-                clearInterval(progressIntervalRef.current)
-            }
-        }
-    }, [])
 
     const handleRender = async () => {
         setRenderState("loading")
@@ -226,6 +194,9 @@ function TypstPreviewer(props: { code: string }) {
                 // 只在第一次初始化时设置配置
                 if (!typstInitialized) {
                     $typst.setCompilerInitOptions({
+                        beforeBuild: [
+                            loadFonts([], { assets: ["cjk", "text"] }),
+                        ],
                         getModule: () =>
                             "https://cdn.jsdelivr.net/npm/@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm",
                     })
@@ -237,9 +208,13 @@ function TypstPreviewer(props: { code: string }) {
 
             setRenderState("rendering")
 
+            // 手动设置 Typst 文档的字体以防止汉字渲染出错
+            const font_inject = `#set text(font: ("Noto Serif SC"))`
+            const injected = `${font_inject}\n${props.code}`
+
             // 编译 Typst 代码
             const vec = await globalTypst.vector({
-                mainContent: props.code,
+                mainContent: injected,
             })
 
             if (!vec) {
@@ -258,23 +233,9 @@ function TypstPreviewer(props: { code: string }) {
         return (
             <div className="flex flex-col items-center justify-center py-12 space-y-4">
                 <p className="text-muted-foreground">
-                    点击下方按钮以渲染 Typst 文档预览
+                    要渲染该文档的预览吗？（需要加载 ~30MB 的资源）
                 </p>
-                <Button onClick={startCountdown}>渲染预览</Button>
-            </div>
-        )
-    }
-
-    if (renderState === "countdown") {
-        return (
-            <div className="flex flex-col items-center justify-center py-12 space-y-4 max-w-md w-full mx-auto">
-                <p className="text-muted-foreground">
-                    准备渲染中... ({((progress / 100) * 1.5).toFixed(1)}s)
-                </p>
-                <Progress value={progress} max={100} className="w-full" />
-                <Button variant="outline" onClick={cancelCountdown}>
-                    取消
-                </Button>
+                <Button onClick={handleRender}>渲染</Button>
             </div>
         )
     }
@@ -284,7 +245,7 @@ function TypstPreviewer(props: { code: string }) {
             <div className="flex flex-col items-center justify-center py-12 space-y-2">
                 <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
                 <p className="text-muted-foreground">
-                    正在加载 Typst 渲染引擎...
+                    正在加载 Typst 渲染引擎（~30MB），请稍候...
                 </p>
             </div>
         )
@@ -294,7 +255,7 @@ function TypstPreviewer(props: { code: string }) {
         return (
             <div className="flex flex-col items-center justify-center py-12 space-y-2">
                 <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                <p className="text-muted-foreground">正在渲染文档...</p>
+                <p className="text-muted-foreground">正在渲染文档，请稍候...</p>
             </div>
         )
     }
@@ -306,7 +267,7 @@ function TypstPreviewer(props: { code: string }) {
                     <p className="font-semibold mb-2">渲染失败</p>
                     <p className="text-sm">{errorMsg}</p>
                 </div>
-                <Button onClick={startCountdown}>重试</Button>
+                <Button onClick={handleRender}>重试</Button>
             </div>
         )
     }
@@ -316,7 +277,7 @@ function TypstPreviewer(props: { code: string }) {
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">Typst 文档预览</p>
-                <Button variant="secondary" size="sm" onClick={startCountdown}>
+                <Button variant="secondary" size="sm" onClick={handleRender}>
                     重新渲染
                 </Button>
             </div>
