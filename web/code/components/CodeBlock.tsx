@@ -4,6 +4,8 @@ import githubDark from "highlight.js/styles/github-dark.min.css?url"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { useTheme } from "@/components/ThemeProvider.tsx"
+import { Button } from "@/components/ui/button.tsx"
+import { cn } from "@/lib/utils.ts"
 import { HLJS_LANGS } from "../hljs.ts"
 
 interface CodeBlockProps {
@@ -21,6 +23,9 @@ export default function CodeBlock({
     const codeRef = useRef<HTMLElement>(null)
     const [lineHeights, setLineHeights] = useState<number[]>([])
     const [highlightLine, setHighlightLine] = useState<number | null>(null)
+    const [copyIconContent, setCopyIconContent] = useState("content_copy")
+    const [copyButtonVisibility, setCopyButtonVisibility] = useState(false)
+
     let { theme } = useTheme()
     if (theme === "system") {
         const root = document.documentElement
@@ -142,6 +147,26 @@ export default function CodeBlock({
         }, 3000)
         return () => clearTimeout(timeout)
     }, [highlightLine])
+
+    // 处理 Ctrl+A/Cmd+A，只选择代码内容
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === "a") {
+            e.preventDefault()
+            selectCodeContent()
+        }
+    }
+
+    // 选择代码内容
+    const selectCodeContent = () => {
+        if (!codeRef.current) return
+        const selection = window.getSelection()
+        if (!selection) return
+        const range = document.createRange()
+        range.selectNodeContents(codeRef.current)
+        selection.removeAllRanges()
+        selection.addRange(range)
+    }
+
     return (
         <>
             <link
@@ -158,6 +183,10 @@ export default function CodeBlock({
                     whiteSpace: wrap ? "pre-wrap" : "pre",
                     padding: 0,
                 }}
+                tabIndex={0}
+                onKeyDown={handleKeyDown}
+                onMouseEnter={() => setCopyButtonVisibility(true)}
+                onMouseLeave={() => setCopyButtonVisibility(false)}
             >
                 <div
                     className={"pl-6 p-4 opacity-50"}
@@ -210,6 +239,32 @@ export default function CodeBlock({
                         mixBlendMode: theme === "dark" ? "normal" : "multiply",
                     }}
                 />
+                <Button
+                    className={cn(
+                        "absolute right-3 top-3",
+                        copyButtonVisibility ? "opacity-100" : "opacity-0",
+                    )}
+                    variant={"outline"}
+                    size={"icon"}
+                    onClick={() => {
+                        // 复制内容到剪贴板
+                        void navigator.clipboard.writeText(code)
+                        setCopyIconContent("check")
+                        setTimeout(
+                            () => setCopyIconContent("content_copy"),
+                            2000,
+                        )
+                    }}
+                >
+                    <span
+                        className={cn(
+                            "material-symbols-outlined text-sm transition",
+                            copyIconContent === "check" ? "text-green-500" : "",
+                        )}
+                    >
+                        {copyIconContent}
+                    </span>
+                </Button>
             </pre>
         </>
     )

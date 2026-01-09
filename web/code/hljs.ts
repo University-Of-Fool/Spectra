@@ -18,4 +18,9 @@ export const HLJS_LANGS: Record<
     go: () => import("highlight.js/lib/languages/go"),
     rust: () => import("highlight.js/lib/languages/rust"),
     swift: () => import("highlight.js/lib/languages/swift"),
+    c: () => import("highlight.js/lib/languages/c"),
+    cpp: () => import("highlight.js/lib/languages/cpp"),
+    ino: () => import("highlight.js/lib/languages/arduino"),
+    latex: () => import("highlight.js/lib/languages/latex"),
+    typst: () => import("./custom/typst_language"),
 }

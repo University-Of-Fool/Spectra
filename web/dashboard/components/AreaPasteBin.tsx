@@ -138,6 +138,12 @@ export function AreaPasteBin() {
                                             <SelectItem value="html">
                                                 HTML
                                             </SelectItem>
+                                            <SelectItem value="latex">
+                                                LaTeX
+                                            </SelectItem>
+                                            <SelectItem value="typst">
+                                                Typst
+                                            </SelectItem>
                                             <SelectItem value="css">
                                                 CSS
                                             </SelectItem>
@@ -179,6 +185,13 @@ export function AreaPasteBin() {
                                             </SelectItem>
                                             <SelectItem value="swift">
                                                 Swift
+                                            </SelectItem>
+                                            <SelectItem value="c">C</SelectItem>
+                                            <SelectItem value="cpp">
+                                                C++
+                                            </SelectItem>
+                                            <SelectItem value="ino">
+                                                Arduino C
                                             </SelectItem>
                                         </SelectGroup>
                                     </SelectContent>

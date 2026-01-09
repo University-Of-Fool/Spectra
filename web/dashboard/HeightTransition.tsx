@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks"
+import { type JSX, useEffect, useLayoutEffect, useRef, useState } from "react"
 
 interface TransitionTabsProps {
     activeKey: string
@@ -104,13 +104,17 @@ export function TransitionTabs({ activeKey, tabs }: TransitionTabsProps) {
 }
 
 interface TransitionHeightProps {
-    children: React.ReactNode
+    children: preact.ComponentChildren
     duration?: number
+    className?: string
+    style?: JSX.CSSProperties
 }
 
 export function TransitionHeight({
     children,
     duration = 300,
+    className,
+    style,
 }: TransitionHeightProps) {
     const ref = useRef<HTMLDivElement>(null)
     const [height, setHeight] = useState<number>(0)
@@ -133,10 +137,12 @@ export function TransitionHeight({
 
     return (
         <div
+            className={className}
             style={{
                 height: `${height}px`,
                 overflow: "hidden",
                 transition: `height ${duration}ms ease`,
+                ...style,
             }}
         >
             <div ref={ref}>{children}</div>
