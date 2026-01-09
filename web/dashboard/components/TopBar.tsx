@@ -257,6 +257,12 @@ export function TopBar() {
                                         <Input
                                             className={"mt-2"}
                                             type={"password"}
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter") {
+                                                    e.preventDefault()
+                                                    login()
+                                                }
+                                            }}
                                             onInput={(e) => {
                                                 references.password.current =
                                                     (
