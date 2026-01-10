@@ -27,85 +27,107 @@ const extraData = JSON.parse(backendData.extra_data) as {
 }
 
 function Main() {
+
     const [preview, setPreview] = useState(false)
+
+    function switchPreview() {
+        setPreview(!preview)
+        if (preview) {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            })
+        }
+    }
+
     return (
         <ThemeProvider>
             <TopBar
                 name={backendData.creator_name}
                 avatar={backendData.creator_avatar}
-                page={"Code"}
+                page={"Clipboard"}
             />
             <div className={"flex justify-center"}>
                 <div className={"mx-10 mb-10 w-280"}>
-                    {(LANGS_PREVIEW_ABLE.has(extraData.language) ||
-                        extraData.title) && (
+                    <div
+                        className={
+                            "flex items-baseline mb-2 mx-1 font-mono"
+                        }
+                    >
                         <div
-                            className={
-                                "flex items-baseline mb-2 mx-1 font-mono"
-                            }
+                            className={cn(
+                                "text-lg",
+                                // 保持这一行的高度一致，同时不显示标题具体内容
+                                !extraData.title && "opacity-0",
+                            )}
                         >
-                            <div
-                                className={cn(
-                                    "text-lg",
-                                    // 保持这一行的高度一致，同时不显示标题具体内容
-                                    !extraData.title && "opacity-0",
-                                )}
+                            {extraData.title || "Untitled"}
+                        </div>
+                        <div className={"ml-auto"}>
+                            <span
+                                className={"text-sm text-muted-foreground"}
                             >
-                                {extraData.title || "Untitled"}
-                            </div>
-                            <div className={"ml-auto"}>
-                                <span
-                                    className={"text-sm text-muted-foreground"}
-                                >
-                                    {extraData.language}
-                                </span>
-                                <span className="ml-2 mr-2 text-muted-foreground">
-                                    ·
-                                </span>
-                                <span
-                                    className={cn(
-                                        "text-sm text-muted-foreground cursor-pointer hover:underline transition",
-                                        preview && "text-foreground",
-                                    )}
+                                {extraData.language}
+                            </span>
+                        </div>
+                    </div>
+
+
+                    <TransitionHeight>
+                        {preview ? (
+                            <>
+                                <PreviewBlock
+                                    code={backendData.content}
+                                    language={
+                                        extraData.language as
+                                        | "html"
+                                        | "latex"
+                                        | "markdown"
+                                        | "typst"
+                                    }
+                                />
+                                <div className={"h-4"}></div>
+                            </>
+                        ) : (null)}
+                    </TransitionHeight>
+                    <div className="flex flex-col gap-4">
+                        {LANGS_PREVIEW_ABLE.has(extraData.language) && (
+                            <>
+                                <div
+                                    className={"border border-border rounded-xl p-4 bg-card cursor-pointer"}
                                     onClick={() => {
-                                        setPreview(!preview)
+                                        switchPreview()
                                     }}
                                 >
-                                    preview
-                                </span>
-                            </div>
-                        </div>
-                    )}
-
-                    <div>
-                        <TransitionHeight>
-                            {preview ? (
-                                <>
-                                    <PreviewBlock
-                                        code={backendData.content}
-                                        language={
-                                            extraData.language as
-                                                | "html"
-                                                | "latex"
-                                                | "markdown"
-                                                | "typst"
-                                        }
-                                        className={"mb-0"}
-                                    />
-                                    <div className={"h-6"} />
-                                </>
-                            ) : null}
-                        </TransitionHeight>
+                                    <div
+                                        className={"flex align-center justify-center gap-2 my-2"}
+                                    >
+                                        <span
+                                            className={
+                                                "material-symbols-outlined"
+                                            }
+                                        >
+                                            {preview ? "arrow_upward" : "arrow_downward"}
+                                        </span>
+                                        <div>
+                                            {preview ? "收起" : "展开"} {extraData.language} 预览
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                         <CodeBlock
                             code={backendData.content}
                             language={extraData.language}
                             wrap={LANGS_SHOULD_WRAP.has(extraData.language)}
                         />
                     </div>
+
+
                 </div>
             </div>
             <Toaster richColors></Toaster>
-        </ThemeProvider>
+        </ThemeProvider >
     )
 }
 

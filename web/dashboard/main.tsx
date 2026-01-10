@@ -30,10 +30,10 @@ export const AccountCtx = createContext({
         avatar_url: string
         turnstile_enabled: boolean
         turnstile_site_key: string
-    }) => {},
-    sharedListUpdTrigger: (_: number) => {},
+    }) => { },
+    sharedListUpdTrigger: (_: number) => { },
     sharedListUpd: 0,
-    handleTabClick: (_: string) => {},
+    handleTabClick: (_: string) => { },
 })
 
 export function Dashboard() {
@@ -52,7 +52,7 @@ export function Dashboard() {
         setActiveTab(tab)
     }
 
-    // 拖拽文件到页面上时，自动切换到文件快传tab
+    // 拖拽文件到页面上时，自动切换到文件传输tab
     useEffect(() => {
         const handleDragOver = (e: DragEvent) => {
             e.preventDefault()

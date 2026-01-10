@@ -1,4 +1,4 @@
-import { useContext, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -42,6 +42,7 @@ export function AreaShortUrl() {
     const [urlValid, setUrlValid] = useState(true)
     const [failedMessage, setFailedMessage] = useState("")
     const [turnstileToken, setTurnstileToken] = useState("")
+    const [shiftDown, setShiftDown] = useState(false)
 
     const context = useContext(AccountCtx)
 
@@ -66,8 +67,8 @@ export function AreaShortUrl() {
                 expires === "permanent"
                     ? undefined
                     : new Date(
-                          Date.now() + parseInt(expires, 10) * 1000,
-                      ).toISOString(),
+                        Date.now() + parseInt(expires, 10) * 1000,
+                    ).toISOString(),
             max_visits: maxvisit || undefined,
             password: password || undefined,
         }
@@ -99,6 +100,25 @@ export function AreaShortUrl() {
         }
         setFailedMessage(`未知错误：${resp.status} ${data.payload}`)
     }
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Shift") {
+                setShiftDown(true)
+            }
+        }
+        const handleKeyUp = (e: KeyboardEvent) => {
+            if (e.key === "Shift") {
+                setShiftDown(false)
+            }
+        }
+        addEventListener("keydown", handleKeyDown)
+        addEventListener("keyup", handleKeyUp)
+        return () => {
+            removeEventListener("keydown", handleKeyDown)
+            removeEventListener("keyup", handleKeyUp)
+        }
+    }, [target])
 
     return (
         <div className={"flex flex-col items-center"}>
@@ -135,6 +155,7 @@ export function AreaShortUrl() {
                             <div className="mb-2 text-sm">目标链接</div>
                             <Input
                                 value={target}
+                                placeholder={"https://"}
                                 onChange={(e) => {
                                     setTarget(e.currentTarget.value)
                                     setUrlValid(
@@ -148,7 +169,7 @@ export function AreaShortUrl() {
                                     urlValid && "hidden",
                                 )}
                             >
-                                这似乎不是链接，请检查你的输入。
+                                这似乎不是有效的链接，请检查你的输入。
                             </div>
                         </div>
 
@@ -224,13 +245,13 @@ export function AreaShortUrl() {
                             >
                                 取消
                             </Button>
-                            <HoverCard openDelay={1200}>
+                            <HoverCard openDelay={200}>
                                 <HoverCardTrigger asChild>
                                     <Button
                                         className={cn(
                                             "flex-5",
-                                            (uploadDisabled() || !urlValid) &&
-                                                " opacity-50 cursor-default hover:bg-primary/100",
+                                            ((uploadDisabled() || !urlValid) && !shiftDown) &&
+                                            " opacity-50 cursor-default hover:bg-primary/100",
                                         )}
                                         onClick={handleUpload}
                                     >
@@ -238,9 +259,9 @@ export function AreaShortUrl() {
                                     </Button>
                                 </HoverCardTrigger>
                                 {urlValid || (
-                                    <HoverCardContent>
+                                    <HoverCardContent className={"w-auto"}>
                                         <div className="text-sm">
-                                            按住 Shift 以强制创建
+                                            按住 Shift 点击以强制创建
                                         </div>
                                     </HoverCardContent>
                                 )}

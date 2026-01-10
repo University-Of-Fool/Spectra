@@ -58,11 +58,11 @@ export function AreaShared() {
                             item_type: (() => {
                                 switch (item.item_type) {
                                     case "Link":
-                                        return "链接"
+                                        return "短链接"
                                     case "File":
-                                        return "文件快传"
+                                        return "文件传输"
                                     case "Code":
-                                        return "Pastebin"
+                                        return "剪贴板"
                                     default:
                                         return item.item_type
                                 }

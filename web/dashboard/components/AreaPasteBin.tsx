@@ -39,8 +39,8 @@ export function AreaPasteBin() {
                 expires === "permanent"
                     ? undefined
                     : new Date(
-                          Date.now() + parseInt(expires, 10) * 1000,
-                      ).toISOString(),
+                        Date.now() + parseInt(expires, 10) * 1000,
+                    ).toISOString(),
             max_visits: maxvisit || undefined,
             password: password || undefined,
             extra_data: JSON.stringify({
@@ -79,7 +79,7 @@ export function AreaPasteBin() {
     return (
         <div className="flex flex-col items-center">
             <div className="font-thin dark:font-light text-2xl mt-6 mb-12">
-                Pastebin
+                剪贴板
             </div>
 
             {finalUrl === "" && (

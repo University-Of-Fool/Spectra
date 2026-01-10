@@ -137,7 +137,6 @@ export function TransitionHeight({
 
     return (
         <div
-            className={className}
             style={{
                 height: `${height}px`,
                 overflow: "hidden",
@@ -145,7 +144,8 @@ export function TransitionHeight({
                 ...style,
             }}
         >
-            <div ref={ref}>{children}</div>
+            <div ref={ref} className={className}>{children}</div>
         </div>
     )
 }
+

@@ -11,7 +11,7 @@ export function TopBar(props: {
     return (
         <div
             className={cn(
-                "flex items-center p-10 px-15 bg-gradient-to-b from-background to-transparent from-25% top-0 left-0 w-full z-50",
+                "flex items-center p-10 px-15 bg-gradient-to-b from-background to-transparent from-70% to-100% sticky top-0 left-0 w-full z-50",
                 props.className,
             )}
         >
@@ -21,11 +21,13 @@ export function TopBar(props: {
                 Spectra.{props.page}
             </div>
             <div className={"flex flex-col items-end ml-auto mr-4 gap-1"}>
-                <div className={"opacity-90"}>由 @{props.name} 分享的内容</div>
-                <ThemeSwitcher className={"opacity-50"}></ThemeSwitcher>
+                <div className={"opacity-90"}>
+                    <div>由 @{props.name} 分享的内容</div>
+                </div>
+                <ThemeSwitcher className={"opacity-50 text-xs"}></ThemeSwitcher>
             </div>
             <div
-                className={"w-12 h-12 rounded-full bg-black/10 dark:bg-white/5"}
+                className={"w-12 h-12 rounded-full bg-foreground/5"}
             >
                 <img
                     alt={"avatar"}

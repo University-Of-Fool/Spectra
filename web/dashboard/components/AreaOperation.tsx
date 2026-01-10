@@ -47,7 +47,7 @@ export function AreaOperation() {
                             "mt-auto mb-2 text-lg font-semibold opacity-75"
                         }
                     >
-                        文件快传
+                        文件传输
                     </div>
                     <div className={"text-sm opacity-50"}>分享本地文件。</div>
                 </Card>
@@ -69,7 +69,7 @@ export function AreaOperation() {
                             "mt-auto mb-2 text-lg font-semibold opacity-75"
                         }
                     >
-                        Pastebin
+                        剪贴板
                     </div>
                     <div className={"text-sm opacity-50"}>
                         分享代码/文本/日志文件。

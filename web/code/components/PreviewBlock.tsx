@@ -53,37 +53,37 @@ function MarkdownPreviewer(props: { code: string }) {
         isLoadingRef.current = true
     }, [props.code])
 
-    ;(async () => {
-        // 由于我们不确定用户给的 Markdown 里有什么语言，这里就不按需加载语言了
-        const hljs = (await import("highlight.js")).default
-        const { Marked } = await import("marked")
-        const { markedHighlight } = await import("marked-highlight")
-        const marked = new Marked(
-            markedHighlight({
-                emptyLangClass: "hljs",
-                langPrefix: "hljs language-",
-                highlight(code, lang) {
-                    const language = hljs.getLanguage(lang) ? lang : "plaintext"
-                    return hljs.highlight(code, { language }).value
-                },
-            }),
-        )
-        const parsedHtml = DOMPurify.sanitize(
-            await marked.parse(
-                // See: https://github.com/markedjs/marked/issues/2139
-                props.code.replace(
-                    /^[\u200B\u200E\u200F\uFEFF\u200C\u200D]/u,
-                    "",
+        ; (async () => {
+            // 由于我们不确定用户给的 Markdown 里有什么语言，这里就不按需加载语言了
+            const hljs = (await import("highlight.js")).default
+            const { Marked } = await import("marked")
+            const { markedHighlight } = await import("marked-highlight")
+            const marked = new Marked(
+                markedHighlight({
+                    emptyLangClass: "hljs",
+                    langPrefix: "hljs language-",
+                    highlight(code, lang) {
+                        const language = hljs.getLanguage(lang) ? lang : "plaintext"
+                        return hljs.highlight(code, { language }).value
+                    },
+                }),
+            )
+            const parsedHtml = DOMPurify.sanitize(
+                await marked.parse(
+                    // See: https://github.com/markedjs/marked/issues/2139
+                    props.code.replace(
+                        /^[\u200B\u200E\u200F\uFEFF\u200C\u200D]/u,
+                        "",
+                    ),
+                    {
+                        gfm: true,
+                    },
                 ),
-                {
-                    gfm: true,
-                },
-            ),
-        )
-        mdRenderCache.set(props.code, parsedHtml)
-        setMdHtml(parsedHtml)
-        isLoadingRef.current = false
-    })()
+            )
+            mdRenderCache.set(props.code, parsedHtml)
+            setMdHtml(parsedHtml)
+            isLoadingRef.current = false
+        })()
 
     return (
         <>
@@ -105,8 +105,8 @@ function MarkdownPreviewer(props: { code: string }) {
                             theme === "dark"
                                 ? ghCssDark
                                 : theme === "light"
-                                  ? ghCssLight
-                                  : ghCssSystem
+                                    ? ghCssLight
+                                    : ghCssSystem
                         }
                         rel={"stylesheet"}
                     />
@@ -224,18 +224,33 @@ function TypstPreviewer(props: { code: string }) {
             setRenderState("success")
         } catch (error) {
             console.error("Typst rendering error:", error)
-            setErrorMsg(error instanceof Error ? error.message : "未知渲染错误")
+            setErrorMsg(String(error) || "未知渲染错误")
             setRenderState("error")
         }
     }
+
+    const handleNoWarning = () => {
+        localStorage.setItem("codeTypstPreviewNoWarning", "true")
+        handleRender()
+    }
+
+    useEffect(() => {
+        const noWarning = localStorage.getItem("codeTypstPreviewNoWarning")
+        if (noWarning === "true") {
+            handleRender()
+        }
+    }, [])
 
     if (renderState === "idle") {
         return (
             <div className="flex flex-col items-center justify-center py-12 space-y-4">
                 <p className="text-muted-foreground">
-                    要渲染该文档的预览吗？（需要加载 ~30MB 的资源）
+                    要渲染该文档的预览吗？（初次使用需要加载 ~30MB 的资源）
                 </p>
-                <Button onClick={handleRender}>渲染</Button>
+                <div className={"flex gap-2"}>
+                    <Button onClick={handleNoWarning} variant={"outline"}>不再提醒</Button>
+                    <Button onClick={handleRender}>渲染</Button>
+                </div>
             </div>
         )
     }
@@ -245,7 +260,7 @@ function TypstPreviewer(props: { code: string }) {
             <div className="flex flex-col items-center justify-center py-12 space-y-2">
                 <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
                 <p className="text-muted-foreground">
-                    正在加载 Typst 渲染引擎（~30MB），请稍候...
+                    正在加载 Typst 渲染引擎，请稍候...
                 </p>
             </div>
         )
@@ -263,7 +278,7 @@ function TypstPreviewer(props: { code: string }) {
     if (renderState === "error") {
         return (
             <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                <div className="p-4 rounded-lg bg-destructive/10 text-destructive max-w-md">
+                <div className="p-4 rounded-lg bg-destructive/10 text-destructive max-w-md text-center">
                     <p className="font-semibold mb-2">渲染失败</p>
                     <p className="text-sm">{errorMsg}</p>
                 </div>
@@ -274,14 +289,7 @@ function TypstPreviewer(props: { code: string }) {
 
     // renderState === "success"
     return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">Typst 文档预览</p>
-                <Button variant="secondary" size="sm" onClick={handleRender}>
-                    重新渲染
-                </Button>
-            </div>
-
+        <div>
             {/** biome-ignore lint/style/noNonNullAssertion: if it is null then this will not even enter the DOM tree */}
             <TypstDocument artifact={vectorArtifact!}></TypstDocument>
         </div>
@@ -308,7 +316,7 @@ export function PreviewBlock(props: {
     return (
         <div
             className={cn(
-                "border border-border rounded-xl p-4 bg-card mb-6",
+                "border border-border rounded-xl p-4 bg-card",
                 props.language === "markdown" && "markdown-body",
                 props.className,
             )}

@@ -109,9 +109,9 @@ export function AreaFileShare() {
                 references.expires.current === "permanent"
                     ? undefined
                     : new Date(
-                          Date.now() +
-                              parseInt(references.expires.current, 10) * 1000,
-                      ).toISOString(),
+                        Date.now() +
+                        parseInt(references.expires.current, 10) * 1000,
+                    ).toISOString(),
             max_visits: parseInt(references.maxvisit.current, 10) || undefined,
             password: references.password.current || undefined,
             extra_data: references.no_filename.current
@@ -202,7 +202,7 @@ export function AreaFileShare() {
     return (
         <div className="flex flex-col items-center">
             <div className="font-thin dark:font-light text-2xl mt-6 mb-12">
-                文件快传
+                文件传输
             </div>
 
             {progress === 0 && (
@@ -258,7 +258,7 @@ export function AreaFileShare() {
                                 className={cn(
                                     "w-full h-40 border-2 border-border flex items-center justify-center transition-colors rounded-md",
                                     isDragging &&
-                                        "border-foreground bg-foreground/30",
+                                    "border-foreground bg-foreground/30",
                                 )}
                                 onClick={handleClickSelect}
                                 onDragEnter={handleDragEnter}

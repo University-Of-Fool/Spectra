@@ -36,21 +36,21 @@ export default function CodeBlock({
     useEffect(() => {
         let active = true
 
-        ;(async () => {
-            // 动态加载语言模块
-            const loader = HLJS_LANGS[language]
-            if (!loader) {
-                console.warn(`Unsupported language: ${language}`)
-                return
-            }
+            ; (async () => {
+                // 动态加载语言模块
+                const loader = HLJS_LANGS[language]
+                if (!loader) {
+                    console.warn(`Unsupported language: ${language}`)
+                    return
+                }
 
-            const langModule = await loader()
-            hljs.registerLanguage(language, langModule.default)
+                const langModule = await loader()
+                hljs.registerLanguage(language, langModule.default)
 
-            if (active && codeRef.current) {
-                hljs.highlightElement(codeRef.current)
-            }
-        })()
+                if (active && codeRef.current) {
+                    hljs.highlightElement(codeRef.current)
+                }
+            })()
 
         return () => {
             active = false
@@ -168,7 +168,7 @@ export default function CodeBlock({
     }
 
     return (
-        <>
+        <div>
             <link
                 rel={"stylesheet"}
                 href={theme === "dark" ? githubDark : githubLight}
@@ -176,7 +176,7 @@ export default function CodeBlock({
             <pre
                 ref={preRef}
                 // 这里的 language 不是 Tailwind 类名，故不应用 cn()
-                className={`hljs ${language} rounded-xl relative`}
+                className={`hljs ${language} rounded-xl relative border border-border`}
                 style={{
                     display: "flex",
                     overflowX: wrap ? "hidden" : "auto",
@@ -242,7 +242,7 @@ export default function CodeBlock({
                 <Button
                     className={cn(
                         "absolute right-3 top-3",
-                        copyButtonVisibility ? "opacity-100" : "opacity-0",
+                        copyButtonVisibility ? "opacity-100" : "opacity-50",
                     )}
                     variant={"outline"}
                     size={"icon"}
@@ -258,7 +258,7 @@ export default function CodeBlock({
                 >
                     <span
                         className={cn(
-                            "material-symbols-outlined text-sm transition",
+                            "material-symbols-outlined text-sm",
                             copyIconContent === "check" ? "text-green-500" : "",
                         )}
                     >
@@ -266,6 +266,6 @@ export default function CodeBlock({
                     </span>
                 </Button>
             </pre>
-        </>
+        </div>
     )
 }

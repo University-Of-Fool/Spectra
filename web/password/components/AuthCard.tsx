@@ -10,16 +10,16 @@ export function AuthCard(props: { error: boolean }) {
         <div className={"h-full flex items-center justify-center"}>
             <div
                 className={
-                    "not-dark:bg-white dark:bg- shadow-lg border-1 border-border rounded-lg p-8 flex flex-col items-start gap-4"
+                    "bg-white dark:bg-neutral-900 shadow-lg border-1 border-border rounded-lg p-8 flex flex-col items-start gap-4"
                 }
             >
                 <div className={"text-sm opacity-75 mb-1"}>
-                    该内容需要验证密码。
+                    该内容需要验证密码
                 </div>
                 <div className={"flex gap-2"}>
                     <Input
                         type={"password"}
-                        className={"w-60 mr-1"}
+                        className={"w-60 mr-1 dark:bg-neutral-800"}
                         onInput={(e) => {
                             password.current = (
                                 e.target as HTMLInputElement
