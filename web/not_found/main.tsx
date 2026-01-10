@@ -11,7 +11,9 @@ function NotFound() {
         <ThemeProvider>
             <div className={"h-screen"}>
                 <div
-                    className={"fixed flex items-center p-10 px-15 bg-gradient-to-b from-background to-transparent from-25% top-0 left-0 w-full z-50"}
+                    className={
+                        "fixed flex items-center p-10 px-15 bg-gradient-to-b from-background to-transparent from-25% top-0 left-0 w-full z-50"
+                    }
                 >
                     <SpectraLogo className={"h-12 mr-4"} />
 

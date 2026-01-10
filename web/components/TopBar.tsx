@@ -26,9 +26,7 @@ export function TopBar(props: {
                 </div>
                 <ThemeSwitcher className={"opacity-50 text-xs"}></ThemeSwitcher>
             </div>
-            <div
-                className={"w-12 h-12 rounded-full bg-foreground/5"}
-            >
+            <div className={"w-12 h-12 rounded-full bg-foreground/5"}>
                 <img
                     alt={"avatar"}
                     className={cn({

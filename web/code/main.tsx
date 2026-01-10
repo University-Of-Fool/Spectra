@@ -27,7 +27,6 @@ const extraData = JSON.parse(backendData.extra_data) as {
 }
 
 function Main() {
-
     const [preview, setPreview] = useState(false)
 
     function switchPreview() {
@@ -35,7 +34,7 @@ function Main() {
         if (preview) {
             window.scrollTo({
                 top: 0,
-                behavior: 'smooth'
+                behavior: "smooth",
             })
         }
     }
@@ -49,11 +48,7 @@ function Main() {
             />
             <div className={"flex justify-center"}>
                 <div className={"mx-10 mb-10 w-280"}>
-                    <div
-                        className={
-                            "flex items-baseline mb-2 mx-1 font-mono"
-                        }
-                    >
+                    <div className={"flex items-baseline mb-2 mx-1 font-mono"}>
                         <div
                             className={cn(
                                 "text-lg",
@@ -64,14 +59,11 @@ function Main() {
                             {extraData.title || "Untitled"}
                         </div>
                         <div className={"ml-auto"}>
-                            <span
-                                className={"text-sm text-muted-foreground"}
-                            >
+                            <span className={"text-sm text-muted-foreground"}>
                                 {extraData.language}
                             </span>
                         </div>
                     </div>
-
 
                     <TransitionHeight>
                         {preview ? (
@@ -80,37 +72,44 @@ function Main() {
                                     code={backendData.content}
                                     language={
                                         extraData.language as
-                                        | "html"
-                                        | "latex"
-                                        | "markdown"
-                                        | "typst"
+                                            | "html"
+                                            | "latex"
+                                            | "markdown"
+                                            | "typst"
                                     }
                                 />
                                 <div className={"h-4"}></div>
                             </>
-                        ) : (null)}
+                        ) : null}
                     </TransitionHeight>
                     <div className="flex flex-col gap-4">
                         {LANGS_PREVIEW_ABLE.has(extraData.language) && (
                             <>
                                 <div
-                                    className={"border border-border rounded-xl p-4 bg-card cursor-pointer"}
+                                    className={
+                                        "border border-border rounded-xl p-4 bg-card cursor-pointer"
+                                    }
                                     onClick={() => {
                                         switchPreview()
                                     }}
                                 >
                                     <div
-                                        className={"flex align-center justify-center gap-2 my-2"}
+                                        className={
+                                            "flex align-center justify-center gap-2 my-2"
+                                        }
                                     >
                                         <span
                                             className={
                                                 "material-symbols-outlined"
                                             }
                                         >
-                                            {preview ? "arrow_upward" : "arrow_downward"}
+                                            {preview
+                                                ? "arrow_upward"
+                                                : "arrow_downward"}
                                         </span>
                                         <div>
-                                            {preview ? "收起" : "展开"} {extraData.language} 预览
+                                            {preview ? "收起" : "展开"}{" "}
+                                            {extraData.language} 预览
                                         </div>
                                     </div>
                                 </div>
@@ -122,12 +121,10 @@ function Main() {
                             wrap={LANGS_SHOULD_WRAP.has(extraData.language)}
                         />
                     </div>
-
-
                 </div>
             </div>
             <Toaster richColors></Toaster>
-        </ThemeProvider >
+        </ThemeProvider>
     )
 }
 

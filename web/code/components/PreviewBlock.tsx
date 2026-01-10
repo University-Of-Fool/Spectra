@@ -53,37 +53,37 @@ function MarkdownPreviewer(props: { code: string }) {
         isLoadingRef.current = true
     }, [props.code])
 
-        ; (async () => {
-            // 由于我们不确定用户给的 Markdown 里有什么语言，这里就不按需加载语言了
-            const hljs = (await import("highlight.js")).default
-            const { Marked } = await import("marked")
-            const { markedHighlight } = await import("marked-highlight")
-            const marked = new Marked(
-                markedHighlight({
-                    emptyLangClass: "hljs",
-                    langPrefix: "hljs language-",
-                    highlight(code, lang) {
-                        const language = hljs.getLanguage(lang) ? lang : "plaintext"
-                        return hljs.highlight(code, { language }).value
-                    },
-                }),
-            )
-            const parsedHtml = DOMPurify.sanitize(
-                await marked.parse(
-                    // See: https://github.com/markedjs/marked/issues/2139
-                    props.code.replace(
-                        /^[\u200B\u200E\u200F\uFEFF\u200C\u200D]/u,
-                        "",
-                    ),
-                    {
-                        gfm: true,
-                    },
+    ;(async () => {
+        // 由于我们不确定用户给的 Markdown 里有什么语言，这里就不按需加载语言了
+        const hljs = (await import("highlight.js")).default
+        const { Marked } = await import("marked")
+        const { markedHighlight } = await import("marked-highlight")
+        const marked = new Marked(
+            markedHighlight({
+                emptyLangClass: "hljs",
+                langPrefix: "hljs language-",
+                highlight(code, lang) {
+                    const language = hljs.getLanguage(lang) ? lang : "plaintext"
+                    return hljs.highlight(code, { language }).value
+                },
+            }),
+        )
+        const parsedHtml = DOMPurify.sanitize(
+            await marked.parse(
+                // See: https://github.com/markedjs/marked/issues/2139
+                props.code.replace(
+                    /^[\u200B\u200E\u200F\uFEFF\u200C\u200D]/u,
+                    "",
                 ),
-            )
-            mdRenderCache.set(props.code, parsedHtml)
-            setMdHtml(parsedHtml)
-            isLoadingRef.current = false
-        })()
+                {
+                    gfm: true,
+                },
+            ),
+        )
+        mdRenderCache.set(props.code, parsedHtml)
+        setMdHtml(parsedHtml)
+        isLoadingRef.current = false
+    })()
 
     return (
         <>
@@ -105,8 +105,8 @@ function MarkdownPreviewer(props: { code: string }) {
                             theme === "dark"
                                 ? ghCssDark
                                 : theme === "light"
-                                    ? ghCssLight
-                                    : ghCssSystem
+                                  ? ghCssLight
+                                  : ghCssSystem
                         }
                         rel={"stylesheet"}
                     />
@@ -248,7 +248,9 @@ function TypstPreviewer(props: { code: string }) {
                     要渲染该文档的预览吗？（初次使用需要加载 ~30MB 的资源）
                 </p>
                 <div className={"flex gap-2"}>
-                    <Button onClick={handleNoWarning} variant={"outline"}>不再提醒</Button>
+                    <Button onClick={handleNoWarning} variant={"outline"}>
+                        不再提醒
+                    </Button>
                     <Button onClick={handleRender}>渲染</Button>
                 </div>
             </div>

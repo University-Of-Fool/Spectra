@@ -144,8 +144,9 @@ export function TransitionHeight({
                 ...style,
             }}
         >
-            <div ref={ref} className={className}>{children}</div>
+            <div ref={ref} className={className}>
+                {children}
+            </div>
         </div>
     )
 }
-

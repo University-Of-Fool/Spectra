@@ -67,8 +67,8 @@ export function AreaShortUrl() {
                 expires === "permanent"
                     ? undefined
                     : new Date(
-                        Date.now() + parseInt(expires, 10) * 1000,
-                    ).toISOString(),
+                          Date.now() + parseInt(expires, 10) * 1000,
+                      ).toISOString(),
             max_visits: maxvisit || undefined,
             password: password || undefined,
         }
@@ -250,8 +250,9 @@ export function AreaShortUrl() {
                                     <Button
                                         className={cn(
                                             "flex-5",
-                                            ((uploadDisabled() || !urlValid) && !shiftDown) &&
-                                            " opacity-50 cursor-default hover:bg-primary/100",
+                                            (uploadDisabled() || !urlValid) &&
+                                                !shiftDown &&
+                                                " opacity-50 cursor-default hover:bg-primary/100",
                                         )}
                                         onClick={handleUpload}
                                     >

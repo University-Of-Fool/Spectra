@@ -36,21 +36,21 @@ export default function CodeBlock({
     useEffect(() => {
         let active = true
 
-            ; (async () => {
-                // 动态加载语言模块
-                const loader = HLJS_LANGS[language]
-                if (!loader) {
-                    console.warn(`Unsupported language: ${language}`)
-                    return
-                }
+        ;(async () => {
+            // 动态加载语言模块
+            const loader = HLJS_LANGS[language]
+            if (!loader) {
+                console.warn(`Unsupported language: ${language}`)
+                return
+            }
 
-                const langModule = await loader()
-                hljs.registerLanguage(language, langModule.default)
+            const langModule = await loader()
+            hljs.registerLanguage(language, langModule.default)
 
-                if (active && codeRef.current) {
-                    hljs.highlightElement(codeRef.current)
-                }
-            })()
+            if (active && codeRef.current) {
+                hljs.highlightElement(codeRef.current)
+            }
+        })()
 
         return () => {
             active = false
