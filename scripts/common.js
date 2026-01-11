@@ -1,6 +1,6 @@
+import { spawn } from "node:child_process"
 import { dirname } from "node:path"
 import { fileURLToPath } from "node:url"
-import { spawn } from "node:child_process"
 
 export const __dirname = dirname(fileURLToPath(import.meta.url))
 

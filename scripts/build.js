@@ -1,26 +1,36 @@
 /// @ts-check
 /// <reference types="node" />
-import { __dirname, runCommand } from "./common.js"
-import { join, resolve } from "node:path"
-import { existsSync, mkdirSync, rmSync } from "node:fs"
-import { createWriteStream } from "node:fs"
-import archiver from "archiver"
+
 import { execSync } from "node:child_process"
-import { readFileSync } from "node:fs"
+import {
+    createWriteStream,
+    existsSync,
+    mkdirSync,
+    readFileSync,
+    rmSync,
+} from "node:fs"
+import { join, resolve } from "node:path"
+import archiver from "archiver"
 import toml from "toml"
+import { __dirname, runCommand } from "./common.js"
+
 const args = process.argv.slice(2)
 const targetArgIndex = args.indexOf("--target")
 const target = targetArgIndex !== -1 ? args[targetArgIndex + 1] : null
 const isWindows = process.platform === "win32"
 const projectRoot = resolve(__dirname, "..")
 const distDir = join(projectRoot, "dist")
-const binaryTargetDir = join(projectRoot, "target", target ?`${target}/release`: "release")
+const binaryTargetDir = join(
+    projectRoot,
+    "target",
+    target ? `${target}/release` : "release",
+)
 
 process.chdir(projectRoot)
 
 function getCargoVersion() {
     try {
-        const cargoTomlPath = join(projectRoot, "backend","Cargo.toml")
+        const cargoTomlPath = join(projectRoot, "backend", "Cargo.toml")
         const content = readFileSync(cargoTomlPath, "utf-8")
         const parsed = toml.parse(content)
         return parsed.package?.version || "0.0.0"
@@ -32,7 +42,9 @@ function getCargoVersion() {
 
 function getNativeRustTarget() {
     try {
-        const output = execSync("rustup show active-toolchain", { encoding: "utf-8" })
+        const output = execSync("rustup show active-toolchain", {
+            encoding: "utf-8",
+        })
         const match = output.match(/-(\S+)\s/)
         return match ? match[1] : null
     } catch (e) {
@@ -40,7 +52,6 @@ function getNativeRustTarget() {
         return null
     }
 }
-
 
 ;(async () => {
     console.warn("[!] 正在安装 npm 依赖...")
@@ -67,12 +78,12 @@ function getNativeRustTarget() {
 
     console.warn("[!] 正在构建 Rust 程序...")
     const cargoArgs = ["build", "--release"]
-    if (target) cargoArgs.push("--target="+ target)
-    const options = {};
-    if(target?.includes("musl")){
-        options["env"]={
+    if (target) cargoArgs.push(`--target=${target}`)
+    const options = {}
+    if (target?.includes("musl")) {
+        options.env = {
             ...process.env,
-            "OPENSSL_STATIC":"1",
+            OPENSSL_STATIC: "1",
         }
     }
     try {
@@ -84,7 +95,10 @@ function getNativeRustTarget() {
     }
 
     const binaryName = "Spectra"
-    const binaryPath = join(binaryTargetDir, isWindows ? `${binaryName}.exe` : binaryName)
+    const binaryPath = join(
+        binaryTargetDir,
+        isWindows ? `${binaryName}.exe` : binaryName,
+    )
 
     if (!existsSync(binaryPath)) {
         console.error(`[!] 未找到构建好的二进制文件: ${binaryPath}`)
@@ -93,20 +107,24 @@ function getNativeRustTarget() {
 
     console.warn("[!] 正在打包为 zip 文件...")
     try {
-        if (existsSync(distDir)) rmSync(distDir, { recursive: true })
-        mkdirSync(distDir, { recursive: true })
-
-        const zipPath = join(distDir, `Spectra-${getCargoVersion()}-${target || getNativeRustTarget()}.zip`)
+        const zipPath = join(
+            distDir,
+            `Spectra-${getCargoVersion()}-${target || getNativeRustTarget()}.zip`,
+        )
+        if (!existsSync(distDir)) mkdirSync(distDir, { recursive: true })
+        if (existsSync(zipPath)) rmSync(zipPath)
         const output = createWriteStream(zipPath)
-        const archive = archiver("zip", { zlib: { level: 9 } });
-        (new Promise((resolve, reject) => {
+        const archive = archiver("zip", { zlib: { level: 9 } })
+        new Promise((resolve, reject) => {
             archive.pipe(output)
             output.on("close", resolve)
             archive.on("error", reject)
-        })).then(() => {
+        }).then(() => {
             console.warn(`✅ 打包完成：${zipPath}`)
         })
-        archive.file(binaryPath, { name: binaryName + (isWindows ? ".exe" : "") })
+        archive.file(binaryPath, {
+            name: binaryName + (isWindows ? ".exe" : ""),
+        })
         archive.file(join(projectRoot, "LICENSE"), { name: "LICENSE" })
         archive.file(join(projectRoot, "README.md"), { name: "README.md" })
         await archive.finalize()
