@@ -1,0 +1,114 @@
+{
+    "dashboard": {
+        "unlogon_notice": "To view shared items, please log in first.",
+        "tabs": {
+            "welcome_msg": "What would you like to do next?",
+            "file_share": "File Transfer",
+            "file_share_desc": "Share local files.",
+            "pastebin": "Pastebin",
+            "pastebin_desc": "Share a piece of code or text.",
+            "short_url": "Short URL",
+            "short_url_desc": "Create shorten URLs."
+        }
+    },
+    "file_share": {
+        "title": "File Transfer",
+        "choose_file": "Choose File",
+        "choose_file_instruction": "Click or drag files here to upload",
+        "inline_mode": "Inline Mode",
+        "inline_mode_desc": "When enabled, URLs generated  can be used inline, for example, as the src attribute of <img> tags in HTML.",
+        "progress": {
+            "aborted": "Upload aborted",
+            "ongoing": "Uploading file..."
+        },
+        "error_msg": {
+            "cancel_failed": "Cancel failed",
+            "cancel_failed_unknown_reason": "Cancel failed: unknown error"
+        }
+    },
+    "short_url": {
+        "title": "Short URL",
+        "target_url": "Target URL",
+        "invalid_url_warning": "This doesn't appear to be a valid URL. Please check your input.",
+        "force_create_hint": "Hold Shift and click to force creation"
+    },
+    "pastebin": {
+        "title": "Pastebin",
+        "title_field": "Title",
+        "title_placeholder": "Untitled",
+        "syntax_highlight": "Syntax Highlighting",
+        "content": "Content"
+    },
+    "common": {
+        "failed_msg": {
+            "conflict": "The specified path already exists",
+            "unknown": "Unknown error: {{reason}}",
+            "guest_avoid_random": "When not logged in, you can only use random paths."
+        },
+        "[random]": "[RANDOM]",
+        "random": "Generate Randomly",
+        "invalid_after": "Expires After",
+        "hour_one": "An hour",
+        "hour_other": "{{count}} hours",
+        "day_one": "One day",
+        "day_other": "{{count}} days",
+        "never": "Never Expires",
+        "max_visits": "Max Visits",
+        "max_visits_placeholder": "Unlimited",
+        "password": "Password",
+        "password_placeholder": "No password",
+        "cancel": "Cancel",
+        "upload": "Upload",
+        "create": "Create",
+        "back": "Back",
+        "turnstile_disabled": "Guest uploads are not allowed on this site. Please log in first."
+    },
+    "top_bar": {
+        "service_unavailable": "Unable to connect to the backend server",
+        "logout_failed": "Log out failed: {{reason}}",
+        "greeting": {
+            "message": "{{time}}, {{username}}!",
+            "message_guest": "Welcome to Spectra.",
+            "morning": "Good morning",
+            "afternoon": "Good afternoon",
+            "evening": "Good evening",
+            "noon": "Good afternoon",
+            "late_night": "Welcome back",
+            "early_noon": "Good morning"
+        },
+        "login": "Log in",
+        "logout": "Log out",
+        "login_msg": "Log in to Spectra",
+        "email": "Email Address",
+        "password": "Password",
+        "remember_me": "Keep me logged in",
+        "login_action": "Log In",
+        "invalid_login": "Invalid username or password. Please try again.",
+        "user_expired": "Login session expired"
+    },
+    "shared": {
+        "loading": "Loading",
+        "title": "Shared Items",
+        "error_loading": "Failed to load shared items",
+        "delete_success": "Deleted successfully",
+        "delete_failed": "Delete failed",
+        "type": "Type",
+        "link": "Link",
+        "visits": "Visits",
+        "created_at": "Created At",
+        "action": "Action",
+        "status": "Status",
+        "valid": "Valid",
+        "invalid": "Expired",
+        "list_end": "No more items…",
+        "load_more": "Load More…",
+        "empty": "No shared items yet"
+    },
+    "finished": {
+        "copied_msg": "Link copied to clipboard",
+        "msg_file": "Upload successful, link copied.",
+        "msg": "Item created successfully, link copied.",
+        "copy_again": "Copy Again",
+        "open_link": "Open Link"
+    }
+}

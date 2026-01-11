@@ -1,8 +1,9 @@
 import "../public/style.css"
-import { render } from "react"
+import { render, Suspense } from "react"
 import { ThemeProvider } from "@/components/ThemeProvider.tsx"
 import { TopBar } from "../components/TopBar.tsx"
 import { AuthCard } from "./components/AuthCard"
+import "../components/i18n"
 
 const root = document.getElementById("app")
 if (!root) throw new Error("Launch failed: Root element not found")
@@ -15,7 +16,7 @@ const backendData: {
     creator_name: string
     creator_avatar: string | null
 } = JSON.parse(backendDataElement.innerText)
-export function Dashboard() {
+export function PasswordInput() {
     return (
         <ThemeProvider>
             <div className={"h-screen"}>
@@ -31,4 +32,9 @@ export function Dashboard() {
     )
 }
 
-render(<Dashboard />, root)
+render(
+    <Suspense fallback={<div></div>}>
+        <PasswordInput />
+    </Suspense>,
+    root,
+)

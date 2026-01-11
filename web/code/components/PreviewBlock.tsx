@@ -5,6 +5,7 @@ import ghCssSystem from "github-markdown-css/github-markdown.css?url"
 import ghCssDark from "github-markdown-css/github-markdown-dark.css?url"
 import ghCssLight from "github-markdown-css/github-markdown-light.css?url"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useTheme } from "@/components/ThemeProvider.tsx"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -122,6 +123,7 @@ function MarkdownPreviewer(props: { code: string }) {
 }
 
 function LaTeXPreviewer(props: { code: string }) {
+    const { t } = useTranslation("codepage")
     // 防止代码注入
     let code = DOMPurify.sanitize(props.code)
 
@@ -143,7 +145,6 @@ function LaTeXPreviewer(props: { code: string }) {
         })
         .join("\n")
 
-    code = `<style> .spectra-preview-latex > p {margin-bottom: 0.2em;}</style>${code}`
     return (
         <MathJaxContext
             config={{
@@ -159,12 +160,10 @@ function LaTeXPreviewer(props: { code: string }) {
             <MathJax dynamic>
                 <div>
                     <div className="p-4 mb-4 rounded-lg text-accent-foreground bg-accent">
-                        注意：此处只支持预览 LaTeX
-                        中的数学公式效果。若要预览页面完整的渲染效果，请使用专业
-                        LaTeX 编辑器。
+                        {t("preview.latex.notice")}
                     </div>
                     <div
-                        className={"spectra-preview-latex "}
+                        className={"spectra-preview-latex *:mb-1"}
                         // biome-ignore lint/security/noDangerouslySetInnerHtml: idk if there's better method
                         dangerouslySetInnerHTML={{ __html: code }}
                     ></div>
@@ -181,7 +180,7 @@ function TypstPreviewer(props: { code: string }) {
     const [vectorArtifact, setVectorArtifact] =
         useState<Uint8Array<ArrayBufferLike> | null>(null)
     const [errorMsg, setErrorMsg] = useState<string>("")
-
+    const { t } = useTranslation("codepage")
     const handleRender = async () => {
         setRenderState("loading")
         setErrorMsg("")
@@ -218,13 +217,13 @@ function TypstPreviewer(props: { code: string }) {
             })
 
             if (!vec) {
-                throw new Error("无法生成预览内容，请检查 Typst 代码是否正确。")
+                throw new Error(t("preview.typst.error"))
             }
             setVectorArtifact(vec)
             setRenderState("success")
         } catch (error) {
             console.error("Typst rendering error:", error)
-            setErrorMsg(String(error) || "未知渲染错误")
+            setErrorMsg(String(error) || t("preview.typst.error_unknown"))
             setRenderState("error")
         }
     }
@@ -245,13 +244,15 @@ function TypstPreviewer(props: { code: string }) {
         return (
             <div className="flex flex-col items-center justify-center py-12 space-y-4">
                 <p className="text-muted-foreground">
-                    要渲染该文档的预览吗？（初次使用需要加载 ~30MB 的资源）
+                    {t("preview.typst.render_note")}{" "}
                 </p>
                 <div className={"flex gap-2"}>
                     <Button onClick={handleNoWarning} variant={"outline"}>
-                        不再提醒
+                        {t("preview.typst.no_warning")}
                     </Button>
-                    <Button onClick={handleRender}>渲染</Button>
+                    <Button onClick={handleRender}>
+                        {t("preview.typst.render")}
+                    </Button>
                 </div>
             </div>
         )
@@ -262,7 +263,7 @@ function TypstPreviewer(props: { code: string }) {
             <div className="flex flex-col items-center justify-center py-12 space-y-2">
                 <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
                 <p className="text-muted-foreground">
-                    正在加载 Typst 渲染引擎，请稍候...
+                    {t("preview.typst.loading")}
                 </p>
             </div>
         )
@@ -272,7 +273,9 @@ function TypstPreviewer(props: { code: string }) {
         return (
             <div className="flex flex-col items-center justify-center py-12 space-y-2">
                 <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                <p className="text-muted-foreground">正在渲染文档，请稍候...</p>
+                <p className="text-muted-foreground">
+                    {t("preview.typst.rendering")}
+                </p>
             </div>
         )
     }
@@ -281,10 +284,14 @@ function TypstPreviewer(props: { code: string }) {
         return (
             <div className="flex flex-col items-center justify-center py-12 space-y-4">
                 <div className="p-4 rounded-lg bg-destructive/10 text-destructive max-w-md text-center">
-                    <p className="font-semibold mb-2">渲染失败</p>
+                    <p className="font-semibold mb-2">
+                        {t("preview.typst.render_error")}
+                    </p>
                     <p className="text-sm">{errorMsg}</p>
                 </div>
-                <Button onClick={handleRender}>重试</Button>
+                <Button onClick={handleRender}>
+                    {t("preview.typst.try_again")}
+                </Button>
             </div>
         )
     }

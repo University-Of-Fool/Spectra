@@ -2,11 +2,15 @@ import { ThemeProvider } from "@/components/ThemeProvider"
 import "../public/style.css"
 import { render } from "preact"
 import { SpectraLogo } from "../components/Logo"
+import "../components/i18n"
+import { Suspense } from "react"
+import { useTranslation } from "react-i18next"
 
 const root = document.getElementById("app")
 if (!root) throw new Error("Launch failed: Root element not found")
 
 function NotFound() {
+    const { t } = useTranslation("not_found")
     return (
         <ThemeProvider>
             <div className={"h-screen"}>
@@ -33,9 +37,7 @@ function NotFound() {
                                 404
                             </div>
                         </div>
-                        <div className={"opacity-75"}>
-                            当前访问的内容不存在或已过期
-                        </div>
+                        <div className={"opacity-75"}>{t("msg")}</div>
                     </div>
                 </div>
             </div>
@@ -43,4 +45,9 @@ function NotFound() {
     )
 }
 
-render(<NotFound />, root)
+render(
+    <Suspense fallback={<div></div>}>
+        <NotFound />
+    </Suspense>,
+    root,
+)

@@ -1,15 +1,17 @@
 import { useContext, useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { wfetch } from "../fetch"
 import { TransitionHeight } from "../HeightTransition"
 import { AccountCtx } from "../main"
 
 export function AreaShared() {
+    const { t, i18n } = useTranslation("dashboard")
     const context = useContext(AccountCtx)
     const [items, setItems] = useState([
         {
             id: "loading_dummy",
-            short_path: "加载中",
+            short_path: t("shared.loading"),
             item_type: "Link",
             visits: 0,
             created_at: "1970-01-01T00:00:00.000Z",
@@ -39,10 +41,6 @@ export function AreaShared() {
             if (data.success) {
                 if (data.payload.length <= 10) {
                     setEnded(true)
-                    // RLt: 我认为这里不用显示通知，因为“查看更多”按钮消失已经告诉用户列表到底了
-                    // toast("没有更多项目了")
-
-                    // enita: 好的
                 }
                 if (data.payload.length === 0) {
                     setNothing(true)
@@ -55,25 +53,27 @@ export function AreaShared() {
                         ...data.payload.map((item) => ({
                             ...item,
                             short_path: `${window.location.origin}/${item.short_path}`,
-                            item_type: (() => {
-                                switch (item.item_type) {
-                                    case "Link":
-                                        return "短链接"
-                                    case "File":
-                                        return "文件传输"
-                                    case "Code":
-                                        return "剪贴板"
-                                    default:
-                                        return item.item_type
-                                }
-                            })(),
+                            item_type: t(
+                                (() => {
+                                    switch (item.item_type) {
+                                        case "Link":
+                                            return "short_url.title"
+                                        case "File":
+                                            return "file_share.title"
+                                        case "Code":
+                                            return "pastebin.title"
+                                        default:
+                                            return item.item_type
+                                    }
+                                })(),
+                            ),
                         })),
                     ]
                 })
             }
         } catch (e) {
             console.error(e)
-            toast.error("获取分享项目失败")
+            toast.error(t("shared.error_loading"))
         }
     }
 
@@ -88,14 +88,14 @@ export function AreaShared() {
                 )
                 const data = await resp.json()
                 if (data.success) {
-                    toast.success("删除成功")
+                    toast.success(t("shared.delete_success"))
                     setItems((prev) => prev.filter((item) => item.id !== id))
                 } else {
-                    toast.error("删除失败")
+                    toast.error(t("shared.delete_failed"))
                 }
             } catch (e) {
                 console.error(e)
-                toast.error("删除失败")
+                toast.error(t("shared.delete_failed"))
             }
         }
     }
@@ -110,22 +110,36 @@ export function AreaShared() {
                 }),
             delay,
         )
-    }, [context.sharedListUpd])
+    }, [context.sharedListUpd, i18n.language])
     return (
         <>
             <div className={"flex flex-col items-center"}>
-                <div className={"font-thin text-2xl mb-12"}>已分享的项目</div>
+                <div className={"font-thin text-2xl mb-12"}>
+                    {t("shared.title")}
+                </div>
 
                 <TransitionHeight>
                     <table className="w-200 text-sm text-left text-neutral-700 dark:text-neutral-200">
                         <thead className="text-sm uppercase border-b border-neutral-200 dark:border-neutral-700">
                             <tr>
-                                <th className="px-4 py-3">类型</th>
-                                <th className="px-4 py-3">链接</th>
-                                <th className="px-4 py-3">状态</th>
-                                <th className="px-4 py-3">访问次数</th>
-                                <th className="px-4 py-3">创建时间</th>
-                                <th className="px-4 py-3">操作</th>
+                                <th className="px-4 py-3">
+                                    {t("shared.type")}
+                                </th>
+                                <th className="px-4 py-3">
+                                    {t("shared.link")}
+                                </th>
+                                <th className="px-4 py-3">
+                                    {t("shared.status")}
+                                </th>
+                                <th className="px-4 py-3">
+                                    {t("shared.visits")}
+                                </th>
+                                <th className="px-4 py-3">
+                                    {t("shared.created_at")}
+                                </th>
+                                <th className="px-4 py-3">
+                                    {t("shared.action")}
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -146,7 +160,9 @@ export function AreaShared() {
                                         </a>
                                     </td>
                                     <td className="px-4 py-2">
-                                        {item.available ? "有效" : "失效"}
+                                        {item.available
+                                            ? t("shared.valid")
+                                            : t("shared.invalid")}
                                     </td>
                                     <td className="px-4 py-2">{item.visits}</td>
                                     <td className="px-4 py-2">
@@ -187,7 +203,7 @@ export function AreaShared() {
                                 "text-center text-sm text-neutral-500 point"
                             }
                         >
-                            没有其他项目了…
+                            {t("shared.list_end")}
                         </div>
                     ) : (
                         <div
@@ -200,13 +216,13 @@ export function AreaShared() {
                                 })
                             }}
                         >
-                            查看更多…
+                            {t("shared.load_more")}
                         </div>
                     ))}
 
                 {nothing && (
                     <div className={"text-center text-sm text-neutral-500"}>
-                        暂无分享项目
+                        {t("shared.empty")}
                     </div>
                 )}
 

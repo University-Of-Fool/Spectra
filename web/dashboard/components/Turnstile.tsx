@@ -1,4 +1,5 @@
 import { useContext } from "react"
+import { useTranslation } from "react-i18next"
 import TurnstileO, { useTurnstile } from "react-turnstile"
 import { cn } from "@/lib/utils.ts"
 import { AccountCtx } from "../main"
@@ -8,6 +9,7 @@ export function Turnstile(props: {
     onVerify: (token: string) => void
 }) {
     useTurnstile()
+    const { t } = useTranslation("dashboard")
     const context = useContext(AccountCtx)
     return (
         <>
@@ -25,7 +27,7 @@ export function Turnstile(props: {
                     />
                 ) : (
                     <div className={"mt-8 text-center text-sm opacity-50"}>
-                        当前站点未开启游客上传功能，请先登录。
+                        {t("common.turnstile_disabled")}
                     </div>
                 )
             ) : (

@@ -1,6 +1,7 @@
 import "../public/style.css"
 import { render } from "preact"
-import { createContext, useEffect, useState } from "react"
+import { createContext, Suspense, useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { ThemeProvider } from "@/components/ThemeProvider"
 import { Toaster } from "@/components/ui/sonner.tsx"
 import { AreaFileShare } from "./components/AreaFileShare"
@@ -10,6 +11,7 @@ import { AreaShared } from "./components/AreaShared"
 import { AreaShortUrl } from "./components/AreaShortUrl"
 import { TopBar } from "./components/TopBar"
 import { TransitionTabs } from "./HeightTransition"
+import "../components/i18n"
 
 const root = document.getElementById("app")
 if (!root) throw new Error("Launch failed: Root element not found")
@@ -51,6 +53,7 @@ export function Dashboard() {
     const handleTabClick = (tab: string) => {
         setActiveTab(tab)
     }
+    const { t } = useTranslation(["dashboard", "languages"])
 
     // 拖拽文件到页面上时，自动切换到文件传输tab
     useEffect(() => {
@@ -110,7 +113,7 @@ export function Dashboard() {
                     {!value.loading && !value.isLoggedIn && (
                         <>
                             <div className="text-center opacity-25 text-sm mb-20">
-                                要查看历史分享项目，请先登录。
+                                {t("dashboard.unlogon_notice")}
                             </div>
                         </>
                     )}
@@ -123,4 +126,9 @@ export function Dashboard() {
     )
 }
 
-render(<Dashboard />, root)
+render(
+    <Suspense fallback={<div />}>
+        <Dashboard />
+    </Suspense>,
+    root,
+)

@@ -1,0 +1,23 @@
+{
+    "preview_expand": "Expand {{language}} preview",
+    "preview_collapse": "Collapse {{language}} preview",
+    "codeblock": {
+        "anchor_copied": "Link to line {{line}} copied to clipboard."
+    },
+    "preview": {
+        "typst": {
+            "error": "Failed to generate preview. Please check if your Typst code is correct.",
+            "error_unknown": "Unknown rendering error",
+            "render_note": "Render a preview of this document? (~30MB of resources would be loaded)",
+            "no_warning": "Don't remind me again",
+            "render": "Render",
+            "loading": "Loading Typst rendering engine, please wait…",
+            "rendering": "Rendering document, please wait…",
+            "render_error": "Rendering failed",
+            "try_again": "Try Again"
+        },
+        "latex": {
+            "notice": "Note: Only mathematical formulas in LaTeX are supported for preview here. For complete page rendering, please use a professional LaTeX editor."
+        }
+    }
+}

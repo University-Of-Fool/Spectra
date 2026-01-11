@@ -1,4 +1,6 @@
 import { useContext, useState } from "react"
+import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -12,6 +14,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { LANGS } from "../../components/languages.ts"
 import { wfetch } from "../fetch.ts"
 import { AccountCtx } from "../main.tsx"
 import { FinishedCard } from "./FinishedCard.tsx"
@@ -30,6 +33,7 @@ export function AreaPasteBin() {
     const [failedMessage, setFailedMessage] = useState("")
     const [turnstileToken, setTurnstileToken] = useState("")
     const context = useContext(AccountCtx)
+    const { t } = useTranslation(["dashboard", "languages"])
 
     async function handleUpload() {
         const body = {
@@ -70,16 +74,25 @@ export function AreaPasteBin() {
             return
         }
         if (resp.status === 409) {
-            setFailedMessage("指定的路径已存在")
+            setFailedMessage(t("common.failed_msg.conflict"))
             return
         }
-        setFailedMessage(`未知错误：${resp.status} ${data.payload}`)
+        setFailedMessage(
+            t("common.failed_msg.unknown", {
+                reason: `${resp.status} ${data.payload}`,
+            }),
+        )
     }
 
+    const selectItems = Object.keys(LANGS).map((key) => (
+        <SelectItem value={key} key={key}>
+            {t(LANGS[key].displayName, { ns: "languages" })}
+        </SelectItem>
+    ))
     return (
         <div className="flex flex-col items-center">
             <div className="font-thin dark:font-light text-2xl mt-6 mb-12">
-                剪贴板
+                {t("pastebin.title")}
             </div>
 
             {finalUrl === "" && (
@@ -90,28 +103,46 @@ export function AreaPasteBin() {
                         </div>
                         <Input
                             disabled={random}
-                            value={random ? "[随机]" : path}
+                            value={random ? t("common.[random]") : path}
                             onChange={(e) => setPath(e.currentTarget.value)}
                         />
                         <div className="flex items-center gap-2 ml-2">
                             <Checkbox
                                 checked={random}
-                                onCheckedChange={(checked) =>
+                                onCheckedChange={(checked) => {
+                                    if (context.value.loading) return
+                                    if (
+                                        !context.value.isLoggedIn &&
+                                        context.value.turnstile_enabled
+                                    ) {
+                                        toast.error(
+                                            t(
+                                                "common.failed_msg.guest_avoid_random",
+                                            ),
+                                        )
+                                        return
+                                    }
+
+                                    // checked: boolean|"indeterminate"
                                     setRandom(!!checked)
-                                }
+                                }}
                                 id="terms"
                             />
                             <Label className="text-nowrap" htmlFor="terms">
-                                随机生成
+                                {t("common.random")}
                             </Label>
                         </div>
                     </div>
                     <div className="w-150 mt-4">
                         <div className="flex gap-4 mt-4">
                             <div className="flex-3">
-                                <div className="mb-2 text-sm">标题</div>
+                                <div className="mb-2 text-sm">
+                                    {t("pastebin.title_field")}
+                                </div>
                                 <Input
-                                    placeholder="无标题"
+                                    placeholder={t(
+                                        "pastebin.title_placeholder",
+                                    )}
                                     value={title}
                                     onChange={(e) =>
                                         setTitle(e.currentTarget.value)
@@ -119,88 +150,31 @@ export function AreaPasteBin() {
                                 />
                             </div>
                             <div className="flex-1">
-                                <div className="mb-2 text-sm">语法高亮</div>
+                                <div className="mb-2 text-sm">
+                                    {t("pastebin.syntax_highlight")}
+                                </div>
                                 <Select
                                     value={highlight}
                                     onValueChange={setHighlight}
                                 >
                                     <SelectTrigger className={"w-full"}>
-                                        <SelectValue placeholder="语法高亮" />
+                                        <SelectValue
+                                            placeholder={t(
+                                                "pastebin.syntax_highlight",
+                                            )}
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectGroup>
-                                            <SelectItem value="text">
-                                                文本
-                                            </SelectItem>
-                                            <SelectItem value="markdown">
-                                                Markdown
-                                            </SelectItem>
-                                            <SelectItem value="html">
-                                                HTML
-                                            </SelectItem>
-                                            <SelectItem value="latex">
-                                                LaTeX
-                                            </SelectItem>
-                                            <SelectItem value="typst">
-                                                Typst
-                                            </SelectItem>
-                                            <SelectItem value="css">
-                                                CSS
-                                            </SelectItem>
-                                            <SelectItem value="javascript">
-                                                JavaScript
-                                            </SelectItem>
-                                            <SelectItem value="typescript">
-                                                TypeScript
-                                            </SelectItem>
-                                            <SelectItem value="json">
-                                                JSON
-                                            </SelectItem>
-                                            <SelectItem value="yaml">
-                                                YAML
-                                            </SelectItem>
-                                            <SelectItem value="xml">
-                                                XML
-                                            </SelectItem>
-                                            <SelectItem value="sql">
-                                                SQL
-                                            </SelectItem>
-                                            <SelectItem value="python">
-                                                Python
-                                            </SelectItem>
-                                            <SelectItem value="java">
-                                                Java
-                                            </SelectItem>
-                                            <SelectItem value="csharp">
-                                                C#
-                                            </SelectItem>
-                                            <SelectItem value="php">
-                                                PHP
-                                            </SelectItem>
-                                            <SelectItem value="go">
-                                                Go
-                                            </SelectItem>
-                                            <SelectItem value="rust">
-                                                Rust
-                                            </SelectItem>
-                                            <SelectItem value="swift">
-                                                Swift
-                                            </SelectItem>
-                                            <SelectItem value="c">C</SelectItem>
-                                            <SelectItem value="cpp">
-                                                C++
-                                            </SelectItem>
-                                            <SelectItem value="ino">
-                                                Arduino C
-                                            </SelectItem>
-                                        </SelectGroup>
+                                        <SelectGroup>{selectItems}</SelectGroup>
                                     </SelectContent>
                                 </Select>
                             </div>
                         </div>
 
                         <div className="mt-4">
-                            <div className="mb-2 text-sm">内容</div>
+                            <div className="mb-2 text-sm">
+                                {t("pastebin.content")}
+                            </div>
                             <Textarea
                                 rows={10}
                                 value={content}
@@ -212,7 +186,9 @@ export function AreaPasteBin() {
 
                         <div className="flex items-center justify-center mt-4 gap-4">
                             <div className="flex-1">
-                                <div className="mb-2 text-sm">有效时长</div>
+                                <div className="mb-2 text-sm">
+                                    {t("common.invalid_after")}
+                                </div>
                                 <Select
                                     value={expires}
                                     onValueChange={setExpires}
@@ -223,22 +199,22 @@ export function AreaPasteBin() {
                                     <SelectContent>
                                         <SelectGroup>
                                             <SelectItem value="3600">
-                                                1 小时
+                                                {t("common.hour", { count: 1 })}
                                             </SelectItem>
                                             <SelectItem value="28800">
-                                                8 小时
+                                                {t("common.hour", { count: 8 })}
                                             </SelectItem>
                                             <SelectItem value="86400">
-                                                1 天
+                                                {t("common.day", { count: 1 })}
                                             </SelectItem>
                                             <SelectItem value="604800">
-                                                7 天
+                                                {t("common.day", { count: 7 })}
                                             </SelectItem>
                                             <SelectItem value="1209600">
-                                                14 天
+                                                {t("common.day", { count: 14 })}
                                             </SelectItem>
                                             <SelectItem value="permanent">
-                                                永久
+                                                {t("common.never")}
                                             </SelectItem>
                                         </SelectGroup>
                                     </SelectContent>
@@ -246,7 +222,9 @@ export function AreaPasteBin() {
                             </div>
 
                             <div className="flex-1">
-                                <div className="mb-2 text-sm">访问人数限制</div>
+                                <div className="mb-2 text-sm">
+                                    {t("common.max_visits")}
+                                </div>
                                 <Input
                                     type="number"
                                     min={0}
@@ -256,19 +234,23 @@ export function AreaPasteBin() {
                                             Number(e.currentTarget.value) || 0,
                                         )
                                     }
-                                    placeholder="无限制"
+                                    placeholder={t(
+                                        "common.max_visits_placeholder",
+                                    )}
                                 />
                             </div>
                         </div>
 
                         <div className="mt-4">
-                            <div className="mb-2 text-sm">密码</div>
+                            <div className="mb-2 text-sm">
+                                {t("common.password")}
+                            </div>
                             <Input
                                 value={password}
                                 onChange={(e) =>
                                     setPassword(e.currentTarget.value)
                                 }
-                                placeholder={"无密码"}
+                                placeholder={t("common.password_placeholder")}
                             />
                         </div>
                         <Turnstile onVerify={setTurnstileToken} />
@@ -281,14 +263,14 @@ export function AreaPasteBin() {
                                     context.handleTabClick("operation")
                                 }
                             >
-                                取消
+                                {t("common.cancel")}
                             </Button>
                             <Button
                                 className="flex-5"
                                 onClick={() => handleUpload()}
                                 disabled={content.length === 0}
                             >
-                                上传
+                                {t("common.upload")}
                             </Button>
                         </div>
 

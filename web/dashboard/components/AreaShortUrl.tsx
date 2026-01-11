@@ -1,4 +1,6 @@
 import { useContext, useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -45,6 +47,7 @@ export function AreaShortUrl() {
     const [shiftDown, setShiftDown] = useState(false)
 
     const context = useContext(AccountCtx)
+    const { t } = useTranslation("dashboard")
 
     const uploadDisabled = () => {
         return (
@@ -95,10 +98,14 @@ export function AreaShortUrl() {
             return
         }
         if (resp.status === 409) {
-            setFailedMessage("指定的路径已存在")
+            setFailedMessage(t("common.failed_msg.conflict"))
             return
         }
-        setFailedMessage(`未知错误：${resp.status} ${data.payload}`)
+        setFailedMessage(
+            t("common.failed_msg.unknown", {
+                reason: `${resp.status} ${data.payload}`,
+            }),
+        )
     }
 
     useEffect(() => {
@@ -123,7 +130,7 @@ export function AreaShortUrl() {
     return (
         <div className={"flex flex-col items-center"}>
             <div className="font-thin dark:font-light text-2xl mt-6 mb-12">
-                短链接
+                {t("short_url.title")}
             </div>
 
             {finalUrl === "" && (
@@ -134,25 +141,41 @@ export function AreaShortUrl() {
                         </div>
                         <Input
                             disabled={random}
-                            value={random ? "[随机]" : path}
+                            value={random ? t("common.[random]") : path}
                             onChange={(e) => setPath(e.currentTarget.value)}
                         />
                         <div className="flex items-center gap-2 ml-2">
                             <Checkbox
                                 checked={random}
-                                onCheckedChange={(checked) =>
+                                onCheckedChange={(checked) => {
+                                    if (context.value.loading) return
+                                    if (
+                                        !context.value.isLoggedIn &&
+                                        context.value.turnstile_enabled
+                                    ) {
+                                        toast.error(
+                                            t(
+                                                "common.failed_msg.guest_avoid_random",
+                                            ),
+                                        )
+                                        return
+                                    }
+
+                                    // checked: boolean|"indeterminate"
                                     setRandom(!!checked)
-                                }
+                                }}
                                 id="terms"
                             />
                             <Label className="text-nowrap" htmlFor="terms">
-                                随机生成
+                                {t("common.random")}
                             </Label>
                         </div>
                     </div>
                     <div className="w-150 mt-4">
                         <div className="mt-4">
-                            <div className="mb-2 text-sm">目标链接</div>
+                            <div className="mb-2 text-sm">
+                                {t("short_url.target_url")}
+                            </div>
                             <Input
                                 value={target}
                                 placeholder={"https://"}
@@ -169,13 +192,15 @@ export function AreaShortUrl() {
                                     urlValid && "hidden",
                                 )}
                             >
-                                这似乎不是有效的链接，请检查你的输入。
+                                {t("short_url.invalid_url_warning")}
                             </div>
                         </div>
 
                         <div className="flex items-center justify-center mt-4 gap-4">
                             <div className="flex-1">
-                                <div className="mb-2 text-sm">有效时长</div>
+                                <div className="mb-2 text-sm">
+                                    {t("common.invalid_after")}
+                                </div>
                                 <Select
                                     value={expires}
                                     onValueChange={setExpires}
@@ -186,29 +211,41 @@ export function AreaShortUrl() {
                                     <SelectContent>
                                         <SelectGroup>
                                             <SelectItem value="3600">
-                                                1 小时
+                                                {t("common.hour", {
+                                                    count: 1,
+                                                })}
                                             </SelectItem>
                                             <SelectItem value="28800">
-                                                8 小时
+                                                {t("common.hour", {
+                                                    count: 8,
+                                                })}
                                             </SelectItem>
                                             <SelectItem value="86400">
-                                                1 天
+                                                {t("common.day", {
+                                                    count: 1,
+                                                })}
                                             </SelectItem>
                                             <SelectItem value="604800">
-                                                7 天
+                                                {t("common.day", {
+                                                    count: 7,
+                                                })}
                                             </SelectItem>
                                             <SelectItem value="1209600">
-                                                14 天
+                                                {t("common.day", {
+                                                    count: 14,
+                                                })}
                                             </SelectItem>
                                             <SelectItem value="permanent">
-                                                永久
+                                                {t("common.never")}
                                             </SelectItem>
                                         </SelectGroup>
                                     </SelectContent>
                                 </Select>
                             </div>
                             <div className="flex-1">
-                                <div className="mb-2 text-sm">访问人数限制</div>
+                                <div className="mb-2 text-sm">
+                                    {t("common.max_visits")}
+                                </div>
                                 <Input
                                     type="number"
                                     min={0}
@@ -218,19 +255,23 @@ export function AreaShortUrl() {
                                             Number(e.currentTarget.value) || 0,
                                         )
                                     }
-                                    placeholder="无限制"
+                                    placeholder={t(
+                                        "common.max_visits_placeholder",
+                                    )}
                                 />
                             </div>
                         </div>
 
                         <div className="mt-4">
-                            <div className="mb-2 text-sm">密码</div>
+                            <div className="mb-2 text-sm">
+                                {t("common.password")}
+                            </div>
                             <Input
                                 value={password}
                                 onChange={(e) =>
                                     setPassword(e.currentTarget.value)
                                 }
-                                placeholder={"无密码"}
+                                placeholder={t("common.password_placeholder")}
                             />
                         </div>
                         <Turnstile onVerify={setTurnstileToken} />
@@ -243,7 +284,7 @@ export function AreaShortUrl() {
                                     context.handleTabClick("operation")
                                 }
                             >
-                                取消
+                                {t("common.cancel")}
                             </Button>
                             <HoverCard openDelay={200}>
                                 <HoverCardTrigger asChild>
@@ -256,13 +297,13 @@ export function AreaShortUrl() {
                                         )}
                                         onClick={handleUpload}
                                     >
-                                        创建
+                                        {t("common.create")}
                                     </Button>
                                 </HoverCardTrigger>
                                 {urlValid || (
                                     <HoverCardContent className={"w-auto"}>
                                         <div className="text-sm">
-                                            按住 Shift 点击以强制创建
+                                            {t("short_url.force_create_hint")}
                                         </div>
                                     </HoverCardContent>
                                 )}

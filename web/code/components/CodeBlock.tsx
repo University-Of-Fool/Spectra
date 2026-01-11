@@ -2,11 +2,12 @@ import hljs from "highlight.js/lib/core"
 import githubLight from "highlight.js/styles/github.min.css?url"
 import githubDark from "highlight.js/styles/github-dark.min.css?url"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { useTheme } from "@/components/ThemeProvider.tsx"
 import { Button } from "@/components/ui/button.tsx"
 import { cn } from "@/lib/utils.ts"
-import { HLJS_LANGS } from "../hljs.ts"
+import { LANGS } from "../../components/languages.ts"
 
 interface CodeBlockProps {
     code: string
@@ -25,7 +26,7 @@ export default function CodeBlock({
     const [highlightLine, setHighlightLine] = useState<number | null>(null)
     const [copyIconContent, setCopyIconContent] = useState("content_copy")
     const [copyButtonVisibility, setCopyButtonVisibility] = useState(false)
-
+    const { t } = useTranslation("codepage")
     let { theme } = useTheme()
     if (theme === "system") {
         const root = document.documentElement
@@ -38,7 +39,7 @@ export default function CodeBlock({
 
         ;(async () => {
             // 动态加载语言模块
-            const loader = HLJS_LANGS[language]
+            const loader = LANGS[language]?.hljsFunction
             if (!loader) {
                 console.warn(`Unsupported language: ${language}`)
                 return
@@ -133,7 +134,9 @@ export default function CodeBlock({
         void navigator.clipboard.writeText(url.toString())
         history.replaceState(null, "", url.toString())
         setHighlightLine(lineNumber)
-        toast.success(`已复制锚点位置: ${url.toString()}`)
+        toast.success(
+            t("codeblock.anchor_copied", { line: (lineNumber + 1).toString() }),
+        )
     }
 
     useEffect(() => {

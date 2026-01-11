@@ -1,4 +1,5 @@
 import { useContext, useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { ThemeSwitcher } from "@/components/ThemeProvider.tsx"
 import { Button } from "@/components/ui/button.tsx"
@@ -11,6 +12,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils.ts"
+import { LanguageSwitcher } from "../../components/LanguageSwitcher.tsx"
 import { SpectraLogo } from "../../components/Logo.tsx"
 import { AccountCtx } from "../main.tsx"
 
@@ -22,6 +24,7 @@ export function TopBar() {
         remember: useRef(true),
     }
     const [loginSuccess, setLoginSuccess] = useState(true)
+    const { t } = useTranslation("dashboard")
 
     async function get_userinfo(
         turnstile_enabled: boolean,
@@ -42,7 +45,7 @@ export function TopBar() {
                 isLoggedIn: false,
             }
             context.setValue(value)
-            toast.error("无法连接到服务器。")
+            toast.error(t("top_bar.service_unavailable"))
             console.error(e)
         }
         if (data?.success) {
@@ -85,7 +88,7 @@ export function TopBar() {
                     turnstile_enabled: false,
                 }
                 context.setValue(value)
-                toast.error("无法连接到服务器。")
+                toast.error(t("top_bar.service_unavailable"))
                 console.error(err)
             })
             .then((data) =>
@@ -158,7 +161,12 @@ export function TopBar() {
             context.setValue(value)
             localStorage.removeItem("user")
         } else {
-            toast.error(`退出登录失败: ${resp.status} ${data?.payload || ""}`)
+            // toast.error(`退出登录失败: ${resp.status} ${data?.payload || ""}`)
+            toast.error(
+                t("top_bar.logout_failed", {
+                    reason: `${resp.status} ${data?.payload || ""}`,
+                }),
+            )
         }
     }
     return (
@@ -185,15 +193,31 @@ export function TopBar() {
                     {context.value.loading
                         ? "username (loading)"
                         : context.value.isLoggedIn
-                          ? `${(() => {
-                                const h = new Date().getHours()
-                                if (h < 5) return "晚上"
-                                else if (h < 11) return "上午"
-                                else if (h < 14) return "中午"
-                                else if (h < 18) return "下午"
-                                else return "晚上"
-                            })()}好，${context.value.name}。`
-                          : "欢迎来到 Spectra。"}
+                          ? t("top_bar.greeting.message", {
+                                time: t(
+                                    t(
+                                        (() => {
+                                            const h = new Date().getHours()
+                                            if (h < 5)
+                                                return "top_bar.greeting.late_night"
+                                            else if (h < 11)
+                                                return "top_bar.greeting.morning"
+                                            else if (h < 12)
+                                                return "top_bar.greeting.early_noon"
+                                            else if (h < 14)
+                                                return "top_bar.greeting.noon"
+                                            else if (h < 18)
+                                                return "top_bar.greeting.afternoon"
+                                            else if (h < 23)
+                                                return "top_bar.greeting.evening"
+                                            else
+                                                return "top_bar.greeting.late_night"
+                                        })(),
+                                    ),
+                                ),
+                                username: context.value.name || "user",
+                            })
+                          : t("top_bar.greeting.message_guest")}
                 </div>
                 <div
                     className={cn(
@@ -205,7 +229,7 @@ export function TopBar() {
                     {context.value.isLoggedIn ? (
                         <>
                             <div className={"cursor-pointer"} onClick={logout}>
-                                登出
+                                {t("top_bar.logout")}
                             </div>
                         </>
                     ) : (
@@ -214,7 +238,9 @@ export function TopBar() {
                         >
                             <Popover>
                                 <PopoverTrigger>
-                                    <div className={"cursor-pointer"}>登录</div>
+                                    <div className={"cursor-pointer"}>
+                                        {t("top_bar.login")}
+                                    </div>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-90 mr-10 mt-1">
                                     <div className={"flex flex-col p-3"}>
@@ -228,7 +254,7 @@ export function TopBar() {
                                                 login
                                             </span>
                                             <span className={"text-md ml-2"}>
-                                                登录到 Spectra
+                                                {t("top_bar.login_msg")}
                                             </span>
                                         </div>
                                         <div
@@ -236,7 +262,7 @@ export function TopBar() {
                                                 "text-sm opacity-75 mt-6"
                                             }
                                         >
-                                            邮箱地址
+                                            {t("top_bar.email")}
                                         </div>
                                         <Input
                                             className={"mt-2"}
@@ -252,7 +278,7 @@ export function TopBar() {
                                                 "text-sm opacity-75 mt-4"
                                             }
                                         >
-                                            密码
+                                            {t("top_bar.password")}
                                         </div>
                                         <Input
                                             className={"mt-2"}
@@ -287,14 +313,14 @@ export function TopBar() {
                                                 className="text-nowrap"
                                                 htmlFor={"remember-password"}
                                             >
-                                                自动登录
+                                                {t("top_bar.remember_me")}
                                             </Label>
                                         </div>
                                         <Button
                                             className={"mt-4"}
                                             onClick={login}
                                         >
-                                            登录
+                                            {t("top_bar.login_action")}
                                         </Button>
                                         <div
                                             className={cn(
@@ -302,7 +328,7 @@ export function TopBar() {
                                                 loginSuccess && " hidden",
                                             )}
                                         >
-                                            用户名或密码不正确，请重试。
+                                            {t("top_bar.invalid_login")}
                                         </div>
                                     </div>
                                 </PopoverContent>
@@ -310,6 +336,7 @@ export function TopBar() {
                         </div>
                     )}
                     <ThemeSwitcher></ThemeSwitcher>
+                    <LanguageSwitcher></LanguageSwitcher>
                 </div>
             </div>
             <div

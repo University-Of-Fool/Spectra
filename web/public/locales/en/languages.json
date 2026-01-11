@@ -1,0 +1,28 @@
+{
+    "languages": {
+        "php": "PHP",
+        "go": "Go",
+        "rust": "Rust",
+        "csharp": "C#",
+        "swift": "Swift",
+        "xml": "XML",
+        "yaml": "YAML",
+        "arduino": "Arduino C",
+        "javascript": "JavaScript",
+        "python": "Python",
+        "java": "Java",
+        "cpp": "C++",
+        "c": "C",
+        "typescript": "TypeScript",
+        "css": "CSS",
+        "json": "JSON",
+        "html": "HTML",
+        "text": "Plain Text",
+        "markdown": "Markdown",
+        "typst": "Typst",
+        "sql": "SQL",
+        "bash": "Bash",
+        "unknown": "Unknown Language",
+        "latex": "LaTeX"
+    }
+}

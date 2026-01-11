@@ -1,3 +1,4 @@
+import { t } from "i18next"
 import { toast } from "sonner"
 
 export async function wfetch(input: RequestInfo, init?: RequestInit) {
@@ -9,9 +10,9 @@ export async function wfetch(input: RequestInfo, init?: RequestInit) {
     try {
         await resp.clone().json()
     } catch (e) {
-        toast.error("无法连接到服务器。")
+        toast.error(t("top_bar.service_unavailable"))
         console.error(e)
-        throw new Error("无法连接到服务器。")
+        throw new Error(t("top_bar.service_unavailable"))
     }
     // 2. 检测是否需要登录
     if (resp.status === 401) {
@@ -30,8 +31,8 @@ export async function wfetch(input: RequestInfo, init?: RequestInit) {
             })
             return wfetch(input, init)
         }
-        toast.error("登录状态失效")
-        throw new Error("登录状态失效")
+        toast.error(t("top_bar.user_expired"))
+        throw new Error(t("top_bar.user_expired"))
     }
     return resp
 }

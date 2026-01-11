@@ -1,5 +1,7 @@
+import { useTranslation } from "react-i18next"
 import { ThemeSwitcher } from "@/components/ThemeProvider"
 import { cn } from "@/lib/utils.ts"
+import { LanguageSwitcher } from "./LanguageSwitcher"
 import { SpectraLogo } from "./Logo"
 
 export function TopBar(props: {
@@ -8,6 +10,7 @@ export function TopBar(props: {
     page: string
     className?: string
 }) {
+    const { t } = useTranslation()
     return (
         <div
             className={cn(
@@ -22,9 +25,19 @@ export function TopBar(props: {
             </div>
             <div className={"flex flex-col items-end ml-auto mr-4 gap-1"}>
                 <div className={"opacity-90"}>
-                    <div>由 @{props.name} 分享的内容</div>
+                    <div>
+                        {t("shared_by", {
+                            name:
+                                props.name === "Guest"
+                                    ? t("guest")
+                                    : `@${props.name}`,
+                        })}
+                    </div>
                 </div>
-                <ThemeSwitcher className={"opacity-50 text-xs"}></ThemeSwitcher>
+                <div className={"opacity-50 text-xs flex gap-1.5 items-center"}>
+                    <ThemeSwitcher></ThemeSwitcher>
+                    <LanguageSwitcher></LanguageSwitcher>
+                </div>
             </div>
             <div className={"w-12 h-12 rounded-full bg-foreground/5"}>
                 <img

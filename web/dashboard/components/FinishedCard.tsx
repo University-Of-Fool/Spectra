@@ -1,4 +1,5 @@
 import { useContext, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button.tsx"
 import { Input } from "@/components/ui/input.tsx"
@@ -10,10 +11,11 @@ export function FinishedCard(props: {
     filePage?: boolean
     className?: string
 }) {
+    const { t } = useTranslation("dashboard")
     useEffect(() => {
         if (props.finalUrl !== "") {
             navigator.clipboard.writeText(props.finalUrl).then(() => {
-                toast.success("链接已复制到剪贴板")
+                toast.success(t("finished.copied_msg"))
             })
         }
     }, [props.finalUrl])
@@ -29,9 +31,7 @@ export function FinishedCard(props: {
             )}
         >
             <div className={"mb-6 opacity-75"}>
-                {props.filePage
-                    ? "上传成功，链接已复制。"
-                    : "项目创建成功，链接已复制。"}
+                {props.filePage ? t("finished.msg_file") : t("finished.msg")}
             </div>
             <Input
                 className={"w-full"}
@@ -48,7 +48,7 @@ export function FinishedCard(props: {
                     className={"flex-1"}
                     onClick={() => context.handleTabClick("operation")}
                 >
-                    返回
+                    {t("common.back")}
                 </Button>
                 <Button
                     className={"flex-5"}
@@ -56,11 +56,11 @@ export function FinishedCard(props: {
                         navigator.clipboard
                             .writeText(props.finalUrl)
                             .then(() => {
-                                toast.success("链接已复制到剪贴板")
+                                toast.success(t("finished.copied_msg"))
                             })
                     }}
                 >
-                    再次复制
+                    {t("finished.copy_again")}
                 </Button>
                 <Button
                     variant={"outline"}
@@ -69,7 +69,7 @@ export function FinishedCard(props: {
                         window.open(props.finalUrl, "_blank")
                     }}
                 >
-                    打开链接
+                    {t("finished.open_link")}
                 </Button>
             </div>
         </div>

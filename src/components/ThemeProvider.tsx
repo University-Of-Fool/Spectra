@@ -1,4 +1,4 @@
-import { Moon, Sun } from "lucide-react"
+// import { Moon, Sun } from "lucide-react"
 import { createContext, useContext, useEffect, useState } from "react"
 import {
     DropdownMenu,
@@ -87,8 +87,20 @@ export function ThemeSwitcher({ className }: { className?: string }) {
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <span className={cn("cursor-pointer", className)}>
-                    <Sun className="h-[1.2rem] w-[1.2rem] inline not-dark:hidden" />
-                    <Moon className="h-[1.2rem] w-[1.2rem] inline dark:hidden" />
+                    <span
+                        className={
+                            "material-symbols-outlined text-[1.6em]! not-dark:hidden!"
+                        }
+                    >
+                        light_mode
+                    </span>
+                    <span
+                        className={
+                            "material-symbols-outlined text-[1.6em]! dark:hidden!"
+                        }
+                    >
+                        dark_mode
+                    </span>
                 </span>
             </DropdownMenuTrigger>
             <DropdownMenuContent>

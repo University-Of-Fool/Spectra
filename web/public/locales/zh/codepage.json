@@ -1,0 +1,23 @@
+{
+    "preview_expand": "展开 {{language}} 预览",
+    "preview_collapse": "收起 {{language}} 预览",
+    "codeblock": {
+        "anchor_copied": "已复制锚点位置：{{url}}"
+    },
+    "preview": {
+        "typst": {
+            "error": "无法生成预览内容，请检查 Typst 代码是否正确。",
+            "error_unknown": "未知渲染错误",
+            "render_note": "要渲染该文档的预览吗？（初次使用需要加载 ~30MB 的资源）",
+            "no_warning": "不再提醒",
+            "render": "渲染",
+            "loading": "正在加载 Typst 渲染引擎，请稍候……",
+            "rendering": "正在渲染文档，请稍候……",
+            "render_error": "渲染失败",
+            "try_again": "重试"
+        },
+        "latex": {
+            "notice": "注意：此处只支持预览 LaTeX 中的数学公式。若要预览页面完整的渲染效果，请使用专业 LaTeX 编辑器。"
+        }
+    }
+}

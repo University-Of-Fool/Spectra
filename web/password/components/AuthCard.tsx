@@ -1,11 +1,11 @@
 import { useRef } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-
 export function AuthCard(props: { error: boolean }) {
     const url = new URL(window.location.href)
     const password = useRef(url.searchParams.get("password") || "")
-
+    const { t } = useTranslation("password")
     return (
         <div className={"h-full flex items-center justify-center"}>
             <div
@@ -13,9 +13,7 @@ export function AuthCard(props: { error: boolean }) {
                     "bg-white dark:bg-neutral-900 shadow-lg border-1 border-border rounded-lg p-8 flex flex-col items-start gap-4"
                 }
             >
-                <div className={"text-sm opacity-75 mb-1"}>
-                    该内容需要验证密码
-                </div>
+                <div className={"text-sm opacity-75 mb-1"}>{t("msg")}</div>
                 <div className={"flex gap-2"}>
                     <Input
                         type={"password"}
@@ -25,6 +23,17 @@ export function AuthCard(props: { error: boolean }) {
                                 e.target as HTMLInputElement
                             ).value
                         }}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                e.preventDefault()
+                                url.searchParams.set(
+                                    "password",
+                                    password.current,
+                                )
+                                window.location.href = url.href
+                            }
+                        }}
+                        autocomplete={"one-time-code"}
                         value={url.searchParams.get("password") || ""}
                     />
                     <Button
@@ -34,12 +43,12 @@ export function AuthCard(props: { error: boolean }) {
                             window.location.href = url.href
                         }}
                     >
-                        验证
+                        {t("action")}
                     </Button>
                 </div>
                 {props.error && (
                     <div className={"text-sm opacity-75 mt-1 text-red-700"}>
-                        密码错误，请重试
+                        {t("wrong_msg")}
                     </div>
                 )}
             </div>

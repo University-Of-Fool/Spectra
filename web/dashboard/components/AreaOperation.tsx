@@ -1,4 +1,5 @@
 import { type ReactNode, useContext } from "react"
+import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils.ts"
 import { AccountCtx } from "../main.tsx"
 
@@ -23,10 +24,11 @@ function Card({ children, className = "", onClick }: CardProps) {
 }
 export function AreaOperation() {
     const context = useContext(AccountCtx)
+    const { t } = useTranslation("dashboard")
     return (
         <div className={"flex flex-col items-center"}>
             <div className={"font-thin dark:font-light text-2xl mt-6 mb-12"}>
-                接下来要进行什么操作？
+                {t("dashboard.tabs.welcome_msg")}
             </div>
             <div className={"flex gap-8"}>
                 <Card
@@ -47,9 +49,11 @@ export function AreaOperation() {
                             "mt-auto mb-2 text-lg font-semibold opacity-75"
                         }
                     >
-                        文件传输
+                        {t("dashboard.tabs.file_share")}
                     </div>
-                    <div className={"text-sm opacity-50"}>分享本地文件。</div>
+                    <div className={"text-sm opacity-50"}>
+                        {t("dashboard.tabs.file_share_desc")}
+                    </div>
                 </Card>
                 <Card
                     className={"w-60 h-75 flex flex-col p-5 hover-float"}
@@ -69,10 +73,10 @@ export function AreaOperation() {
                             "mt-auto mb-2 text-lg font-semibold opacity-75"
                         }
                     >
-                        剪贴板
+                        {t("dashboard.tabs.pastebin")}
                     </div>
                     <div className={"text-sm opacity-50"}>
-                        分享代码/文本/日志文件。
+                        {t("dashboard.tabs.pastebin_desc")}
                     </div>
                 </Card>
                 <Card
@@ -93,10 +97,10 @@ export function AreaOperation() {
                             "mt-auto mb-2 text-lg font-semibold opacity-75"
                         }
                     >
-                        短链接
+                        {t("dashboard.tabs.short_url")}
                     </div>
                     <div className={"text-sm opacity-50"}>
-                        创建简短的跳转链接。
+                        {t("dashboard.tabs.short_url_desc")}
                     </div>
                 </Card>
             </div>

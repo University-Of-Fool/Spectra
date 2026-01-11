@@ -1,5 +1,6 @@
 import { X } from "lucide-react"
 import { useContext, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button.tsx"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -35,6 +36,7 @@ export function AreaFileShare() {
         url: useRef(""),
         xhr: useRef<XMLHttpRequest>(null),
     }
+    const { t } = useTranslation(["dashboard"])
 
     const references = {
         path: useRef(""),
@@ -136,9 +138,13 @@ export function AreaFileShare() {
 
         if (resp.status !== 200) {
             if (resp.status === 409) {
-                setFailedMessage("指定的路径已存在")
+                setFailedMessage(t("common.failed_msg.conflict"))
             } else {
-                setFailedMessage(`未知错误：${resp.status} ${data.payload}`)
+                setFailedMessage(
+                    t("common.failed_msg.unknown", {
+                        reason: `${resp.status} ${data.payload}`,
+                    }),
+                )
             }
             return
         }
@@ -190,7 +196,7 @@ export function AreaFileShare() {
                 xhr.send(formData)
             })
         } catch (e) {
-            toast.error(`未知错误: ${e}`)
+            toast.error(t("common.failed_msg.unknown", { reason: `${e}` }))
             console.error(e)
             return
         }
@@ -202,7 +208,7 @@ export function AreaFileShare() {
     return (
         <div className="flex flex-col items-center">
             <div className="font-thin dark:font-light text-2xl mt-6 mb-12">
-                文件传输
+                {t("file_share.title")}
             </div>
 
             {progress === 0 && (
@@ -217,7 +223,7 @@ export function AreaFileShare() {
                         disabled={references.random[0]}
                         value={
                             references.random[0]
-                                ? "[随机]"
+                                ? t("common.[random]")
                                 : references.path.current
                         }
                     />
@@ -230,7 +236,11 @@ export function AreaFileShare() {
                                     !context.value.isLoggedIn &&
                                     context.value.turnstile_enabled
                                 ) {
-                                    toast.error("未登录时只能使用随机路径")
+                                    toast.error(
+                                        t(
+                                            "common.failed_msg.guest_avoid_random",
+                                        ),
+                                    )
                                     return
                                 }
 
@@ -241,7 +251,7 @@ export function AreaFileShare() {
                             defaultChecked
                         />
                         <Label className="text-nowrap" htmlFor="terms">
-                            随机生成
+                            {t("common.random")}
                         </Label>
                     </div>
                 </div>
@@ -250,9 +260,11 @@ export function AreaFileShare() {
             <div className="w-150 mt-4">
                 {progress === 0 && (
                     <>
-                        <div className="mt-4 mb-2 text-sm">文件选择</div>
+                        <div className="mt-4 mb-2 text-sm">
+                            {t("file_share.choose_file")}
+                        </div>
 
-                        {/* 文件选择区域 - 只在没有选择文件时显示 */}
+                        {/* 文件选择区域 */}
                         {selectedFiles.length === 0 && (
                             <div
                                 className={cn(
@@ -271,13 +283,15 @@ export function AreaFileShare() {
                                         upload
                                     </span>
                                     <span className="text-center">
-                                        点击上传或拖拽文件至此
+                                        {t(
+                                            "file_share.choose_file_instruction",
+                                        )}
                                     </span>
                                 </div>
                             </div>
                         )}
 
-                        {/* 隐藏的文件输入 - 移除multiple属性 */}
+                        {/* 隐藏的文件<input> */}
                         <input
                             type="file"
                             ref={fileInputRef}
@@ -329,7 +343,9 @@ export function AreaFileShare() {
 
                         <div className="flex items-center justify-center mt-4 gap-4">
                             <div className="flex-1">
-                                <div className="mb-2 text-sm">有效时长</div>
+                                <div className="mb-2 text-sm">
+                                    {t("common.invalid_after")}
+                                </div>
                                 <Select
                                     defaultValue="604800"
                                     onValueChange={(value) => {
@@ -342,22 +358,22 @@ export function AreaFileShare() {
                                     <SelectContent>
                                         <SelectGroup>
                                             <SelectItem value="3600">
-                                                1 小时
+                                                {t("common.hour", { count: 1 })}
                                             </SelectItem>
                                             <SelectItem value="28800">
-                                                8 小时
+                                                {t("common.hour", { count: 8 })}
                                             </SelectItem>
                                             <SelectItem value="86400">
-                                                1 天
+                                                {t("common.day", { count: 1 })}
                                             </SelectItem>
                                             <SelectItem value="604800">
-                                                7 天
+                                                {t("common.day", { count: 7 })}
                                             </SelectItem>
                                             <SelectItem value="1209600">
-                                                14 天
+                                                {t("common.day", { count: 14 })}
                                             </SelectItem>
                                             <SelectItem value="permanent">
-                                                永久
+                                                {t("common.never")}
                                             </SelectItem>
                                         </SelectGroup>
                                     </SelectContent>
@@ -365,7 +381,9 @@ export function AreaFileShare() {
                             </div>
 
                             <div className="flex-1">
-                                <div className="mb-2 text-sm">访问人数限制</div>
+                                <div className="mb-2 text-sm">
+                                    {t("common.max_visits")}
+                                </div>
                                 <Input
                                     onInput={(e) => {
                                         references.maxvisit.current =
@@ -374,34 +392,39 @@ export function AreaFileShare() {
                                     }}
                                     type={"number"}
                                     min={0}
-                                    placeholder={"无限制"}
+                                    placeholder={t(
+                                        "common.max_visits_placeholder",
+                                    )}
                                 />
                             </div>
                         </div>
 
                         <div className="mt-4">
-                            <div className="mb-2 text-sm">密码</div>
+                            <div className="mb-2 text-sm">
+                                {t("common.password")}
+                            </div>
                             <Input
                                 onInput={(e) => {
                                     references.password.current =
                                         (e.target as HTMLInputElement).value ||
                                         ""
                                 }}
-                                placeholder={"无密码"}
+                                placeholder={t("common.password_placeholder")}
                             />
                         </div>
 
                         <div className="mt-8 flex items-center border-1 border-border rounded-md p-4 shadow-sm">
                             <div>
-                                <Label htmlFor="airplane-mode">图床模式</Label>
+                                <Label htmlFor="inline-mode">
+                                    {t("file_share.inline_mode")}
+                                </Label>
                                 <div className={"mt-1.5 opacity-50 text-xs"}>
-                                    开启后，上传图片生成的 URL 可以直接用作 HTML
-                                    中的 &lt;img&gt; 标签的 src 属性。
+                                    {t("file_share.inline_mode_desc")}
                                 </div>
                             </div>
                             <Switch
                                 className={"ml-auto"}
-                                id="airplane-mode"
+                                id="inline-mode"
                                 onCheckedChange={(checked) => {
                                     references.no_filename.current = checked
                                 }}
@@ -419,7 +442,7 @@ export function AreaFileShare() {
                                     context.handleTabClick("operation")
                                 }
                             >
-                                取消
+                                {t("common.cancel")}
                             </Button>
                             <Button
                                 className={"flex-5 cursor-pointer"}
@@ -432,7 +455,7 @@ export function AreaFileShare() {
                                             turnstileToken === ""))
                                 }
                             >
-                                上传
+                                {t("common.upload")}
                             </Button>
                         </div>
                         {failedMessage !== "" && (
@@ -455,8 +478,8 @@ export function AreaFileShare() {
                     >
                         <div className={"mb-2 opacity-75"}>
                             {xhrStates.aborted[0]
-                                ? "上传已终止"
-                                : "正在上传文件..."}
+                                ? t("file_share.progress.aborted")
+                                : t("file_share.progress.ongoing")}
                         </div>
                         <div
                             className={
@@ -479,7 +502,7 @@ export function AreaFileShare() {
                                     context.handleTabClick("operation")
                                 }}
                             >
-                                返回
+                                {t("common.back")}
                             </Button>
                         ) : (
                             <Button
@@ -498,15 +521,23 @@ export function AreaFileShare() {
                                         )
                                         const data = await resp.json()
                                         if (!data.success) {
-                                            toast.error("取消失败")
+                                            toast.error(
+                                                t(
+                                                    "file_share.error_msg.cancel_failed",
+                                                ),
+                                            )
                                         }
                                     } catch (e) {
                                         console.error(e)
-                                        toast.error("取消失败：未知错误")
+                                        toast.error(
+                                            t(
+                                                "file_share.error_msg.cancel_failed_unknown_reason",
+                                            ),
+                                        )
                                     }
                                 }}
                             >
-                                取消
+                                {t("common.cancel")}
                             </Button>
                         )}
                     </div>

@@ -14,7 +14,7 @@ const target = targetArgIndex !== -1 ? args[targetArgIndex + 1] : null
 const isWindows = process.platform === "win32"
 const projectRoot = resolve(__dirname, "..")
 const distDir = join(projectRoot, "dist")
-const binaryTargetDir = join(projectRoot, "target", target || "release")
+const binaryTargetDir = join(projectRoot, "target", target ?`${target}/release`: "release")
 
 process.chdir(projectRoot)
 
@@ -71,6 +71,7 @@ function getNativeRustTarget() {
     const options = {};
     if(target?.includes("musl")){
         options["env"]={
+            ...process.env,
             "OPENSSL_STATIC":"1",
         }
     }
