@@ -1,0 +1,112 @@
+{
+    "dashboard": {
+        "unlogon_notice": "要查看历史分享项目，请先登录。",
+        "tabs": {
+            "welcome_msg": "接下来要进行什么操作？",
+            "file_share": "文件传输",
+            "file_share_desc": "分享本地文件。",
+            "pastebin": "剪贴板",
+            "pastebin_desc": "分享代码/文本/日志文件。",
+            "short_url": "短链接",
+            "short_url_desc": "创建简短的跳转链接。"
+        }
+    },
+    "file_share": {
+        "title": "文件传输",
+        "choose_file": "文件选择",
+        "choose_file_instruction": "点击上传或拖拽文件至此",
+        "inline_mode": "图床模式",
+        "inline_mode_desc": "开启后，上传图片生成的 URL 可以直接用作 HTML 中的 <img> 标签的 src 属性。",
+        "progress": {
+            "aborted": "上传已终止",
+            "ongoing": "正在上传文件..."
+        },
+        "error_msg": {
+            "cancel_failed": "取消失败",
+            "cancel_failed_unknown_reason": "取消失败：未知错误"
+        }
+    },
+    "short_url": {
+        "title": "短链接",
+        "target_url": "目标链接",
+        "invalid_url_warning": "这似乎不是有效的链接，请检查你的输入。",
+        "force_create_hint": "按住 Shift 点击以强制创建"
+    },
+    "pastebin": {
+        "title": "剪贴板",
+        "title_field": "标题",
+        "title_placeholder": "无标题",
+        "syntax_highlight": "语法高亮",
+        "content": "内容"
+    },
+    "common": {
+        "failed_msg": {
+            "conflict": "指定的路径已存在",
+            "unknown": "未知错误：{{reason}}",
+            "guest_avoid_random": "未登录时只能使用随机路径。"
+        },
+        "[random]": "[随机]",
+        "random": "随机生成",
+        "invalid_after": "有效时长",
+        "hour": "{{count}} 小时",
+        "day": "{{count}} 天",
+        "never": "永久有效",
+        "max_visits": "访问人数限制",
+        "max_visits_placeholder": "无限制",
+        "password": "密码",
+        "password_placeholder": "无密码",
+        "cancel": "取消",
+        "upload": "上传",
+        "create": "创建",
+        "back": "返回",
+        "turnstile_disabled": "当前站点未开启游客上传功能，请先登录。"
+    },
+    "top_bar": {
+        "service_unavailable": "无法连接至服务器",
+        "logout_failed": "退出登录失败：{{reason}}",
+        "greeting": {
+            "message": "{{time}}好，{{username}}！",
+            "message_guest": "欢迎来到 Spectra。",
+            "morning": "早上",
+            "afternoon": "下午",
+            "evening": "晚上",
+            "noon": "中午",
+            "late_night": "晚上",
+            "early_noon": "中午"
+        },
+        "login": "登录",
+        "logout": "登出",
+        "login_msg": "登录到 Spectra",
+        "email": "邮箱地址",
+        "password": "密码",
+        "remember_me": "自动登录",
+        "login_action": "登录",
+        "invalid_login": "用户名或密码不正确，请重试。",
+        "user_expired": "登录状态失效"
+    },
+    "shared": {
+        "loading": "加载中",
+        "title": "已分享的项目",
+        "error_loading": "获取分享项目失败",
+        "delete_success": "删除成功",
+        "delete_failed": "删除失败",
+        "type": "类型",
+        "link": "链接",
+        "visits": "访问次数",
+        "created_at": "创建时间",
+        "action": "操作",
+        "status": "状态",
+        "valid": "有效",
+        "invalid": "失效",
+        "list_end": "没有其他项目了…",
+        "load_more": "查看更多…",
+        "empty": "暂无分享项目"
+    },
+    "finished": {
+        "copied_msg": "链接已复制到剪贴板",
+        "msg_file": "上传成功，链接已复制。",
+        "msg": "项目创建成功，链接已复制。",
+        "copy_again": "再次复制",
+        "open_link": "打开链接"
+    }
+}
