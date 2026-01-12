@@ -242,7 +242,7 @@ pub async fn create_item(
         loop {
             let random_path = crate::util::random_string(
                 4,
-                Some("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ124567890"),
+                Some("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"),
             );
             if state.database_accessor.item_exists(&random_path).await? {
                 continue;
