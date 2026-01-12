@@ -456,42 +456,56 @@ async fn main() {
 
     if let Ok(scheduler) = JobScheduler::new().await {
         let outer_tokens = Arc::clone(&state.user_tokens);
-        let _ = scheduler.add(
-            Job::new_async("0 0/30 * * * ?", move |_, _| {
-                let inner_tokens = Arc::clone(&outer_tokens);
-                Box::pin(async move {
-                    service::scheduled::clear_expired_token(inner_tokens).await;
+        if let Err(e) = scheduler
+            .add(
+                Job::new_async("0 0/30 * * * ?", move |_, _| {
+                    info!("Triggered scheduled task: clearing expired tokens...");
+                    let inner_tokens = Arc::clone(&outer_tokens);
+                    Box::pin(async move {
+                        service::scheduled::clear_expired_token(inner_tokens).await;
+                    })
                 })
-            })
-            .unwrap(),
-        );
+                .unwrap(),
+            )
+            .await
+        {
+            error!("Failed to add token clearing job to scheduler: {}", e);
+        }
         let da_clone = state.database_accessor.clone();
         let fa_clone = state.file_accessor.clone();
-        let _ = scheduler.add(
-            Job::new_async(
-                config
-                    .get("service")
-                    .unwrap()
-                    .get("refresh_time")
-                    .unwrap()
-                    .as_str()
-                    .unwrap(),
-                move |_, _| {
-                    let da = da_clone.clone();
-                    let fa = fa_clone.clone();
-                    Box::pin(async move {
-                        if let Err(e) = da.refresh_db(fa).await {
-                            error!("Failed to refresh database: {}", e);
-                        }
-                    })
-                },
+        if let Err(e) = scheduler
+            .add(
+                Job::new_async(
+                    config
+                        .get("service")
+                        .unwrap()
+                        .get("refresh_time")
+                        .unwrap()
+                        .as_str()
+                        .unwrap(),
+                    move |_, _| {
+                        info!("Triggered scheduled task: refreshing database...");
+                        let da = da_clone.clone();
+                        let fa = fa_clone.clone();
+                        Box::pin(async move {
+                            if let Err(e) = da.refresh_db(fa).await {
+                                error!("Failed to refresh database: {}", e);
+                            }
+                        })
+                    },
+                )
+                .unwrap(),
             )
-            .unwrap(),
-        );
+            .await
+        {
+            error!("Failed to add database refresh job to scheduler: {}", e);
+        }
 
         if let Err(e) = scheduler.start().await {
             error!("Failed to start scheduler: {}", e);
         }
+    } else {
+        error!("Failed to create job scheduler");
     }
 
     let app = make_frontend_router()
