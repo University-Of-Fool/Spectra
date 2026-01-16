@@ -23,6 +23,7 @@ pub struct AppState {
     pub user_tokens: Arc<DashMap<String, Token>>,
     pub cookie_key: Key,
     pub turnstile: TurnstileConfig,
+    pub domain: String,
 }
 
 // this impl tells `PrivateCookieJar` how to access the key from our state

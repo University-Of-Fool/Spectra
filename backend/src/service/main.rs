@@ -261,7 +261,7 @@ pub async fn main_service(
                         .first_or(mime_guess::mime::APPLICATION_OCTET_STREAM);
 
                     // 构建响应
-                    let response_builder = Response::builder()
+                    let mut response_builder = Response::builder()
                         .header(
                             "Content-Disposition",
                             if let Some(filename) = &item.extra_data {
@@ -274,6 +274,14 @@ pub async fn main_service(
                         .header("Content-Length", content_length.to_string())
                         .header("Accept-Ranges", "bytes")
                         .header("Content-Type", mime.to_string());
+
+                    // 如果 extra_data 为空，允许任何源访问
+                    if item.extra_data.is_none() {
+                        if let Some(origin) = request.headers().get("Origin") {
+                            response_builder = response_builder
+                                .header("Access-Control-Allow-Origin", origin.clone());
+                        }
+                    }
 
                     let response = if range_header.is_some() {
                         response_builder

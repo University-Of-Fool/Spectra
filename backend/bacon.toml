@@ -14,8 +14,6 @@ command = [
     "run",
     "--",
     "--debug",
-    "-H",
-    "0.0.0.0",
     # put launch parameters for your program behind a `--` separator
 ]
 need_stdout = true

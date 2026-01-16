@@ -1,7 +1,9 @@
 use axum::extract::DefaultBodyLimit;
+use axum::http::header;
 use axum_extra::extract::cookie::Key;
 use clap::{Command, arg, crate_version, value_parser};
 use dashmap::DashMap;
+use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use shadow_rs::shadow;
 use std::fs::{self, read_to_string};
@@ -31,6 +33,29 @@ shadow!(shadow);
 const DEFAULT_CONFIG_FILE: &str = include_str!("../assets/config_example.toml");
 const DEFAULT_SYSTEMD_UNIT_FILE: &str = include_str!("../assets/spectra.service");
 
+#[derive(Deserialize)]
+struct ServiceConfig {
+    data_dir: String,
+    cookie_key: String,
+    refresh_time: String,
+    domain: String,
+    host: String,
+    port: u16,
+}
+
+#[derive(Deserialize)]
+struct TurnstileConfigFile {
+    enabled: bool,
+    site_key: String,
+    secret_key: String,
+}
+
+#[derive(Deserialize)]
+struct AppConfig {
+    service: ServiceConfig,
+    turnstile: TurnstileConfigFile,
+}
+
 #[tokio::main]
 async fn main() {
     // 解析命令行参数
@@ -48,18 +73,6 @@ async fn main() {
                 .value_parser(value_parser!(PathBuf))
                 .required(false)
                 .default_value("./config.toml"),
-        )
-        .arg(
-            arg!(-p --port <PORT> "The port on which the service listens")
-                .value_parser(value_parser!(u16))
-                .required(false)
-                .default_value("3000"),
-        )
-        .arg(
-            arg!(-H --host <IP> "The ip address on which the service listens")
-                .value_parser(value_parser!(IpAddr))
-                .required(false)
-                .default_value("127.0.0.1"),
         )
         .arg(arg!(-v --verbose "Enable more detailed output"))
         .arg(arg!(-d --debug "Enable debug output"))
@@ -206,26 +219,13 @@ async fn main() {
     let config_path = matches.get_one::<PathBuf>("config").unwrap();
     info!("Reading configuration from {}", config_path.display());
 
-    let config = if !config_path.exists() {
+    let config_str = if !config_path.exists() {
         warn!("The specified configuration file does not exist, using the default values...");
         warn!("Warning: a NEW cookie key is being generated...");
-        DEFAULT_CONFIG_FILE
-            .replace("{SPECTRA_COOKIE_KEY}", &util::random_string(64, None))
-            .parse::<toml::Table>()
-            .unwrap() // 默认的配置文件一定是有效的 TOML 字符串，所以这里略过错误处理
+        DEFAULT_CONFIG_FILE.replace("{SPECTRA_COOKIE_KEY}", &util::random_string(64, None))
     } else {
         match read_to_string(config_path) {
-            Ok(config_content) => match config_content.parse::<toml::Table>() {
-                Ok(config_table) => config_table,
-                Err(e) => {
-                    error!(
-                        "The specified configuration file ({}) cannot be parsed: {}",
-                        config_path.display(),
-                        e
-                    );
-                    std::process::exit(1);
-                }
-            },
+            Ok(content) => content,
             Err(e) => {
                 error!(
                     "The specified configuration file ({}) cannot be read: {}",
@@ -237,61 +237,51 @@ async fn main() {
         }
     };
 
-    let state = {
-        // 检查 service 键是否存在
-        let service_table = match config.get("service") {
-            Some(service) => match service.as_table() {
-                Some(table) => table,
-                None => {
-                    error!("'service' key in config is not a table");
-                    std::process::exit(1);
-                }
-            },
-            None => {
-                error!("'service' key not found in config");
-                std::process::exit(1);
-            }
-        };
-
-        // 检查 service.refresh_time 是否存在且为有效的 Cron 字符串
-        match service_table.get("refresh_time") {
-            Some(dir) => match dir.as_str() {
-                Some(s) => {
-                    if croner::Cron::from_str(s).is_err() {
-                        error!("'refresh_time' in config is not a valid cron expression");
-                        std::process::exit(1);
-                    }
-                }
-                None => {
-                    error!("'refresh_time' in config is not a string");
-                    std::process::exit(1);
-                }
-            },
-            None => {
-                error!("'refresh_time' key not found in 'service' table");
-                std::process::exit(1);
-            }
-        };
-
-        // 检查 data_dir 键是否存在
-        let data_dir = match service_table.get("data_dir") {
-            Some(dir) => match dir.as_str() {
-                Some(s) => s,
-                None => {
-                    error!("'data_dir' in config is not a string");
-                    std::process::exit(1);
-                }
-            },
-            None => {
-                error!("'data_dir' key not found in 'service' table");
-                std::process::exit(1);
-            }
-        };
-        // 确保数据目录存在
-        if let Err(e) = fs::create_dir_all(data_dir) {
-            error!("Failed to create data directory '{}': {}", data_dir, e);
+    let app_config: AppConfig = match toml::from_str(&config_str) {
+        Ok(config) => config,
+        Err(e) => {
+            error!("Failed to parse configuration: {}", e);
             std::process::exit(1);
         }
+    };
+
+    // 验证配置内容
+    let service_config = &app_config.service;
+    let turnstile_file_config = &app_config.turnstile;
+
+    // 检查 service.refresh_time 是否为有效的 Cron 字符串
+    if croner::Cron::from_str(&service_config.refresh_time).is_err() {
+        error!("'refresh_time' in config is not a valid cron expression");
+        std::process::exit(1);
+    }
+
+    // 检查 service.cookie_key 长度
+    if service_config.cookie_key.len() < 64 {
+        error!("The length of 'cookie_key' must be at least 64 bytes");
+        error!("hint: you can use 'spectra generate-cookie-key' to generate a new appropriate key");
+        std::process::exit(1);
+    }
+
+    // 检查 service.host 是否为有效的 IP 地址
+    let host_addr: IpAddr = match service_config.host.parse() {
+        Ok(addr) => addr,
+        Err(_) => {
+            error!(
+                "'host' in config is not a valid IP address: {}",
+                service_config.host
+            );
+            std::process::exit(1);
+        }
+    };
+
+    // 确保数据目录存在
+    let data_dir = &service_config.data_dir;
+    if let Err(e) = fs::create_dir_all(data_dir) {
+        error!("Failed to create data directory '{}': {}", data_dir, e);
+        std::process::exit(1);
+    }
+
+    let state = {
         let database_path = std::path::Path::new(data_dir).join("data.db");
         // 检查数据库文件是否可以访问，不存在则创建
         if !database_path.exists() {
@@ -301,95 +291,19 @@ async fn main() {
                 std::process::exit(1);
             });
         }
-        // 检查 service.cookie_key 是否存在；若存在，是否长度不小于 64 字节
-        let cookie_key = match service_table.get("cookie_key") {
-            Some(key) => match key.as_str() {
-                Some(s) => s,
-                None => {
-                    error!("'cookie_key' in config is not a string");
-                    error!("hint: you can use 'spectra generate-cookie-key' to generate a new key");
-                    std::process::exit(1);
-                }
-            },
-            None => {
-                error!("'cookie_key' key not found in 'service' table");
-                error!("hint: you can use 'spectra generate-cookie-key' to generate a new key");
-                std::process::exit(1);
-            }
-        };
-        if cookie_key.len() < 64 {
-            error!("The length of 'cookie_key' must be at least 64 bytes");
-            error!(
-                "hint: you can use 'spectra generate-cookie-key' to generate a new appropriate key"
-            );
-            std::process::exit(1);
-        }
 
-        // 检查 turnstile 相关配置是否存在且类型正确
-        let turnstile_table = match config.get("turnstile") {
-            Some(table) => match table.as_table() {
-                Some(t) => t,
-                None => {
-                    error!("'turnstile' key in config is not a table");
-                    std::process::exit(1);
-                }
-            },
-            None => {
-                error!("'turnstile' key not found in config");
-                std::process::exit(1);
-            }
-        };
-        // 检查 turnstile.enabled 是否存在且类型正确
-        let enabled = match turnstile_table.get("enabled") {
-            Some(enabled) => match enabled.as_bool() {
-                Some(b) => b,
-                None => {
-                    error!("'enabled' in config is not a boolean");
-                    std::process::exit(1);
-                }
-            },
-            None => {
-                error!("'enabled' key not found in 'turnstile' table");
-                std::process::exit(1);
-            }
-        };
-        // 检查 turnstile.site_key 是否存在且类型正确
-        let site_key = match turnstile_table.get("site_key") {
-            Some(site_key) => match site_key.as_str() {
-                Some(s) => s,
-                None => {
-                    error!("'site_key' in config is not a string");
-                    std::process::exit(1);
-                }
-            },
-            None => {
-                error!("'site_key' key not found in 'turnstile' table");
-                std::process::exit(1);
-            }
-        };
-        // 检查 turnstile.secret_key 是否存在且类型正确
-        let secret_key = match turnstile_table.get("secret_key") {
-            Some(secret_key) => match secret_key.as_str() {
-                Some(s) => s,
-                None => {
-                    error!("'secret_key' in config is not a string");
-                    std::process::exit(1);
-                }
-            },
-            None => {
-                error!("'secret_key' key not found in 'turnstile' table");
-                std::process::exit(1);
-            }
-        };
         let turnstile_config = TurnstileConfig {
-            enabled,
-            site_key: site_key.to_string(),
+            enabled: turnstile_file_config.enabled,
+            site_key: turnstile_file_config.site_key.clone(),
+            // 在开发时动态指定 Turnstile secret key，因为两个 Dummy key（总是允许/总是拒绝）
+            // 的不同点在 secret key 而不是 site key 上
             secret_key: if cfg!(debug_assertions) {
                 matches.get_one::<String>("turnstile").unwrap().to_string()
             } else {
-                secret_key.to_string()
+                turnstile_file_config.secret_key.clone()
             },
         };
+
         AppState {
             database_accessor: DatabaseAccessor::new(
                 format!("sqlite:{}", database_path.to_str().unwrap()).as_str(),
@@ -398,8 +312,9 @@ async fn main() {
             .unwrap(),
             file_accessor: FileAccessor::new(data_dir.to_string()),
             user_tokens: Arc::new(DashMap::new()),
-            cookie_key: Key::from(cookie_key.as_bytes()),
+            cookie_key: Key::from(service_config.cookie_key.as_bytes()),
             turnstile: turnstile_config,
+            domain: service_config.domain.clone(),
         }
     };
 
@@ -475,25 +390,16 @@ async fn main() {
         let fa_clone = state.file_accessor.clone();
         if let Err(e) = scheduler
             .add(
-                Job::new_async(
-                    config
-                        .get("service")
-                        .unwrap()
-                        .get("refresh_time")
-                        .unwrap()
-                        .as_str()
-                        .unwrap(),
-                    move |_, _| {
-                        info!("Triggered scheduled task: refreshing database...");
-                        let da = da_clone.clone();
-                        let fa = fa_clone.clone();
-                        Box::pin(async move {
-                            if let Err(e) = da.refresh_db(fa).await {
-                                error!("Failed to refresh database: {}", e);
-                            }
-                        })
-                    },
-                )
+                Job::new_async(&service_config.refresh_time, move |_, _| {
+                    info!("Triggered scheduled task: refreshing database...");
+                    let da = da_clone.clone();
+                    let fa = fa_clone.clone();
+                    Box::pin(async move {
+                        if let Err(e) = da.refresh_db(fa).await {
+                            error!("Failed to refresh database: {}", e);
+                        }
+                    })
+                })
                 .unwrap(),
             )
             .await
@@ -508,6 +414,25 @@ async fn main() {
         error!("Failed to create job scheduler");
     }
 
+    let origins = [
+        "http://localhost:3000".parse().unwrap(),
+        "http://127.0.0.1:3000".parse().unwrap(),
+        service_config.domain.as_str().parse().unwrap(),
+    ];
+
+    let cors = CorsLayer::new()
+        .allow_credentials(true)
+        .allow_origin(origins)
+        .allow_methods([
+            axum::http::Method::GET,
+            axum::http::Method::POST,
+            axum::http::Method::PUT,
+            axum::http::Method::DELETE,
+            axum::http::Method::HEAD,
+            axum::http::Method::OPTIONS,
+        ])
+        .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION, header::ACCEPT]);
+
     let app = make_frontend_router()
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
@@ -515,16 +440,13 @@ async fn main() {
         ))
         .nest("/api", service::api::make_router())
         .layer(CompressionLayer::new())
-        .layer(CorsLayer::permissive())
+        .layer(cors)
         .layer(TraceLayer::new_for_http())
         .layer(DefaultBodyLimit::max(1024 * 1024 * 1024 * 1024))
         .with_state(state);
 
     // 绑定服务器地址
-    let addr = SocketAddr::from((
-        *matches.get_one::<IpAddr>("host").unwrap(),
-        *matches.get_one::<u16>("port").unwrap(),
-    ));
+    let addr = SocketAddr::from((host_addr, service_config.port));
 
     println!("🚀 Server listening on http://{}", addr);
 
