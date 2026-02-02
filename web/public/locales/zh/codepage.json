@@ -2,7 +2,7 @@
     "preview_expand": "展开 {{language}} 预览",
     "preview_collapse": "收起 {{language}} 预览",
     "codeblock": {
-        "anchor_copied": "已复制锚点位置：{{url}}"
+        "anchor_copied": "已复制指向第 {{line}} 行的链接。"
     },
     "preview": {
         "typst": {

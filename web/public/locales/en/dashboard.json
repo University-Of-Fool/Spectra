@@ -16,7 +16,7 @@
         "choose_file": "Choose File",
         "choose_file_instruction": "Click or drag files here to upload",
         "inline_mode": "Inline Mode",
-        "inline_mode_desc": "When enabled, URLs generated  can be used inline, for example, as the src attribute of <img> tags in HTML.",
+        "inline_mode_desc": "When enabled, URLs generated can be used inline, for example, as the src attribute of <img> tags in HTML.",
         "progress": {
             "aborted": "Upload aborted",
             "ongoing": "Uploading file..."
