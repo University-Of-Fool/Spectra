@@ -474,7 +474,7 @@ impl FileAccessor {
         if !path.exists() {
             debug!("dummy_file.txt not found, creating...");
             // 这里用 std 而不是 tokio 的 fs 模块是因为目前服务器还没有启动，不需要异步执行
-            std::fs::write(path, "This file is not uploaded yet, please wait!").unwrap();
+            std::fs::write(path, "This file is not uploaded yet, please wait!\n").unwrap();
         }
         Self {
             data_dir: PathBuf::from(data_dir),
