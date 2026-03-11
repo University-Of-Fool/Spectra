@@ -9,7 +9,8 @@
             "pastebin_desc": "分享代码/文本/日志文件。",
             "short_url": "短链接",
             "short_url_desc": "创建简短的跳转链接。"
-        }
+        },
+        "footer_button_about": "关于 Spectra"
     },
     "file_share": {
         "title": "文件传输",

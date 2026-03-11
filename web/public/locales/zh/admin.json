@@ -1,0 +1,49 @@
+{
+    "button_back_to_home": "返回首页",
+    "button_overview": "概览",
+    "button_shared_content": "已分享的内容",
+    "button_user_management": "用户管理",
+    "button_system_settings": "系统设置",
+    "button_debug_info": "调试信息",
+    "overview": {
+        "title": "概览",
+        "description": "欢迎来到 Spectra 管理员控制台。你可以在这里查看使用信息，管理已分享的内容和用户，以及调整系统设置。"
+    },
+    "shared_content": {
+        "title": "已分享的内容",
+        "description": "查看或管理所有存储在 Spectra 实例中的已分享内容。",
+        "search_placeholder": "搜索分享...",
+        "table": {
+            "owner": "创建者",
+            "type": "类型",
+            "link": "链接",
+            "status": "状态",
+            "visits": "访问量",
+            "time": "时间",
+            "operations": "操作"
+        }
+    },
+    "user_management": {
+        "title": "用户管理",
+        "description": "新建、删除、管理所有用户。",
+        "search_placeholder": "搜索用户...",
+        "button_new_user": "新建用户",
+        "table": {
+            "avatar": "头像",
+            "name": "用户名",
+            "email": "邮箱",
+            "descriptor": "权限",
+            "shared_content_number": "分享数",
+            "last_login": "最后登录时间",
+            "operations": "操作"
+        }
+    },
+    "settings": {
+        "title": "系统设置",
+        "description": "根据你的偏好调整 Spectra 的设置。"
+    },
+    "debug_info": {
+        "title": "调试信息",
+        "description": "查看 Spectra 的调试信息。"
+    }
+}

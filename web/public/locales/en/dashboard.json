@@ -9,7 +9,8 @@
             "pastebin_desc": "Share a piece of code or text.",
             "short_url": "Short URL",
             "short_url_desc": "Create shorten URLs."
-        }
+        },
+        "footer_button_about": "About Spectra"
     },
     "file_share": {
         "title": "File Transfer",

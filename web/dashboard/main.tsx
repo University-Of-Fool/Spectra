@@ -119,6 +119,10 @@ export function Dashboard() {
                     )}
 
                     {!value.loading && value.isLoggedIn && <AreaShared />}
+
+                    <div className="text-center text-sm opacity-25 mt-20 mb-20">
+                        {t("dashboard.footer_button_about")}
+                    </div>
                 </div>
                 <Toaster richColors></Toaster>
             </AccountCtx.Provider>

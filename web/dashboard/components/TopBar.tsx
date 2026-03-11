@@ -335,8 +335,21 @@ export function TopBar() {
                             </Popover>
                         </div>
                     )}
+
+                    {/* TODO：这里似乎深色模式图标有点没对齐？ */}
                     <ThemeSwitcher></ThemeSwitcher>
                     <LanguageSwitcher></LanguageSwitcher>
+
+                    {/* TODO: 是否显示按钮的逻辑需要补全 */}
+                    <a className={"cursor-pointer"} href="/admin/">
+                        <span
+                            className={
+                                "material-symbols-outlined text-[1.8em]!"
+                            }
+                        >
+                            manage_accounts
+                        </span>
+                    </a>
                 </div>
             </div>
             <div
