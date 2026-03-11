@@ -9,7 +9,11 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group"
+import {
+    InputGroup,
+    InputGroupInput,
+    InputGroupAddon,
+} from "@/components/ui/input-group"
 import { Button } from "@/components/ui/button"
 
 export function UserManagement() {
@@ -24,7 +28,9 @@ export function UserManagement() {
             </div>
             <div className={"flex items-center mb-2 gap-2"}>
                 <InputGroup className="w-60">
-                    <InputGroupInput placeholder={t("user_management.search_placeholder")} />
+                    <InputGroupInput
+                        placeholder={t("user_management.search_placeholder")}
+                    />
                     <InputGroupAddon>
                         <span
                             className={
@@ -36,11 +42,7 @@ export function UserManagement() {
                     </InputGroupAddon>
                 </InputGroup>
                 <Button variant="outline">
-                    <span
-                        className={
-                            "material-symbols-outlined text-[1.6em]!"
-                        }
-                    >
+                    <span className={"material-symbols-outlined text-[1.6em]!"}>
                         add
                     </span>
                     {t("user_management.button_new_user")}
@@ -52,9 +54,7 @@ export function UserManagement() {
                         <TableHead>
                             {t("user_management.table.avatar")}
                         </TableHead>
-                        <TableHead>
-                            {t("user_management.table.name")}
-                        </TableHead>
+                        <TableHead>{t("user_management.table.name")}</TableHead>
                         <TableHead>
                             {t("user_management.table.email")}
                         </TableHead>
@@ -68,9 +68,7 @@ export function UserManagement() {
                             {t("user_management.table.last_login")}
                         </TableHead>
                         <TableHead>
-                            {t(
-                                "user_management.table.operations",
-                            )}
+                            {t("user_management.table.operations")}
                         </TableHead>
                     </TableRow>
                 </TableHeader>
@@ -87,15 +85,11 @@ export function UserManagement() {
                         <TableCell>alice@example.com</TableCell>
                         <TableCell>Code, File, Link</TableCell>
                         <TableCell>12</TableCell>
-                        <TableCell>
-                            2023-10-01 12:00:00
-                        </TableCell>
+                        <TableCell>2023-10-01 12:00:00</TableCell>
                         <TableCell className={"flex"}>
                             <button
                                 type="button"
-                                onClick={() =>
-                                    alert("potato!!")
-                                }
+                                onClick={() => alert("potato!!")}
                                 class={"button-icon"}
                             >
                                 <span
@@ -108,9 +102,7 @@ export function UserManagement() {
                             </button>
                             <button
                                 type="button"
-                                onClick={() =>
-                                    alert("potato2!!")
-                                }
+                                onClick={() => alert("potato2!!")}
                                 class={"button-icon"}
                             >
                                 <span
@@ -135,15 +127,11 @@ export function UserManagement() {
                         <TableCell>bob@example.com</TableCell>
                         <TableCell>Code, File, Link</TableCell>
                         <TableCell>4</TableCell>
-                        <TableCell>
-                            2023-10-01 12:00:00
-                        </TableCell>
+                        <TableCell>2023-10-01 12:00:00</TableCell>
                         <TableCell className={"flex"}>
                             <button
                                 type="button"
-                                onClick={() =>
-                                    alert("potato!!")
-                                }
+                                onClick={() => alert("potato!!")}
                                 class={"button-icon"}
                             >
                                 <span
@@ -156,9 +144,7 @@ export function UserManagement() {
                             </button>
                             <button
                                 type="button"
-                                onClick={() =>
-                                    alert("potato2!!")
-                                }
+                                onClick={() => alert("potato2!!")}
                                 class={"button-icon"}
                             >
                                 <span
@@ -183,15 +169,11 @@ export function UserManagement() {
                         <TableCell>charlie@example.com</TableCell>
                         <TableCell>Code, File, Link</TableCell>
                         <TableCell>1</TableCell>
-                        <TableCell>
-                            2023-10-01 12:00:00
-                        </TableCell>
+                        <TableCell>2023-10-01 12:00:00</TableCell>
                         <TableCell className={"flex"}>
                             <button
                                 type="button"
-                                onClick={() =>
-                                    alert("potato!!")
-                                }
+                                onClick={() => alert("potato!!")}
                                 class={"button-icon"}
                             >
                                 <span
@@ -204,9 +186,7 @@ export function UserManagement() {
                             </button>
                             <button
                                 type="button"
-                                onClick={() =>
-                                    alert("potato2!!")
-                                }
+                                onClick={() => alert("potato2!!")}
                                 class={"button-icon"}
                             >
                                 <span
@@ -221,8 +201,6 @@ export function UserManagement() {
                     </TableRow>
                 </TableBody>
             </Table>
-
         </div>
-
     )
 }

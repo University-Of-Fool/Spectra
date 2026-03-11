@@ -9,7 +9,11 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from "@/components/ui/input-group"
 
 export function SharedContent() {
     const { t } = useTranslation("admin")
@@ -23,7 +27,9 @@ export function SharedContent() {
             </div>
             <div className={"flex items-center mb-2 gap-2"}>
                 <InputGroup className="w-60">
-                    <InputGroupInput placeholder={t("shared_content.search_placeholder")} />
+                    <InputGroupInput
+                        placeholder={t("shared_content.search_placeholder")}
+                    />
                     <InputGroupAddon>
                         <span
                             className={
@@ -48,28 +54,18 @@ export function SharedContent() {
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>
-                            {t("shared_content.table.owner")}
-                        </TableHead>
-                        <TableHead>
-                            {t("shared_content.table.type")}
-                        </TableHead>
-                        <TableHead>
-                            {t("shared_content.table.link")}
-                        </TableHead>
+                        <TableHead>{t("shared_content.table.owner")}</TableHead>
+                        <TableHead>{t("shared_content.table.type")}</TableHead>
+                        <TableHead>{t("shared_content.table.link")}</TableHead>
                         <TableHead>
                             {t("shared_content.table.status")}
                         </TableHead>
                         <TableHead>
                             {t("shared_content.table.visits")}
                         </TableHead>
+                        <TableHead>{t("shared_content.table.time")}</TableHead>
                         <TableHead>
-                            {t("shared_content.table.time")}
-                        </TableHead>
-                        <TableHead>
-                            {t(
-                                "shared_content.table.operations",
-                            )}
+                            {t("shared_content.table.operations")}
                         </TableHead>
                     </TableRow>
                 </TableHeader>
@@ -80,15 +76,11 @@ export function SharedContent() {
                         <TableCell>s.enita.cn/foobar</TableCell>
                         <TableCell>有效</TableCell>
                         <TableCell>114</TableCell>
-                        <TableCell>
-                            2023-10-01 12:00:00
-                        </TableCell>
+                        <TableCell>2023-10-01 12:00:00</TableCell>
                         <TableCell>
                             <button
                                 type="button"
-                                onClick={() =>
-                                    alert("potato!!")
-                                }
+                                onClick={() => alert("potato!!")}
                                 class={"button-icon"}
                             >
                                 <span
@@ -107,15 +99,11 @@ export function SharedContent() {
                         <TableCell>s.enita.cn/foobar</TableCell>
                         <TableCell>有效</TableCell>
                         <TableCell>114</TableCell>
-                        <TableCell>
-                            2023-10-01 12:00:00
-                        </TableCell>
+                        <TableCell>2023-10-01 12:00:00</TableCell>
                         <TableCell>
                             <button
                                 type="button"
-                                onClick={() =>
-                                    alert("potato!!")
-                                }
+                                onClick={() => alert("potato!!")}
                                 class={"button-icon"}
                             >
                                 <span
@@ -134,15 +122,11 @@ export function SharedContent() {
                         <TableCell>s.enita.cn/foobar</TableCell>
                         <TableCell>有效</TableCell>
                         <TableCell>114</TableCell>
-                        <TableCell>
-                            2023-10-01 12:00:00
-                        </TableCell>
+                        <TableCell>2023-10-01 12:00:00</TableCell>
                         <TableCell>
                             <button
                                 type="button"
-                                onClick={() =>
-                                    alert("potato!!")
-                                }
+                                onClick={() => alert("potato!!")}
                                 class={"button-icon"}
                             >
                                 <span
@@ -157,5 +141,6 @@ export function SharedContent() {
                     </TableRow>
                 </TableBody>
             </Table>
-        </div>)
+        </div>
+    )
 }

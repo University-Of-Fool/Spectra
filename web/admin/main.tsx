@@ -34,7 +34,12 @@ function Admin() {
                     </div>
 
                     <div className="ml-auto">
-                        <Button variant="outline" onClick={() => { location.href = "/" }}>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                location.href = "/"
+                            }}
+                        >
                             <span
                                 className={
                                     "material-symbols-outlined text-[1.6em]!"
@@ -48,50 +53,84 @@ function Admin() {
                 </div>
                 <div className="mt-36 flex justify-center">
                     <div className="flex items-start w-250">
-
-
                         <div className="flex flex-col items-start gap-1 border-r pr-4">
-
                             <div className="flex items-center">
-                                <Button variant={activeTab === "overview" ? "secondary" : "ghost"} onClick={() => setActiveTab("overview")}>
+                                <Button
+                                    variant={
+                                        activeTab === "overview"
+                                            ? "secondary"
+                                            : "ghost"
+                                    }
+                                    onClick={() => setActiveTab("overview")}
+                                >
                                     {t("button_overview")}
                                 </Button>
                             </div>
 
                             <div className="flex items-center">
-                                <Button variant={activeTab === "shared_content" ? "secondary" : "ghost"} onClick={() => setActiveTab("shared_content")}>
+                                <Button
+                                    variant={
+                                        activeTab === "shared_content"
+                                            ? "secondary"
+                                            : "ghost"
+                                    }
+                                    onClick={() =>
+                                        setActiveTab("shared_content")
+                                    }
+                                >
                                     {t("button_shared_content")}
                                 </Button>
                             </div>
 
                             <div className="flex items-center">
-                                <Button variant={activeTab === "user_management" ? "secondary" : "ghost"} onClick={() => setActiveTab("user_management")}>
+                                <Button
+                                    variant={
+                                        activeTab === "user_management"
+                                            ? "secondary"
+                                            : "ghost"
+                                    }
+                                    onClick={() =>
+                                        setActiveTab("user_management")
+                                    }
+                                >
                                     {t("button_user_management")}
                                 </Button>
                             </div>
 
                             <div className="flex items-center">
-                                <Button variant={activeTab === "system_settings" ? "secondary" : "ghost"} onClick={() => setActiveTab("system_settings")}>
+                                <Button
+                                    variant={
+                                        activeTab === "system_settings"
+                                            ? "secondary"
+                                            : "ghost"
+                                    }
+                                    onClick={() =>
+                                        setActiveTab("system_settings")
+                                    }
+                                >
                                     {t("button_system_settings")}
                                 </Button>
                             </div>
 
                             <div className="flex items-center">
-                                <Button variant={activeTab === "debug_info" ? "secondary" : "ghost"} onClick={() => setActiveTab("debug_info")}>
+                                <Button
+                                    variant={
+                                        activeTab === "debug_info"
+                                            ? "secondary"
+                                            : "ghost"
+                                    }
+                                    onClick={() => setActiveTab("debug_info")}
+                                >
                                     {t("button_debug_info")}
                                 </Button>
                             </div>
                         </div>
-
-
 
                         {activeTab === "overview" && <Overview />}
                         {activeTab === "shared_content" && <SharedContent />}
                         {activeTab === "user_management" && <UserManagement />}
                         {activeTab === "system_settings" && <Settings />}
                         {activeTab === "debug_info" && <DebugInfo />}
-
-
                     </div>
                 </div>
             </div>
