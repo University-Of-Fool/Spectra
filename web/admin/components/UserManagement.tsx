@@ -1,6 +1,12 @@
 import { useTranslation } from "react-i18next"
 import "../../components/i18n"
 import "../../public/style.css"
+import { Button } from "@/components/ui/button"
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from "@/components/ui/input-group"
 import {
     Table,
     TableBody,
@@ -9,12 +15,6 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import {
-    InputGroup,
-    InputGroupInput,
-    InputGroupAddon,
-} from "@/components/ui/input-group"
-import { Button } from "@/components/ui/button"
 
 export function UserManagement() {
     const { t } = useTranslation("admin")

@@ -2,6 +2,11 @@ import "../../components/i18n"
 import "../../public/style.css"
 import { useTranslation } from "react-i18next"
 import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from "@/components/ui/input-group"
+import {
     Table,
     TableBody,
     TableCell,
@@ -9,11 +14,6 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import {
-    InputGroup,
-    InputGroupAddon,
-    InputGroupInput,
-} from "@/components/ui/input-group"
 
 export function SharedContent() {
     const { t } = useTranslation("admin")

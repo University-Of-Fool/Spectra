@@ -1,17 +1,16 @@
 import "../components/i18n"
 import "../public/style.css"
-import { ThemeProvider } from "@/components/ThemeProvider"
 import { render } from "preact"
-import { SpectraLogo } from "../components/Logo"
 import { Suspense, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { ThemeProvider } from "@/components/ThemeProvider"
 import { Button } from "@/components/ui/button"
-
-import { SharedContent } from "./components/SharedContent"
-import { UserManagement } from "./components/UserManagement"
+import { SpectraLogo } from "../components/Logo"
+import { DebugInfo } from "./components/DebugInfo"
 import { Overview } from "./components/Overview"
 import { Settings } from "./components/Settings"
-import { DebugInfo } from "./components/DebugInfo"
+import { SharedContent } from "./components/SharedContent"
+import { UserManagement } from "./components/UserManagement"
 
 const root = document.getElementById("app")
 if (!root) throw new Error("Launch failed: Root element not found")
