@@ -48,7 +48,7 @@ jobs:
         run: cargo fmt --all
 
       - name: Run Biome format
-        run: biome format --write
+        run: biome check --fix
 
       - name: Commit & Push changes
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -112,8 +112,9 @@ jobs:
           cargo check --all --all-targets
 
       # biome check will throw error if there are any formatting issues
+      # Fix acceptable issues first
       - name: Run Biome format
-        run: biome format --write
+        run: biome check --fix
 
       - name: Run Biome lint
         run: biome ci
