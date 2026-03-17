@@ -142,3 +142,4 @@ data/
 
 # program runtime config
 config.toml
+API.md
