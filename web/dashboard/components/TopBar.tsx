@@ -172,7 +172,7 @@ export function TopBar() {
     return (
         <div
             className={
-                "flex items-center p-10 px-15 bg-gradient-to-b from-background to-transparent from-70% to-100% sticky top-0 left-0 w-full z-50"
+                "flex items-center p-10 px-15 bg-linear-to-b from-background to-transparent from-70% to-100% sticky top-0 left-0 w-full z-50"
             }
         >
             <SpectraLogo className={"h-12 mr-4"} />
@@ -337,19 +337,21 @@ export function TopBar() {
                     )}
 
                     {/* TODO：这里似乎深色模式图标有点没对齐？ */}
+                    {/* Enita: 我解决不来👉️👈️ */}
                     <ThemeSwitcher></ThemeSwitcher>
                     <LanguageSwitcher></LanguageSwitcher>
 
-                    {/* TODO: 是否显示按钮的逻辑需要补全 */}
-                    <a className={"cursor-pointer"} href="/admin/">
-                        <span
-                            className={
-                                "material-symbols-outlined text-[1.8em]!"
-                            }
-                        >
-                            manage_accounts
-                        </span>
-                    </a>
+                    {context.value.isLoggedIn && (
+                        <a className={"cursor-pointer"} href="/admin/">
+                            <div
+                                className={
+                                    "material-symbols-outlined text-[1.8em]!"
+                                }
+                            >
+                                manage_accounts
+                            </div>
+                        </a>
+                    )}
                 </div>
             </div>
             <div

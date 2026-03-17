@@ -12,6 +12,7 @@ import { AreaShortUrl } from "./components/AreaShortUrl"
 import { TopBar } from "./components/TopBar"
 import { TransitionTabs } from "./HeightTransition"
 import "../components/i18n"
+import { AboutDialog } from "./components/AboutDialog"
 
 const root = document.getElementById("app")
 if (!root) throw new Error("Launch failed: Root element not found")
@@ -107,7 +108,7 @@ export function Dashboard() {
                     />
 
                     <div className="flex justify-center">
-                        <div className="w-100 mt-20 mb-20 border-t-1 border-foreground/20"></div>
+                        <div className="w-100 mt-20 mb-20 border-t border-foreground/20"></div>
                     </div>
 
                     {!value.loading && !value.isLoggedIn && (
@@ -120,9 +121,7 @@ export function Dashboard() {
 
                     {!value.loading && value.isLoggedIn && <AreaShared />}
 
-                    <div className="text-center text-sm opacity-25 mt-20 mb-20">
-                        {t("dashboard.footer_button_about")}
-                    </div>
+                    <AboutDialog></AboutDialog>
                 </div>
                 <Toaster richColors></Toaster>
             </AccountCtx.Provider>

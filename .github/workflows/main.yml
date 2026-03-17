@@ -42,7 +42,7 @@ jobs:
       - name: Setup Biome
         uses: biomejs/setup-biome@v2
         with:
-          version: "2.3.3"
+          version: "2.4.7"
 
       - name: Run rustfmt
         run: cargo fmt --all
@@ -91,7 +91,9 @@ jobs:
 
       - name: Setup Biome
         uses: biomejs/setup-biome@v2
-
+        with:
+          version: "2.4.7"
+    
       - name: Cache cargo binaries
         uses: actions/cache@v3
         with:

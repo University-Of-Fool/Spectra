@@ -1,5 +1,5 @@
 use crate::service::api::result::{ApiError, ApiJson, ApiPath, ApiQuery, ApiResult};
-use crate::service::api::types::{ApiCode, ApiItemFull, ApiItemUpload, ItemSimplified};
+use crate::service::api::types::{ApiCode, ApiItemFull, ApiItemUpload, ApiList, ItemSimplified};
 use crate::types::{AppState, ItemType, ToPermission, Token, User, UserPermission};
 use crate::{fail, success};
 use axum::extract::{Multipart, State};
@@ -483,7 +483,11 @@ pub async fn get_user_items(
         .into_iter()
         .map(|x| ItemSimplified::from(x))
         .collect::<Vec<_>>();
-    success!(items)
+    let total = state
+        .database_accessor
+        .count_user_items(params.get("user").unwrap_or(&user.id))
+        .await?;
+    success!(ApiList { total, items })
 }
 
 #[instrument(skip(state, jar))]
@@ -520,7 +524,11 @@ pub async fn get_user_img_items(
         .into_iter()
         .map(|x| ItemSimplified::from(x))
         .collect::<Vec<_>>();
-    success!(items)
+    let total = state
+        .database_accessor
+        .count_user_img_items(params.get("user").unwrap_or(&user.id))
+        .await?;
+    success!(ApiList { total, items })
 }
 
 #[instrument(skip(state, jar))]
@@ -553,5 +561,6 @@ pub async fn get_all_items(
         .into_iter()
         .map(|x| ItemSimplified::from(x))
         .collect::<Vec<_>>();
-    success!(items)
+    let total = state.database_accessor.count_all_items().await?;
+    success!(ApiList { total, items })
 }

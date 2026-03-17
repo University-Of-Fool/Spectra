@@ -11,16 +11,29 @@
     },
     "shared_content": {
         "title": "已分享的内容",
-        "description": "查看或管理所有存储在 Spectra 实例中的已分享内容。",
+        "description": "查看或管理所有存储在此 Spectra 实例中的已分享内容。",
         "search_placeholder": "搜索分享...",
+        "button_filter_user": "筛选",
         "table": {
             "owner": "创建者",
             "type": "类型",
             "link": "链接",
             "status": "状态",
             "visits": "访问量",
-            "time": "时间",
+            "time": "创建时间",
             "operations": "操作"
+        },
+        "type": {
+            "file": "文件",
+            "code": "代码",
+            "link": "短链接"
+        },
+        "status": {
+            "valid": "有效",
+            "invalid": "失效"
+        },
+        "user_selector": {
+            "search_placeholder": "搜索用户..."
         }
     },
     "user_management": {
@@ -28,14 +41,54 @@
         "description": "新建、删除、管理所有用户。",
         "search_placeholder": "搜索用户...",
         "button_new_user": "新建用户",
+        "loading": "正在加载用户...",
+        "empty": "暂无用户",
+        "load_failed": "加载用户失败",
+        "create_success": "用户已创建",
+        "create_failed": "创建用户失败",
+        "delete_success": "用户已删除",
+        "delete_failed": "删除用户失败",
+        "delete_root_forbidden": "不能删除 admin 用户",
+        "edit_unavailable": "暂未实现编辑用户信息",
         "table": {
             "avatar": "头像",
             "name": "用户名",
             "email": "邮箱",
             "descriptor": "权限",
             "shared_content_number": "分享数",
-            "last_login": "最后登录时间",
-            "operations": "操作"
+            "operations": "操作",
+            "created_at": "创建时间"
+        },
+        "new_user_dialog": {
+            "title": "创建用户",
+            "generate_password": "随机生成密码",
+            "description": "输入用户名、邮箱和密码以创建新的用户",
+            "name": "用户名",
+            "password": "密码",
+            "email": "邮箱",
+            "cancel": "取消",
+            "create": "确认",
+            "descriptor_selection_title": "选择新用户的权限",
+            "validation_required": "用户名、邮箱和密码不能为空",
+            "upload_avatar_instruction": "点击或拖动图片到此以上传头像",
+            "avatar_invalid_type": "头像文件仅支持 gif、bmp、jpg、png、webp"
+        },
+        "descriptor": {
+            "code": "创建代码项目",
+            "manage": "管理服务器设置",
+            "file": "上传文件",
+            "link": "创建短链接项目"
+        },
+        "descriptor_short": {
+            "code": "代码",
+            "manage": "管理",
+            "file": "文件",
+            "link": "链接"
+        },
+        "successful_dialog": {
+            "title": "用户创建成功",
+            "description": "请妥善保存以下登录信息，密码只会在这里显示一次。",
+            "ok": "确定"
         }
     },
     "settings": {
@@ -45,5 +98,16 @@
     "debug_info": {
         "title": "调试信息",
         "description": "查看 Spectra 的调试信息。"
+    },
+    "authorization": {
+        "service_unavailable": "无法连接至服务器",
+        "unauthorized": {
+            "description": "您还没有登录到 Spectra，请返回首页登录您的账号。",
+            "title": "暂未登录"
+        },
+        "permission_denied": {
+            "description": "您没有管理此 Spectra 服务器的权限。",
+            "title": "权限不足"
+        }
     }
 }

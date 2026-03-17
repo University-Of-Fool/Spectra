@@ -111,5 +111,19 @@
         "msg": "Item created successfully, link copied.",
         "copy_again": "Copy Again",
         "open_link": "Open Link"
+    },
+    "about": {
+        "dialog_title": "About Spectra",
+        "description": "Spectra is the collection of 3 useful lights",
+        "version": "Version: ",
+        "build_date": "Build Date: ",
+        "debug_mode": "Debug Mode: ",
+        "debug_mode_enabled": "Enabled",
+        "debug_mode_disabled": "Disabled",
+        "code_hero": "This version of Spectra has {{loc}}, {{total_lines}} lines in total.",
+        "loc": "{{lines}} lines of {{lang}}",
+        "comma": ", ",
+        "and": ", and ",
+        "dirty_tooltip": "This instance has been manipulated"
     }
 }

@@ -86,7 +86,7 @@ export function ThemeSwitcher({ className }: { className?: string }) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <span className={cn("cursor-pointer", className)}>
+                <div className={cn("cursor-pointer", className)}>
                     <span
                         className={
                             "material-symbols-outlined text-[1.6em]! not-dark:hidden!"
@@ -101,7 +101,7 @@ export function ThemeSwitcher({ className }: { className?: string }) {
                     >
                         dark_mode
                     </span>
-                </span>
+                </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
                 <DropdownMenuItem onClick={() => setTheme("light")}>

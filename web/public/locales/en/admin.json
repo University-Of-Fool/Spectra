@@ -1,0 +1,113 @@
+{
+    "button_back_to_home": "Back to Home",
+    "button_overview": "Overview",
+    "button_shared_content": "Shares",
+    "button_user_management": "Users",
+    "button_system_settings": "Settings",
+    "button_debug_info": "Debug",
+    "overview": {
+        "title": "Overview",
+        "description": "Welcome to the Spectra admin console. Here you can review usage information, manage shared content and users, and adjust system settings."
+    },
+    "shared_content": {
+        "title": "Shared Items",
+        "description": "View or manage all shared items stored in this Spectra instance.",
+        "search_placeholder": "Search shares...",
+        "button_filter_user": "Filter",
+        "table": {
+            "owner": "Owner",
+            "type": "Type",
+            "link": "Link",
+            "status": "Status",
+            "visits": "Visits",
+            "time": "Created",
+            "operations": "Operation"
+        },
+        "type": {
+            "file": "File",
+            "code": "Code",
+            "link": "Short Link"
+        },
+        "status": {
+            "valid": "Valid",
+            "invalid": "Expired"
+        },
+        "user_selector": {
+            "search_placeholder": "Search users..."
+        }
+    },
+    "user_management": {
+        "title": "User Management",
+        "description": "Create, delete, and manage all users.",
+        "search_placeholder": "Search users...",
+        "button_new_user": "New User",
+        "loading": "Loading users...",
+        "empty": "No users",
+        "load_failed": "Failed to load users",
+        "create_success": "User created",
+        "create_failed": "Failed to create user",
+        "delete_success": "User deleted",
+        "delete_failed": "Failed to delete user",
+        "delete_root_forbidden": "Root user cannot be deleted",
+        "edit_unavailable": "Editing users is not implemented yet",
+        "table": {
+            "avatar": "Avatar",
+            "name": "Username",
+            "email": "Email",
+            "descriptor": "Role",
+            "shared_content_number": "Shares",
+            "created_at": "Created",
+            "operations": "Operations"
+        },
+        "new_user_dialog": {
+            "title": "Create User",
+            "generate_password": "Generate a random password",
+            "description": "Enter a username, email, and password to create a new user",
+            "name": "Username",
+            "password": "Password",
+            "email": "Email",
+            "cancel": "Cancel",
+            "create": "Create",
+            "descriptor_selection_title": "Choose permissions for the new user",
+            "validation_required": "Name, email, and password are required",
+            "upload_avatar_instruction": "Click or drag an image here to upload avatar",
+            "avatar_invalid_type": "Only gif, bmp, jpg, png and webp files are supported"
+        },
+        "descriptor": {
+            "code": "Create code items",
+            "manage": "Manage server settings",
+            "file": "Upload files",
+            "link": "Create short links"
+        },
+        "descriptor_short": {
+            "code": "Code",
+            "manage": "Manage",
+            "file": "File",
+            "link": "Link"
+        },
+        "successful_dialog": {
+            "title": "User Created",
+            "description": "Save these credentials now. The password is only shown once.",
+            "ok": "OK"
+        }
+    },
+    "settings": {
+        "title": "Settings",
+        "description": "Adjust Spectra settings based on your preferences."
+    },
+    "debug_info": {
+        "title": "Debug",
+        "description": "View debug information."
+    },
+    "authorization": {
+        "service_unavailable": "Unable to connect to the server",
+        "unauthorized": {
+            "description": "You are not logged in to Spectra yet. Please return to the home page and sign in.",
+            "title": "Not Logged In"
+        },
+        "permission_denied": {
+            "description": "You do not have permission to manage this Spectra server.",
+            "title": "Permission Denied"
+        }
+    }
+}

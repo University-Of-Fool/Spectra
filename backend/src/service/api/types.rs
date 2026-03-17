@@ -39,11 +39,13 @@ pub struct ApiUser {
     pub avatar: Option<String>,
     pub created_at: DateTime<Utc>,
     pub descriptor: Vec<UserPermission>,
+    pub item_count: i64,
 }
 
-impl From<User> for ApiUser {
-    fn from(user: User) -> Self {
-        Self {
+impl ApiUser {
+    pub async fn from_user(user: User, db: &crate::data::DatabaseAccessor) -> anyhow::Result<Self> {
+        let item_count = db.count_user_items(&user.id).await?;
+        Ok(Self {
             id: user.id,
             name: user.name,
             email: user.email,
@@ -53,7 +55,8 @@ impl From<User> for ApiUser {
                 .unwrap()
                 .with_timezone(&Utc),
             descriptor: UserPermission::from_i64(user.descriptor),
-        }
+            item_count,
+        })
     }
 }
 
@@ -100,17 +103,6 @@ pub struct ApiItemUpload {
     pub password: Option<String>,
 }
 
-// /// 将 NaiveDateTime（本地时间）转换为 UTC 时间
-// pub fn to_utc(naive: NaiveDateTime) -> DateTime<Utc> {
-//     let local_dt = Local.from_local_datetime(&naive).unwrap();
-//     local_dt.with_timezone(&Utc)
-// }
-//
-// /// 将 UTC 时间转换为当前系统时区下的 NaiveDateTime
-// pub fn from_utc(utc: DateTime<Utc>) -> NaiveDateTime {
-//     utc.with_timezone(&Local).naive_local()
-// }
-
 #[derive(Serialize)]
 pub struct ApiItemFull {
     pub id: String,
@@ -147,4 +139,10 @@ impl From<Item> for ApiItemFull {
             available: item.available,
         }
     }
+}
+
+#[derive(Serialize)]
+pub struct ApiList<T> {
+    pub total: i64,
+    pub items: Vec<T>,
 }

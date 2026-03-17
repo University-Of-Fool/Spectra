@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 
 export function LanguageSwitcher({ className }: { className?: string }) {
     const { i18n } = useTranslation()
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -18,6 +19,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
                     </span>
                 </span>
             </DropdownMenuTrigger>
+
             <DropdownMenuContent>
                 <DropdownMenuItem onClick={() => i18n.changeLanguage("zh")}>
                     简体中文

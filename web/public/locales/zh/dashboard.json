@@ -109,5 +109,19 @@
         "msg": "项目创建成功，链接已复制。",
         "copy_again": "再次复制",
         "open_link": "打开链接"
+    },
+    "about": {
+        "dialog_title": "关于 Spectra",
+        "description": "Spectra（光谱）是三道有用的光线的集合。",
+        "version": "版本：",
+        "build_date": "构建日期：",
+        "debug_mode": "调试模式：",
+        "debug_mode_enabled": "已启用",
+        "debug_mode_disabled": "已禁用",
+        "code_hero": "该版本的 Spectra 一共有 {{loc}}，总共有 {{total_lines}} 行代码。",
+        "loc": "{{lines}} 行 {{lang}} 代码",
+        "comma": "、",
+        "and": "和 ",
+        "dirty_tooltip": "此实例的源代码被修改过"
     }
 }

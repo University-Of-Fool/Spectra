@@ -216,6 +216,19 @@ impl DatabaseAccessor {
         Ok(items)
     }
 
+    pub async fn count_user_items(&self, user_id: &str) -> anyhow::Result<i64> {
+        let total = sqlx::query_scalar!(
+            r#"
+            SELECT COUNT(*) as "count!: i64" FROM items
+            WHERE creator = $1
+            "#,
+            user_id
+        )
+        .fetch_one(&self.pool)
+        .await?;
+        Ok(total)
+    }
+
     pub async fn get_user_img_items(
         &self,
         user_id: &str,
@@ -239,6 +252,19 @@ impl DatabaseAccessor {
         Ok(items)
     }
 
+    pub async fn count_user_img_items(&self, user_id: &str) -> anyhow::Result<i64> {
+        let total = sqlx::query_scalar!(
+            r#"
+            SELECT COUNT(*) as "count!: i64" FROM items
+            WHERE creator = $1 AND img = TRUE
+            "#,
+            user_id
+        )
+        .fetch_one(&self.pool)
+        .await?;
+        Ok(total)
+    }
+
     pub async fn get_all_items(&self, offset: i64, limit: i64) -> anyhow::Result<Vec<Item>> {
         let items = sqlx::query_as!(
             Item,
@@ -253,6 +279,17 @@ impl DatabaseAccessor {
         .fetch_all(&self.pool)
         .await?;
         Ok(items)
+    }
+
+    pub async fn count_all_items(&self) -> anyhow::Result<i64> {
+        let total = sqlx::query_scalar!(
+            r#"
+            SELECT COUNT(*) as "count!: i64" FROM items
+            "#
+        )
+        .fetch_one(&self.pool)
+        .await?;
+        Ok(total)
     }
 
     pub async fn item_exists(&self, path: &str) -> Result<bool> {

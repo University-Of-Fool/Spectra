@@ -1,5 +1,5 @@
 use crate::service::api::result::{ApiError, ApiResult};
-use crate::service::api::types::{ApiUser, ApiUserCreate};
+use crate::service::api::types::{ApiList, ApiUser, ApiUserCreate};
 use crate::types::{AppState, ToPermission, Token, UserPermission};
 use crate::{fail, success};
 use axum::Json;
@@ -44,7 +44,8 @@ pub async fn login(
                     .path("/")
                     .build(),
             );
-            success!(ApiUser::from(user), jar);
+            let api_user = ApiUser::from_user(user, &state.database_accessor).await?;
+            success!(api_user, jar);
         }
         fail!(401, "Invalid email or password");
     }
@@ -82,7 +83,8 @@ pub async fn user_info(State(state): State<AppState>, jar: PrivateCookieJar) -> 
     if user.is_none() {
         fail!(401, "Unauthorized");
     }
-    success!(ApiUser::from(user.unwrap()))
+    let api_user = ApiUser::from_user(user.unwrap(), &state.database_accessor).await?;
+    success!(api_user)
 }
 
 #[instrument(skip(state, jar))]
@@ -106,8 +108,15 @@ pub async fn get_users(State(state): State<AppState>, jar: PrivateCookieJar) -> 
     if !current_user.descriptor.contains(UserPermission::Manage) {
         fail!(403, "Forbidden");
     }
-    let users = state.database_accessor.get_all_users().await?;
-    success!(users.into_iter().map(ApiUser::from).collect::<Vec<_>>())
+    let raw_users = state.database_accessor.get_all_users().await?;
+    let mut users = Vec::with_capacity(raw_users.len());
+    for user in raw_users {
+        users.push(ApiUser::from_user(user, &state.database_accessor).await?);
+    }
+    success!(ApiList {
+        total: users.len() as i64,
+        items: users,
+    })
 }
 
 #[instrument(skip(state, jar))]
@@ -145,7 +154,8 @@ pub async fn remove_user(
     }
     let user = user.unwrap();
     state.database_accessor.remove_user(&user.id).await?;
-    success!(ApiUser::from(user))
+    let api_user = ApiUser::from_user(user, &state.database_accessor).await?;
+    success!(api_user)
 }
 
 #[instrument(skip(state, jar))]
@@ -177,7 +187,8 @@ pub async fn get_user(
     if user.is_none() {
         fail!(404, "User not found");
     }
-    success!(ApiUser::from(user.unwrap()))
+    let api_user = ApiUser::from_user(user.unwrap(), &state.database_accessor).await?;
+    success!(api_user)
 }
 
 pub async fn create_user(
@@ -221,5 +232,6 @@ pub async fn create_user(
             user.avatar,
         )
         .await?;
-    success!(ApiUser::from(user))
+    let api_user = ApiUser::from_user(user, &state.database_accessor).await?;
+    success!(api_user)
 }

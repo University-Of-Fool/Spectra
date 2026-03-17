@@ -5,17 +5,29 @@ import { wfetch } from "../fetch"
 import { TransitionHeight } from "../HeightTransition"
 import { AccountCtx } from "../main"
 
+const PAGE_SIZE = 10
+
+type SharedItem = {
+    id: string
+    short_path: string
+    item_type: string
+    visits: number
+    created_at: string
+    creator: string | null
+    available: boolean
+}
+
 export function AreaShared() {
     const { t, i18n } = useTranslation("dashboard")
     const context = useContext(AccountCtx)
-    const [items, setItems] = useState([
+    const [items, setItems] = useState<SharedItem[]>([
         {
             id: "loading_dummy",
             short_path: t("shared.loading"),
             item_type: "Link",
             visits: 0,
             created_at: "1970-01-01T00:00:00.000Z",
-            creator: "null",
+            creator: null,
             available: true,
         },
     ])
@@ -23,34 +35,38 @@ export function AreaShared() {
     const [ended, setEnded] = useState(false)
     const [nothing, setNothing] = useState(false)
 
-    async function get_items(offset: number) {
+    async function get_items(currentOffset: number) {
         try {
-            const resp = await wfetch(`/api/items?offset=${offset}&limit=11`)
+            const resp = await wfetch(
+                `/api/items?offset=${currentOffset}&limit=${PAGE_SIZE}`,
+            )
             const data: {
                 success: boolean
                 payload: {
-                    id: string
-                    short_path: string
-                    item_type: string
-                    visits: number
-                    created_at: string
-                    creator: string
-                    available: boolean
-                }[]
+                    total: number
+                    items: {
+                        id: string
+                        short_path: string
+                        item_type: string
+                        visits: number
+                        created_at: string
+                        creator: string | null
+                        available: boolean
+                    }[]
+                }
             } = await resp.json()
             if (data.success) {
-                if (data.payload.length <= 10) {
-                    setEnded(true)
+                if (currentOffset === 0) {
+                    setNothing(data.payload.total === 0)
                 }
-                if (data.payload.length === 0) {
-                    setNothing(true)
-                }
+                const nextOffset = currentOffset + data.payload.items.length
+                offset.current = nextOffset
+                setEnded(nextOffset >= data.payload.total)
                 setItems((prev) => {
-                    if (offset === 0) prev = []
-                    if (data.payload.length === 11) data.payload.pop()
+                    if (currentOffset === 0) prev = []
                     return [
                         ...prev,
-                        ...data.payload.map((item) => ({
+                        ...data.payload.items.map((item) => ({
                             ...item,
                             short_path: `${window.location.origin}/${item.short_path}`,
                             item_type: t(
@@ -103,13 +119,7 @@ export function AreaShared() {
     useEffect(() => {
         let delay = 0
         if (context.sharedListUpd !== 0) delay = 100
-        setTimeout(
-            () =>
-                get_items(0).then(() => {
-                    offset.current = 10
-                }),
-            delay,
-        )
+        setTimeout(() => get_items(0), delay)
     }, [context.sharedListUpd, i18n.language])
     return (
         <>
@@ -155,6 +165,7 @@ export function AreaShared() {
                                         <a
                                             href={item.short_path}
                                             target="_blank"
+                                            rel="noopener"
                                         >
                                             {item.short_path}
                                         </a>
@@ -211,9 +222,7 @@ export function AreaShared() {
                                 "text-center text-sm text-neutral-500 point cursor-pointer"
                             }
                             onClick={() => {
-                                get_items(offset.current).then(() => {
-                                    offset.current += 10
-                                })
+                                get_items(offset.current)
                             }}
                         >
                             {t("shared.load_more")}
