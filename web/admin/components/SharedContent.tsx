@@ -1,6 +1,6 @@
 import "../../components/i18n"
 import "../../public/style.css"
-import { useEffect, useMemo, useState } from "react"
+import { useContext, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 import { wfetch } from "../../dashboard/fetch"
+import { AdminUserContext, type ApiUser } from "../context/AdminUserContext"
 
 const PAGE_SIZE = 25
 
@@ -67,24 +68,19 @@ type ApiResponse<T> = {
     payload: T
 }
 
-type ApiUser = {
-    id: string
-    name: string
-    email: string
-    avatar: string | null
-    created_at: string
-    descriptor: ("Manage" | "Code" | "Link" | "File")[]
-}
-
 export function SharedContent() {
     const { t } = useTranslation("admin")
+    const { currentUser } = useContext(AdminUserContext)
+    const manage = !!currentUser?.descriptor.includes("Manage")
     const [items, setItems] = useState<SharedItem[]>([])
     const [loading, setLoading] = useState(false)
     const [total, setTotal] = useState(0)
     const [page, setPage] = useState(0)
     const [search, setSearch] = useState("")
     const [ownerMap, setOwnerMap] = useState<Record<string, string>>({})
-    const [selectedUser, setSelectedUser] = useState<ApiUser | null>(null)
+    const [selectedUser, setSelectedUser] = useState<ApiUser | null>(
+        manage ? null : currentUser,
+    )
 
     const getTypeLabel = (itemType: string) => {
         switch (itemType) {
@@ -191,6 +187,15 @@ export function SharedContent() {
         }
     }
 
+    function getItemCreatorName(creator: string): string {
+        const regex = /guest-........-....-....-....-............/
+        if (creator === creator.match(regex)?.join("")) {
+            return t("guest")
+        } else {
+            return creator ? (ownerMap[creator] ?? creator) : "-"
+        }
+    }
+
     const filteredItems = useMemo(() => {
         const keyword = search.trim().toLowerCase()
         if (!keyword) return items
@@ -255,11 +260,11 @@ export function SharedContent() {
     }, [page, totalPages])
 
     useEffect(() => {
-        loadOwners()
+        manage && loadOwners()
     }, [])
 
     useEffect(() => {
-        loadItems(0, selectedUser?.id)
+        manage && loadItems(0, selectedUser?.id)
     }, [selectedUser])
 
     return (
@@ -268,7 +273,11 @@ export function SharedContent() {
                 {t("shared_content.title")}
             </div>
             <div className="text-sm opacity-50 mb-8">
-                {t("shared_content.description")}
+                {t(
+                    manage
+                        ? "shared_content.description"
+                        : "shared_content.description_nomanage",
+                )}
             </div>
             <div className={"flex items-center mb-2 gap-2"}>
                 <InputGroup className="w-60">
@@ -289,16 +298,22 @@ export function SharedContent() {
                         </span>
                     </InputGroupAddon>
                 </InputGroup>
-                <UserSelector
-                    selectedUser={selectedUser}
-                    setSelectedUser={setSelectedUser}
-                    t={t}
-                />
+                {manage && (
+                    <UserSelector
+                        selectedUser={selectedUser}
+                        setSelectedUser={setSelectedUser}
+                        t={t}
+                    />
+                )}
             </div>
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>{t("shared_content.table.owner")}</TableHead>
+                        {manage && (
+                            <TableHead>
+                                {t("shared_content.table.owner")}
+                            </TableHead>
+                        )}
                         <TableHead>{t("shared_content.table.type")}</TableHead>
                         <TableHead>{t("shared_content.table.link")}</TableHead>
                         <TableHead>
@@ -342,12 +357,13 @@ export function SharedContent() {
                             const link = buildItemUrl(pathOnly)
                             return (
                                 <TableRow key={item.id}>
-                                    <TableCell>
-                                        {item.creator
-                                            ? (ownerMap[item.creator] ??
-                                              item.creator)
-                                            : "-"}
-                                    </TableCell>
+                                    {manage && (
+                                        <TableCell>
+                                            {getItemCreatorName(
+                                                item.creator ?? "",
+                                            )}
+                                        </TableCell>
+                                    )}
                                     <TableCell>
                                         {getTypeLabel(item.item_type)}
                                     </TableCell>

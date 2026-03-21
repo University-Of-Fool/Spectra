@@ -1,0 +1,51 @@
+{
+    "common": {
+        "loading": "Loading...",
+        "next_step": "Next Step",
+        "back": "Back",
+        "submit": "Submit",
+        "submitting": "Submitting..."
+    },
+    "errors": {
+        "unknown": "Unknown error",
+        "invalid_domain": "Please enter a valid domain URL",
+        "invalid_cron": "Please enter a valid refresh Cron expression",
+        "admin_required": "Name, email, and password are required",
+        "submit_failed": "Setup failed: {{reason}}"
+    },
+    "step1": {
+        "title": "Setup Spectra",
+        "description": "Fill in some additional information to finish your Spectra installation.",
+        "domain_label": "Base URL",
+        "domain_placeholder": "https://yourdomain.com",
+        "domain_description": "Enter the base URL for your Spectra installation. Usually you can just use the default value above.",
+        "refresh_time_label": "Database Refreshing Pattern",
+        "refresh_time_placeholder": "Must be a valid Cron expression",
+        "refresh_time_description_bold": "Do not change this unless you know what you are doing. ",
+        "refresh_time_description": "Spectra traverses the database periodically to clean up old data. The default \"0 0 4 * * ?\" means 4:00 AM every day.",
+        "turnstile_title": "Enable Guest Uploads",
+        "turnstile_description": "Allow guests to upload at your site. If enabled, your site will be protected by Cloudflare Turnstile to prevent abuse.",
+        "turnstile_site_key_label": "Turnstile Site Key",
+        "turnstile_secret_key_label": "Turnstile Secret Key",
+        "turnstile_hint_before": "You can get keys from",
+        "turnstile_hint_link": "the official Cloudflare page",
+        "turnstile_hint_after": "for free. The default values are test-only and must be replaced in production.",
+        "previous_installation_title": "Just updated from v0.1.5 or earlier?",
+        "previous_installation_description": "Here is the original config.toml from your previous installation for reference.",
+        "previous_installation_failed": "Failed to load previous config: {{reason}}"
+    },
+    "step2": {
+        "title": "Administrator Setup",
+        "description": "The administrator or the Root user indicates the instance's owner who has the highest privileges.",
+        "avatar_pick": "Click or drag a file here to upload avatar (optional)",
+        "avatar_invalid": "Only gif, bmp, jpg, png and webp image files are allowed",
+        "name_label": "Name",
+        "name_placeholder": "Your Name",
+        "email_label": "Email",
+        "email_placeholder": "youraddress@example.com",
+        "password_label": "Password",
+        "password_placeholder": "Required",
+        "password_description": "Set the initial root password.",
+        "submit_success": "Setup completed successfully"
+    }
+}

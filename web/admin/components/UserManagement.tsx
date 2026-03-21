@@ -157,6 +157,12 @@ export function UserManagement() {
         setSuccessDialogOpen(true)
     }
 
+    function handleUserUpdated(user: ApiUser) {
+        setUsers((current) =>
+            current.map((item) => (item.id === user.id ? user : item)),
+        )
+    }
+
     return (
         <div className="ml-8 w-full px-4 mt-4">
             <div className="text-xl font-medium mb-2">
@@ -301,22 +307,10 @@ export function UserManagement() {
                                                     delete
                                                 </span>
                                             </button>
-                                            <button
-                                                type="button"
-                                                className="button-icon opacity-40"
-                                                disabled
-                                                title={t(
-                                                    "user_management.edit_unavailable",
-                                                    {
-                                                        defaultValue:
-                                                            "Editing users is not implemented yet",
-                                                    },
-                                                )}
-                                            >
-                                                <span className="material-symbols-outlined point cursor-pointer text-[1.4rem]!">
-                                                    edit
-                                                </span>
-                                            </button>
+                                            <EditUserDialog
+                                                user={user}
+                                                onUpdated={handleUserUpdated}
+                                            />
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -332,6 +326,13 @@ export function UserManagement() {
             />
         </div>
     )
+}
+
+type ApiUserUpdate = {
+    name?: string
+    email?: string
+    avatar?: string | null
+    password?: string
 }
 
 type ApiUserCreate = {
@@ -471,7 +472,7 @@ function NewUserDialog({
         try {
             let avatarUrl: string | null = null
             if (avatarFile) {
-                const uploaded = await uploadAvatarFile(avatarFile)
+                const uploaded = await uploadAvatarFileForUser(avatarFile)
                 uploadedAvatarPath = uploaded.shortPath
                 avatarUrl = uploaded.url
             }
@@ -497,7 +498,7 @@ function NewUserDialog({
             setOpen(false)
         } catch (error) {
             if (uploadedAvatarPath) {
-                await cleanupUploadedAvatar(uploadedAvatarPath)
+                await cleanupUploadedAvatarItem(uploadedAvatarPath)
             }
             console.error(error)
             toast.error(
@@ -510,55 +511,6 @@ function NewUserDialog({
             )
         } finally {
             setCreating(false)
-        }
-    }
-
-    async function uploadAvatarFile(file: File) {
-        const createResp = await wfetch("/api/item/__RANDOM__", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                item_type: "File",
-                data: "none",
-                extra_data: file.name,
-            }),
-        })
-
-        const created = await parseApiPayload<{ short_path: string }>(
-            createResp,
-        )
-        const formData = new FormData()
-        formData.append("file", file)
-
-        const uploadResp = await wfetch(
-            `/api/file/${encodeURIComponent(created.short_path)}`,
-            {
-                method: "POST",
-                body: formData,
-            },
-        )
-        await parseApiPayload<unknown>(uploadResp)
-
-        return {
-            shortPath: created.short_path,
-            url: buildSharedUrl(created.short_path),
-        }
-    }
-
-    async function cleanupUploadedAvatar(shortPath: string) {
-        try {
-            const pathOnly = shortPath.replace(/^\/+/, "")
-            const resp = await wfetch(
-                `/api/item/${encodeURIComponent(pathOnly)}`,
-                {
-                    method: "DELETE",
-                },
-            )
-            await parseApiPayload<unknown>(resp)
-        } catch (error) {
-            console.error(error)
         }
     }
 
@@ -737,6 +689,354 @@ function NewUserDialog({
     )
 }
 
+function EditUserDialog({
+    user,
+    onUpdated,
+}: {
+    user: ApiUser
+    onUpdated: (user: ApiUser) => void
+}) {
+    const { t } = useTranslation("admin")
+    const [open, setOpen] = useState(false)
+    const [name, setName] = useState(user.name)
+    const [email, setEmail] = useState(user.email)
+    const [password, setPassword] = useState("")
+    const [updating, setUpdating] = useState(false)
+    const [avatarFile, setAvatarFile] = useState<File | null>(null)
+    const [removeAvatar, setRemoveAvatar] = useState(false)
+    const [isAvatarDragging, setIsAvatarDragging] = useState(false)
+    const avatarInputRef = useRef<HTMLInputElement>(null)
+
+    function resetForm() {
+        setName(user.name)
+        setEmail(user.email)
+        setPassword("")
+        setAvatarFile(null)
+        setRemoveAvatar(false)
+        setIsAvatarDragging(false)
+        if (avatarInputRef.current) {
+            avatarInputRef.current.value = ""
+        }
+    }
+
+    function handleOpenChange(nextOpen: boolean) {
+        if (!nextOpen && !updating) {
+            resetForm()
+        }
+        setOpen(nextOpen)
+    }
+
+    function pickAvatar(files: FileList | null) {
+        if (!files || files.length === 0) {
+            return
+        }
+        const file = files[0]
+        if (!isAllowedAvatarFile(file)) {
+            toast.error(
+                t("user_management.edit_user_dialog.avatar_invalid_type", {
+                    defaultValue:
+                        "Only gif, bmp, jpg, png and webp image files are allowed",
+                }),
+            )
+            return
+        }
+        setAvatarFile(file)
+        setRemoveAvatar(false)
+    }
+
+    async function handleUpdateUser() {
+        if (updating) {
+            return
+        }
+
+        const trimmedName = name.trim()
+        const trimmedEmail = email.trim()
+        const trimmedPassword = password.trim()
+        let uploadedAvatarPath: string | null = null
+
+        if (!trimmedName || !trimmedEmail) {
+            toast.error(
+                t("user_management.edit_user_dialog.validation_required", {
+                    defaultValue: "Name and email are required",
+                }),
+            )
+            return
+        }
+
+        const payload: ApiUserUpdate = {}
+        if (trimmedName !== user.name) {
+            payload.name = trimmedName
+        }
+        if (trimmedEmail !== user.email) {
+            payload.email = trimmedEmail
+        }
+        if (trimmedPassword) {
+            payload.password = trimmedPassword
+        }
+
+        setUpdating(true)
+        try {
+            if (avatarFile) {
+                const uploaded = await uploadAvatarFileForUser(avatarFile)
+                uploadedAvatarPath = uploaded.shortPath
+                payload.avatar = uploaded.url
+            } else if (removeAvatar) {
+                payload.avatar = null
+            }
+
+            if (Object.keys(payload).length === 0) {
+                toast.error(
+                    t("user_management.edit_user_dialog.no_changes", {
+                        defaultValue: "No changes to save",
+                    }),
+                )
+                return
+            }
+
+            const resp = await wfetch(
+                `/api/user/${encodeURIComponent(user.id)}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                },
+            )
+            const updatedUser = await parseApiPayload<ApiUser>(resp)
+            toast.success(
+                t("user_management.update_success", {
+                    defaultValue: "User updated",
+                }),
+            )
+            onUpdated(updatedUser)
+            setOpen(false)
+            resetForm()
+        } catch (error) {
+            if (uploadedAvatarPath) {
+                await cleanupUploadedAvatarItem(uploadedAvatarPath)
+            }
+            console.error(error)
+            toast.error(
+                getErrorMessage(
+                    error,
+                    t("user_management.update_failed", {
+                        defaultValue: "Failed to update user",
+                    }),
+                ),
+            )
+        } finally {
+            setUpdating(false)
+        }
+    }
+
+    const previewAvatar = avatarFile
+        ? URL.createObjectURL(avatarFile)
+        : removeAvatar
+          ? null
+          : user.avatar
+    const hasExistingAvatar = Boolean(user.avatar) && !removeAvatar
+
+    return (
+        <Dialog open={open} onOpenChange={handleOpenChange}>
+            <DialogTrigger asChild>
+                <button
+                    type="button"
+                    className="button-icon"
+                    title={t("user_management.edit_user_dialog.open", {
+                        defaultValue: "Edit user",
+                    })}
+                >
+                    <span className="material-symbols-outlined point cursor-pointer text-[1.4rem]!">
+                        edit
+                    </span>
+                </button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-sm">
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault()
+                        void handleUpdateUser()
+                    }}
+                >
+                    <DialogHeader>
+                        <DialogTitle>
+                            {t("user_management.edit_user_dialog.title")}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {t("user_management.edit_user_dialog.description")}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {!avatarFile ? (
+                        <div
+                            className={cn(
+                                "text-xs w-full border-2 rounded-lg mt-4 pt-2 pb-2 text-muted-foreground flex justify-center items-center cursor-pointer",
+                                isAvatarDragging &&
+                                    "border-foreground bg-foreground/10",
+                            )}
+                            onClick={() => {
+                                avatarInputRef.current?.click()
+                            }}
+                            onDragEnter={(e) => {
+                                e.preventDefault()
+                                setIsAvatarDragging(true)
+                            }}
+                            onDragLeave={(e) => {
+                                e.preventDefault()
+                                setIsAvatarDragging(false)
+                            }}
+                            onDragOver={(e) => {
+                                e.preventDefault()
+                                setIsAvatarDragging(true)
+                            }}
+                            onDrop={(e) => {
+                                e.preventDefault()
+                                setIsAvatarDragging(false)
+                                pickAvatar(e.dataTransfer?.files ?? null)
+                            }}
+                        >
+                            <span className="material-symbols-outlined mr-1">
+                                upload
+                            </span>
+                            {t(
+                                "user_management.edit_user_dialog.upload_avatar_instruction",
+                            )}
+                        </div>
+                    ) : null}
+
+                    <div className="mt-2 border-2 rounded-lg p-2 flex items-center justify-between text-xs text-muted-foreground">
+                        <span className="truncate pr-2">
+                            {previewAvatar ? (
+                                <img
+                                    src={previewAvatar}
+                                    alt="Avatar"
+                                    className="size-6 rounded-full mr-2 inline"
+                                />
+                            ) : (
+                                <span className="inline-block size-6 rounded-full mr-2 bg-muted align-middle"></span>
+                            )}
+                            {avatarFile
+                                ? avatarFile.name
+                                : previewAvatar
+                                  ? t(
+                                        "user_management.edit_user_dialog.current_avatar",
+                                    )
+                                  : t(
+                                        "user_management.edit_user_dialog.no_avatar",
+                                    )}
+                        </span>
+                        {avatarFile ? (
+                            <span
+                                className="material-symbols-outlined cursor-pointer text-[1.5em]! opacity-70"
+                                onClick={() => {
+                                    setAvatarFile(null)
+                                    if (avatarInputRef.current) {
+                                        avatarInputRef.current.value = ""
+                                    }
+                                }}
+                                title={t(
+                                    "user_management.edit_user_dialog.clear_selected_avatar",
+                                )}
+                            >
+                                close
+                            </span>
+                        ) : null}
+                    </div>
+
+                    {hasExistingAvatar ? (
+                        <div className="mt-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                    setRemoveAvatar(true)
+                                    setAvatarFile(null)
+                                    if (avatarInputRef.current) {
+                                        avatarInputRef.current.value = ""
+                                    }
+                                }}
+                            >
+                                {t(
+                                    "user_management.edit_user_dialog.remove_avatar",
+                                )}
+                            </Button>
+                        </div>
+                    ) : null}
+
+                    <input
+                        ref={avatarInputRef}
+                        type="file"
+                        className="hidden"
+                        accept=".gif,.bmp,.jpg,.jpeg,.png,.webp,image/gif,image/bmp,image/jpeg,image/png,image/webp"
+                        onChange={(e) => {
+                            pickAvatar((e.target as HTMLInputElement).files)
+                        }}
+                    />
+
+                    <FieldGroup className="gap-3 mt-2 pb-4">
+                        <Field>
+                            <Input
+                                id={`edit_name_${user.id}`}
+                                value={name}
+                                onInput={(e) => {
+                                    setName(
+                                        (e.target as HTMLInputElement).value,
+                                    )
+                                }}
+                                placeholder={t(
+                                    "user_management.new_user_dialog.name",
+                                )}
+                            />
+                        </Field>
+                        <Field>
+                            <Input
+                                id={`edit_email_${user.id}`}
+                                value={email}
+                                onInput={(e) => {
+                                    setEmail(
+                                        (e.target as HTMLInputElement).value,
+                                    )
+                                }}
+                                placeholder={t(
+                                    "user_management.new_user_dialog.email",
+                                )}
+                            />
+                        </Field>
+                        <Field>
+                            <Input
+                                id={`edit_password_${user.id}`}
+                                type="password"
+                                value={password}
+                                onInput={(e) => {
+                                    setPassword(
+                                        (e.target as HTMLInputElement).value,
+                                    )
+                                }}
+                                placeholder={t(
+                                    "user_management.edit_user_dialog.password_placeholder",
+                                )}
+                            />
+                        </Field>
+                    </FieldGroup>
+
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button variant="outline" disabled={updating}>
+                                {t("user_management.new_user_dialog.cancel")}
+                            </Button>
+                        </DialogClose>
+                        <Button type="submit" disabled={updating}>
+                            {t("user_management.edit_user_dialog.save")}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 function DescriptorSelection({
     descriptors,
     setDescriptors,
@@ -885,4 +1185,48 @@ function getErrorMessage(error: unknown, fallback: string) {
         return error.message
     }
     return fallback
+}
+
+async function uploadAvatarFileForUser(file: File) {
+    const createResp = await wfetch("/api/item/__RANDOM__", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            item_type: "File",
+            data: "none",
+            extra_data: file.name,
+        }),
+    })
+
+    const created = await parseApiPayload<{ short_path: string }>(createResp)
+    const formData = new FormData()
+    formData.append("file", file)
+
+    const uploadResp = await wfetch(
+        `/api/file/${encodeURIComponent(created.short_path)}`,
+        {
+            method: "POST",
+            body: formData,
+        },
+    )
+    await parseApiPayload<unknown>(uploadResp)
+
+    return {
+        shortPath: created.short_path,
+        url: buildSharedUrl(created.short_path),
+    }
+}
+
+async function cleanupUploadedAvatarItem(shortPath: string) {
+    try {
+        const pathOnly = shortPath.replace(/^\/+/, "")
+        const resp = await wfetch(`/api/item/${encodeURIComponent(pathOnly)}`, {
+            method: "DELETE",
+        })
+        await parseApiPayload<unknown>(resp)
+    } catch (error) {
+        console.error(error)
+    }
 }

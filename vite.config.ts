@@ -16,6 +16,7 @@ export default {
                 code: resolve(__dirname, "web/code/index.html"),
                 password: resolve(__dirname, "web/password/index.html"),
                 not_found: resolve(__dirname, "web/not_found/index.html"),
+                setup: resolve(__dirname, "web/setup/index.html"),
             },
         },
     },

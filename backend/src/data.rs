@@ -38,6 +38,22 @@ impl DatabaseAccessor {
         Ok(Self { pool })
     }
 
+    pub async fn get_sys_config(&self, key: &str) -> anyhow::Result<Option<String>> {
+        let result = sqlx::query_scalar!(
+            r#"SELECT value FROM sys_config WHERE key = $1"#,
+            key
+        ).fetch_optional(&self.pool).await?;
+        Ok(result)
+    }
+
+    pub async fn set_sys_config(&self, key: &str, value: &str) -> anyhow::Result<()> {
+        sqlx::query!(
+            r#"INSERT INTO sys_config (key, value) VALUES ($1, $2) ON CONFLICT(key) DO UPDATE SET value = $2"#,
+            key, value
+        ).execute(&self.pool).await?;
+        Ok(())
+    }
+
     pub async fn create_user(
         &self,
         id: &str,
@@ -97,6 +113,27 @@ impl DatabaseAccessor {
         )
         .fetch_one(&self.pool)
         .await?;
+        Ok(user)
+    }
+
+    pub async fn update_user_info(
+        &self,
+        id: &str,
+        name: &str,
+        email: &str,
+        avatar: Option<String>,
+        password: &str,
+    ) -> Result<User> {
+        let user = sqlx::query_as!(
+            User,
+            r#"
+            UPDATE users
+            SET name = $1, email = $2, avatar = $3, password = $4
+            WHERE id = $5
+            RETURNING *
+            "#,
+            name, email, avatar, password, id
+        ).fetch_one(&self.pool).await?;
         Ok(user)
     }
 

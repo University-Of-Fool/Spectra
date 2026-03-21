@@ -153,9 +153,10 @@ pub async fn create_item(
     }
 
     // 如果 Turnstile 结果已提供且验证出错会直接返回；此值为 false 说明需要用户验证
-    let turnstile = if state.turnstile.enabled {
+    let turnstile_config = state.runtime_config.load().turnstile.clone();
+    let turnstile = if turnstile_config.enabled {
         if let Some(token) = query.get("turnstile-token") {
-            let resp = crate::util::check_turnstile(&state.turnstile.secret_key, token).await?;
+            let resp = crate::util::check_turnstile(&turnstile_config.secret_key, token).await?;
             if resp.0 {
                 true
             } else {

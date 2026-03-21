@@ -8,28 +8,38 @@ use std::sync::Arc;
 use strum::IntoEnumIterator;
 use strum_macros::{Display, EnumIter};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TurnstileConfig {
     pub enabled: bool,
     pub site_key: String,
     pub secret_key: String,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct AppRuntimeConfig {
+    pub setup: bool,
+    pub cookie_key: String,
+    pub refresh_time: String,
+    pub domain: String,
+    pub turnstile: TurnstileConfig,
+}
+
 // 应用状态
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct AppState {
     pub database_accessor: crate::data::DatabaseAccessor,
     pub file_accessor: crate::data::FileAccessor,
     pub user_tokens: Arc<DashMap<String, Token>>,
-    pub cookie_key: Key,
-    pub turnstile: TurnstileConfig,
-    pub domain: String,
+    pub runtime_config: Arc<arc_swap::ArcSwap<AppRuntimeConfig>>,
+    pub cookie_key: Arc<arc_swap::ArcSwap<Key>>,
+    pub cron_scheduler: tokio_cron_scheduler::JobScheduler,
+    pub cron_job_id: Arc<arc_swap::ArcSwap<Option<uuid::Uuid>>>,
 }
 
 // this impl tells `PrivateCookieJar` how to access the key from our state
 impl FromRef<AppState> for Key {
     fn from_ref(state: &AppState) -> Self {
-        state.cookie_key.clone()
+        (**state.cookie_key.load()).clone()
     }
 }
 

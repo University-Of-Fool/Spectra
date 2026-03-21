@@ -9,8 +9,7 @@ use shadow_rs::shadow;
 use std::fs::{self, read_to_string};
 use std::net::{IpAddr, SocketAddr};
 use std::path::PathBuf;
-use std::str::FromStr;
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 use tokio_cron_scheduler::{Job, JobScheduler};
 use tower_http::compression::CompressionLayer;
 use tower_http::cors::CorsLayer;
@@ -27,33 +26,24 @@ mod util;
 use crate::data::{DatabaseAccessor, FileAccessor};
 use crate::service::frontend::make_frontend_router;
 use crate::service::main::main_service;
-use crate::types::{AppState, TurnstileConfig};
+use crate::types::AppState;
 
 shadow!(shadow);
 const DEFAULT_CONFIG_FILE: &str = include_str!("../assets/config_example.toml");
 const DEFAULT_SYSTEMD_UNIT_FILE: &str = include_str!("../assets/spectra.service");
 
+static CONFIG_STR: OnceLock<String> = OnceLock::new();
+
 #[derive(Deserialize)]
 struct ServiceConfig {
     data_dir: String,
-    cookie_key: String,
-    refresh_time: String,
-    domain: String,
     host: String,
     port: u16,
 }
 
 #[derive(Deserialize)]
-struct TurnstileConfigFile {
-    enabled: bool,
-    site_key: String,
-    secret_key: String,
-}
-
-#[derive(Deserialize)]
 struct AppConfig {
     service: ServiceConfig,
-    turnstile: TurnstileConfigFile,
 }
 
 #[tokio::main]
@@ -139,9 +129,7 @@ async fn main() {
         let config = subcommand.get_one::<PathBuf>("PATH").unwrap();
         fs::write(
             &config,
-            DEFAULT_CONFIG_FILE
-                .replace("{SPECTRA_COOKIE_KEY}", &util::random_string(64, None))
-                .replace("{SPECTRA_CURRENT_VERSION}", shadow::PKG_VERSION),
+            DEFAULT_CONFIG_FILE.replace("{SPECTRA_CURRENT_VERSION}", shadow::PKG_VERSION),
         )
         .unwrap_or_else(|e| {
             error!("Error happened during writing to config file: {:?}", e);
@@ -221,8 +209,7 @@ async fn main() {
 
     let config_str = if !config_path.exists() {
         warn!("The specified configuration file does not exist, using the default values...");
-        warn!("Warning: a NEW cookie key is being generated...");
-        DEFAULT_CONFIG_FILE.replace("{SPECTRA_COOKIE_KEY}", &util::random_string(64, None))
+        DEFAULT_CONFIG_FILE.replace("{SPECTRA_CURRENT_VERSION}", shadow::PKG_VERSION)
     } else {
         match read_to_string(config_path) {
             Ok(content) => content,
@@ -237,6 +224,9 @@ async fn main() {
         }
     };
 
+    // keep config residence in memory for later use (i.e. for /api/setup/get_existing_config)
+    CONFIG_STR.get_or_init(|| config_str.clone());
+
     let app_config: AppConfig = match toml::from_str(&config_str) {
         Ok(config) => config,
         Err(e) => {
@@ -247,20 +237,6 @@ async fn main() {
 
     // 验证配置内容
     let service_config = &app_config.service;
-    let turnstile_file_config = &app_config.turnstile;
-
-    // 检查 service.refresh_time 是否为有效的 Cron 字符串
-    if croner::Cron::from_str(&service_config.refresh_time).is_err() {
-        error!("'refresh_time' in config is not a valid cron expression");
-        std::process::exit(1);
-    }
-
-    // 检查 service.cookie_key 长度
-    if service_config.cookie_key.len() < 64 {
-        error!("The length of 'cookie_key' must be at least 64 bytes");
-        error!("hint: you can use 'spectra generate-cookie-key' to generate a new appropriate key");
-        std::process::exit(1);
-    }
 
     // 检查 service.host 是否为有效的 IP 地址
     let host_addr: IpAddr = match service_config.host.parse() {
@@ -292,29 +268,87 @@ async fn main() {
             });
         }
 
-        let turnstile_config = TurnstileConfig {
-            enabled: turnstile_file_config.enabled,
-            site_key: turnstile_file_config.site_key.clone(),
-            // 在开发时动态指定 Turnstile secret key，因为两个 Dummy key（总是允许/总是拒绝）
-            // 的不同点在 secret key 而不是 site key 上
+        let da =
+            DatabaseAccessor::new(format!("sqlite:{}", database_path.to_str().unwrap()).as_str())
+                .await
+                .unwrap();
+
+        let mut setup = false;
+        let mut cookie_key = util::random_string(64, None);
+        let mut refresh_time = "0 0 4 * * ?".to_string();
+        let mut domain = "https://example.com".to_string();
+        let mut turnstile_enabled = false;
+        let mut turnstile_site_key = "".to_string();
+        let mut turnstile_secret_key = "".to_string();
+
+        if let Ok(Some(val)) = da.get_sys_config("setup").await {
+            setup = val == "true";
+        } else {
+            let _ = da.set_sys_config("setup", "false").await;
+            let _ = da.set_sys_config("cookie_key", &cookie_key).await;
+            let _ = da.set_sys_config("refresh_time", &refresh_time).await;
+            let _ = da.set_sys_config("domain", &domain).await;
+            let _ = da
+                .set_sys_config(
+                    "turnstile_enabled",
+                    if turnstile_enabled { "true" } else { "false" },
+                )
+                .await;
+            let _ = da
+                .set_sys_config("turnstile_site_key", &turnstile_site_key)
+                .await;
+            let _ = da
+                .set_sys_config("turnstile_secret_key", &turnstile_secret_key)
+                .await;
+        }
+
+        if let Ok(Some(val)) = da.get_sys_config("cookie_key").await {
+            cookie_key = val;
+        }
+        if let Ok(Some(val)) = da.get_sys_config("refresh_time").await {
+            refresh_time = val;
+        }
+        if let Ok(Some(val)) = da.get_sys_config("domain").await {
+            domain = val;
+        }
+        if let Ok(Some(val)) = da.get_sys_config("turnstile_enabled").await {
+            turnstile_enabled = val == "true";
+        }
+        if let Ok(Some(val)) = da.get_sys_config("turnstile_site_key").await {
+            turnstile_site_key = val;
+        }
+        if let Ok(Some(val)) = da.get_sys_config("turnstile_secret_key").await {
+            turnstile_secret_key = val;
+        }
+
+        let turnstile_config = crate::types::TurnstileConfig {
+            enabled: turnstile_enabled,
+            site_key: turnstile_site_key,
             secret_key: if cfg!(debug_assertions) {
                 matches.get_one::<String>("turnstile").unwrap().to_string()
             } else {
-                turnstile_file_config.secret_key.clone()
+                turnstile_secret_key
             },
         };
 
+        let runtime_config = crate::types::AppRuntimeConfig {
+            setup,
+            cookie_key: cookie_key.clone(),
+            refresh_time,
+            domain: domain.clone(),
+            turnstile: turnstile_config,
+        };
+
         AppState {
-            database_accessor: DatabaseAccessor::new(
-                format!("sqlite:{}", database_path.to_str().unwrap()).as_str(),
-            )
-            .await
-            .unwrap(),
+            database_accessor: da,
             file_accessor: FileAccessor::new(data_dir.to_string()),
             user_tokens: Arc::new(DashMap::new()),
-            cookie_key: Key::from(service_config.cookie_key.as_bytes()),
-            turnstile: turnstile_config,
-            domain: service_config.domain.clone(),
+            runtime_config: Arc::new(arc_swap::ArcSwap::from_pointee(runtime_config)),
+            cookie_key: Arc::new(arc_swap::ArcSwap::from_pointee(Key::from(
+                cookie_key.as_bytes(),
+            ))),
+            cron_scheduler: JobScheduler::new().await.unwrap(),
+            cron_job_id: Arc::new(arc_swap::ArcSwap::from_pointee(None)),
         }
     };
 
@@ -369,7 +403,8 @@ async fn main() {
         std::process::exit(0);
     }
 
-    if let Ok(scheduler) = JobScheduler::new().await {
+    {
+        let scheduler = state.cron_scheduler.clone();
         let outer_tokens = Arc::clone(&state.user_tokens);
         if let Err(e) = scheduler
             .add(
@@ -388,36 +423,32 @@ async fn main() {
         }
         let da_clone = state.database_accessor.clone();
         let fa_clone = state.file_accessor.clone();
-        if let Err(e) = scheduler
-            .add(
-                Job::new_async(&service_config.refresh_time, move |_, _| {
-                    info!("Triggered scheduled task: refreshing database...");
-                    let da = da_clone.clone();
-                    let fa = fa_clone.clone();
-                    Box::pin(async move {
-                        if let Err(e) = da.refresh_db(fa).await {
-                            error!("Failed to refresh database: {}", e);
-                        }
-                    })
-                })
-                .unwrap(),
-            )
-            .await
-        {
-            error!("Failed to add database refresh job to scheduler: {}", e);
+        let rt_time = state.runtime_config.load().refresh_time.clone();
+        if let Ok(job) = Job::new_async(rt_time.as_str(), move |_, _| {
+            info!("Triggered scheduled task: refreshing database...");
+            let da = da_clone.clone();
+            let fa = fa_clone.clone();
+            Box::pin(async move {
+                if let Err(e) = da.refresh_db(fa).await {
+                    error!("Failed to refresh database: {}", e);
+                }
+            })
+        }) {
+            if let Ok(job_id) = scheduler.add(job).await {
+                state.cron_job_id.store(Arc::new(Some(job_id)));
+            }
         }
 
         if let Err(e) = scheduler.start().await {
             error!("Failed to start scheduler: {}", e);
         }
-    } else {
-        error!("Failed to create job scheduler");
     }
 
+    let domain = state.runtime_config.load().domain.clone();
     let origins = [
         "http://localhost:3000".parse().unwrap(),
         "http://127.0.0.1:3000".parse().unwrap(),
-        service_config.domain.as_str().parse().unwrap(),
+        domain.as_str().parse().unwrap(),
     ];
 
     let cors = CorsLayer::new()
@@ -438,7 +469,7 @@ async fn main() {
             state.clone(),
             main_service,
         ))
-        .nest("/api", service::api::make_router())
+        .nest("/api", service::api::make_router(state.clone()))
         .layer(CompressionLayer::new())
         .layer(cors)
         .layer(TraceLayer::new_for_http())

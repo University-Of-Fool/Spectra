@@ -5,12 +5,27 @@ use axum::routing::{delete, get, post};
 mod item;
 mod misc;
 mod result;
+mod setup;
 mod types;
 mod user;
 
 use crate::types::AppState;
 
-pub fn make_router() -> Router<AppState> {
+pub fn make_router(s: AppState) -> Router<AppState> {
+    let setup_route = Router::new()
+        .route("/get_existing_config", get(setup::get_existing_config))
+        .route("/config", post(setup::update_config))
+        .route("/admin", post(setup::admin_setup))
+        .route(
+            "/avatar",
+            post(setup::upload_setup_avatar).layer(DefaultBodyLimit::max(10 * 1024 * 1024)), // 10MB
+        )
+        .route("/finish", get(setup::finish_setup))
+        .layer(axum::middleware::from_fn_with_state(
+            s,
+            setup::setup_interceptor,
+        ));
+
     #[allow(unused_mut)]
     let mut r = Router::new()
         .route("/login", post(user::login))
@@ -32,8 +47,14 @@ pub fn make_router() -> Router<AppState> {
         .route("/user/{id}", delete(user::remove_user))
         .route("/user/{id}", get(user::get_user))
         .route("/user", post(user::create_user))
+        .route("/user/{id}", axum::routing::put(user::update_user))
         .route("/about", get(misc::get_information))
-        .route("/config", get(misc::get_config));
+        .route("/config", get(misc::get_config))
+        .route(
+            "/config/admin",
+            get(misc::admin_get_config).put(misc::admin_set_config),
+        )
+        .nest("/setup", setup_route);
 
     #[cfg(debug_assertions)]
     {

@@ -1,6 +1,8 @@
 {
+    "guest": "访客",
     "button_back_to_home": "返回首页",
     "button_overview": "概览",
+    "button_user_profile": "用户信息",
     "button_shared_content": "已分享的内容",
     "button_user_management": "用户管理",
     "button_system_settings": "系统设置",
@@ -9,11 +11,43 @@
         "title": "概览",
         "description": "欢迎来到 Spectra 管理员控制台。你可以在这里查看使用信息，管理已分享的内容和用户，以及调整系统设置。"
     },
+    "user_profile": {
+        "title": "用户信息",
+        "description": "查看和修改您的用户信息",
+        "avatar_section": "头像",
+        "basic_info_section": "基本信息",
+        "security_section": "安全设置",
+        "name": "用户名",
+        "name_placeholder": "您的用户名",
+        "email": "邮箱",
+        "email_placeholder": "您的邮箱地址",
+        "created_at": "创建时间",
+        "password": "密码",
+        "password_placeholder": "留空表示不修改密码",
+        "password_description": "留空表示保持当前密码不变",
+        "upload_avatar": "上传头像",
+        "remove_avatar": "删除头像",
+        "keep_avatar": "保留头像",
+        "avatar_invalid_type": "头像文件仅支持 gif、bmp、jpg、png、webp",
+        "validation_required": "用户名和邮箱不能为空",
+        "no_changes": "没有可保存的更改",
+        "save": "保存",
+        "saving": "正在保存...",
+        "update_success": "用户信息已更新",
+        "update_failed": "更新用户信息失败",
+        "loading": "正在加载..."
+    },
     "shared_content": {
         "title": "已分享的内容",
         "description": "查看或管理所有存储在此 Spectra 实例中的已分享内容。",
+        "description_nomanage": "查看或管理您存储在此 Spectra 实例中的已分享内容。",
         "search_placeholder": "搜索分享...",
         "button_filter_user": "筛选",
+        "delete_success": "项目已删除。",
+        "delete_failed": "删除项目失败。",
+        "error_loading": "加载分享内容失败",
+        "loading": "正在加载分享内容...",
+        "empty": "暂无分享内容",
         "table": {
             "owner": "创建者",
             "type": "类型",
@@ -46,6 +80,8 @@
         "load_failed": "加载用户失败",
         "create_success": "用户已创建",
         "create_failed": "创建用户失败",
+        "update_success": "用户已更新",
+        "update_failed": "更新用户失败",
         "delete_success": "用户已删除",
         "delete_failed": "删除用户失败",
         "delete_root_forbidden": "不能删除 admin 用户",
@@ -73,6 +109,21 @@
             "upload_avatar_instruction": "点击或拖动图片到此以上传头像",
             "avatar_invalid_type": "头像文件仅支持 gif、bmp、jpg、png、webp"
         },
+        "edit_user_dialog": {
+            "open": "编辑用户",
+            "title": "编辑用户",
+            "description": "修改用户头像、用户名、邮箱或密码",
+            "save": "保存",
+            "password_placeholder": "留空表示不修改密码",
+            "validation_required": "用户名和邮箱不能为空",
+            "no_changes": "没有可保存的更改",
+            "upload_avatar_instruction": "点击或拖动图片到此以更换头像",
+            "avatar_invalid_type": "头像文件仅支持 gif、bmp、jpg、png、webp",
+            "current_avatar": "当前头像",
+            "no_avatar": "未设置头像",
+            "remove_avatar": "移除头像",
+            "clear_selected_avatar": "清除已选择的头像"
+        },
         "descriptor": {
             "code": "创建代码项目",
             "manage": "管理服务器设置",
@@ -93,7 +144,20 @@
     },
     "settings": {
         "title": "系统设置",
-        "description": "根据你的偏好调整 Spectra 的设置。"
+        "description": "根据你的偏好调整 Spectra 的设置。",
+        "general_section": "通用设置",
+        "cookie_key_label": "Cookie 加密密钥",
+        "cookie_key_warning": "更改此项会导致现存的用户登录状态失效。",
+        "turnstile_section": "访客访问设置",
+        "turnstile_tip": "默认值 (1x00...AA) 仅用于测试，必须在生产环境中替换。您可以在以下网址免费获取 Turnstile 密钥：",
+        "save_button": "保存",
+        "save_success": "设置已保存",
+        "save_failed": "保存设置失败",
+        "advanced_section": "高级设置",
+        "saving": "正在保存",
+        "advanced_section_description": "错误的配置可能会导致功能异常，请谨慎修改。",
+        "loading": "正在加载设置...",
+        "load_failed": "加载设置失败"
     },
     "debug_info": {
         "title": "调试信息",
@@ -105,9 +169,6 @@
             "description": "您还没有登录到 Spectra，请返回首页登录您的账号。",
             "title": "暂未登录"
         },
-        "permission_denied": {
-            "description": "您没有管理此 Spectra 服务器的权限。",
-            "title": "权限不足"
-        }
+        "no_manage_permission": "您没有管理此服务器的权限，仅可查看或修改自己的内容。"
     }
 }

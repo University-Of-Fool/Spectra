@@ -1,6 +1,8 @@
 {
+    "guest": "Guest",
     "button_back_to_home": "Back to Home",
     "button_overview": "Overview",
+    "button_user_profile": "Profile",
     "button_shared_content": "Shares",
     "button_user_management": "Users",
     "button_system_settings": "Settings",
@@ -9,11 +11,43 @@
         "title": "Overview",
         "description": "Welcome to the Spectra admin console. Here you can review usage information, manage shared content and users, and adjust system settings."
     },
+    "user_profile": {
+        "title": "User Profile",
+        "description": "View and update your user information",
+        "avatar_section": "Avatar",
+        "basic_info_section": "Basic Information",
+        "security_section": "Security",
+        "name": "Name",
+        "name_placeholder": "Your name",
+        "email": "Email",
+        "email_placeholder": "Your email address",
+        "created_at": "Created At",
+        "password": "Password",
+        "password_placeholder": "Leave blank to keep unchanged",
+        "password_description": "Leave blank if you don't want to change your password",
+        "upload_avatar": "Upload Avatar",
+        "remove_avatar": "Remove Avatar",
+        "keep_avatar": "Keep Avatar",
+        "avatar_invalid_type": "Only gif, bmp, jpg, png and webp files are supported",
+        "validation_required": "Name and email are required",
+        "no_changes": "No changes to save",
+        "save": "Save",
+        "saving": "Saving...",
+        "update_success": "Profile updated successfully",
+        "update_failed": "Failed to update profile",
+        "loading": "Loading..."
+    },
     "shared_content": {
         "title": "Shared Items",
         "description": "View or manage all shared items stored in this Spectra instance.",
+        "description_nomanage": "View or manage your shared items stored in this Spectra instance.",
         "search_placeholder": "Search shares...",
         "button_filter_user": "Filter",
+        "delete_success": "Item deleted.",
+        "delete_failed": "Failed to delete item.",
+        "error_loading": "Failed to load shared items",
+        "loading": "Loading shared items...",
+        "empty": "No shared items",
         "table": {
             "owner": "Owner",
             "type": "Type",
@@ -46,6 +80,8 @@
         "load_failed": "Failed to load users",
         "create_success": "User created",
         "create_failed": "Failed to create user",
+        "update_success": "User updated",
+        "update_failed": "Failed to update user",
         "delete_success": "User deleted",
         "delete_failed": "Failed to delete user",
         "delete_root_forbidden": "Root user cannot be deleted",
@@ -73,6 +109,21 @@
             "upload_avatar_instruction": "Click or drag an image here to upload avatar",
             "avatar_invalid_type": "Only gif, bmp, jpg, png and webp files are supported"
         },
+        "edit_user_dialog": {
+            "open": "Edit user",
+            "title": "Edit User",
+            "description": "Update avatar, username, email, or password",
+            "save": "Save",
+            "password_placeholder": "Leave blank to keep current password",
+            "validation_required": "Name and email are required",
+            "no_changes": "No changes to save",
+            "upload_avatar_instruction": "Click or drag an image here to replace avatar",
+            "avatar_invalid_type": "Only gif, bmp, jpg, png and webp files are supported",
+            "current_avatar": "Current avatar",
+            "no_avatar": "No avatar",
+            "remove_avatar": "Remove avatar",
+            "clear_selected_avatar": "Clear selected avatar"
+        },
         "descriptor": {
             "code": "Create code items",
             "manage": "Manage server settings",
@@ -92,8 +143,21 @@
         }
     },
     "settings": {
-        "title": "Settings",
-        "description": "Adjust Spectra settings based on your preferences."
+        "title": "System Settings",
+        "description": "Adjust Spectra settings based on your preferences.",
+        "general_section": "General Settings",
+        "cookie_key_label": "Cookie Encryption Key",
+        "cookie_key_warning": "Changing this will invalidate existing user sessions.",
+        "turnstile_section": "Guest Access Settings",
+        "turnstile_tip": "Default values (1x00...AA) are for testing only and must be replaced in production. Get your own keys for free at ",
+        "save_button": "Save",
+        "save_success": "Settings saved",
+        "save_failed": "Failed to save settings",
+        "advanced_section": "Advanced Settings",
+        "saving": "Saving...",
+        "advanced_section_description": "Incorrect configuration may cause functionality issues. Please modify with caution.",
+        "loading": "Loading settings...",
+        "load_failed": "Failed to load settings"
     },
     "debug_info": {
         "title": "Debug",
@@ -105,9 +169,6 @@
             "description": "You are not logged in to Spectra yet. Please return to the home page and sign in.",
             "title": "Not Logged In"
         },
-        "permission_denied": {
-            "description": "You do not have permission to manage this Spectra server.",
-            "title": "Permission Denied"
-        }
+        "no_manage_permission": "You do not have permission to manage this server, and is only able to view or modify your own content."
     }
 }

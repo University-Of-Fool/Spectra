@@ -1,6 +1,6 @@
 [package]
 name = "Spectra"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2024"
 build = "build.rs"
 
@@ -51,6 +51,7 @@ infer = "0.19.0"
 reqwest = { version = "0.12.22", features = ["json"] }
 croner = "3.0.0"
 openssl = { version = "0.10", features = ["vendored"] }
+arc-swap = "1.8.2"
 
 
 [build-dependencies]

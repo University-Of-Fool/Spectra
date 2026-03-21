@@ -1,7 +1,7 @@
 import "../components/i18n"
 import "../public/style.css"
 import { render } from "preact"
-import { Suspense, useEffect, useState } from "react"
+import { Suspense, useContext, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { ThemeProvider } from "@/components/ThemeProvider"
@@ -21,26 +21,24 @@ import { Overview } from "./components/Overview"
 import { Settings } from "./components/Settings"
 import { SharedContent } from "./components/SharedContent"
 import { UserManagement } from "./components/UserManagement"
+import { UserProfile } from "./components/UserProfile"
+import { AdminUserContext, type ApiUser } from "./context/AdminUserContext"
 
 const root = document.getElementById("app")
 if (!root) throw new Error("Launch failed: Root element not found")
 
 function Admin() {
+    useTranslation("setup") // preload setup translations for Settings page
     const { t } = useTranslation("admin")
     const [dialogOpen, setDialogOpen] = useState(false)
     const [dialogMsg, setDialogMsg] = useState("")
+    const [currentUser, setCurrentUser] = useState<ApiUser | null>(null)
 
     const login = () => {
         fetch("/api/user-info").then(async (res) => {
             let data: {
                 success: boolean
-                payload: {
-                    name: string
-                    avatar: string
-                    id: string
-                    created_at: string
-                    descriptor: string[]
-                }
+                payload: ApiUser
             } | null = null
 
             let error = false
@@ -72,9 +70,9 @@ function Admin() {
                     toast.error(t("authorization.service_unavailable"))
                     return
                 }
+                setCurrentUser(data?.payload ?? null)
                 if (!data?.payload.descriptor.includes("Manage")) {
-                    setDialogMsg("authorization.permission_denied")
-                    error = true
+                    toast.info(t("authorization.no_manage_permission"))
                 }
             }
 
@@ -88,73 +86,82 @@ function Admin() {
     return (
         <ThemeProvider>
             <Toaster richColors />
-            <div className="h-screen">
-                <div
-                    className={
-                        "fixed flex items-center p-10 px-15 bg-linear-to-b from-background to-transparent from-25% top-0 left-0 w-full z-50"
-                    }
-                >
-                    <SpectraLogo className="h-12 mr-4" />
+            <AdminUserContext.Provider
+                value={{
+                    currentUser,
+                    setCurrentUser,
+                }}
+            >
+                <div className="h-screen">
+                    <div
+                        className={
+                            "fixed flex items-center p-10 px-15 bg-linear-to-b from-background to-transparent from-25% top-0 left-0 w-full z-50"
+                        }
+                    >
+                        <SpectraLogo className="h-12 mr-4" />
 
-                    <div className="text-xl font-mono font-medium">
-                        Spectra.Admin
-                    </div>
+                        <div className="text-xl font-mono font-medium">
+                            Spectra.Admin
+                        </div>
 
-                    <div className="ml-auto">
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                                location.href = "/"
-                            }}
-                        >
-                            <span
-                                className={
-                                    "material-symbols-outlined text-[1.6em]!"
-                                }
+                        <div className="ml-auto">
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    location.href = "/"
+                                }}
                             >
-                                arrow_back
-                            </span>
-                            {t("button_back_to_home")}
-                        </Button>
+                                <span
+                                    className={
+                                        "material-symbols-outlined text-[1.6em]!"
+                                    }
+                                >
+                                    arrow_back
+                                </span>
+                                {t("button_back_to_home")}
+                            </Button>
+                        </div>
+                    </div>
+                    <div className="mt-36 pb-36 flex justify-center">
+                        <Content t={t} />
                     </div>
                 </div>
-                <div className="mt-36 pb-36 flex justify-center">
-                    <Content t={t} />
-                </div>
-            </div>
 
-            <Dialog open={dialogOpen}>
-                <DialogContent showCloseButton={false}>
-                    <DialogHeader>
-                        <DialogTitle>{t(`${dialogMsg}.title`)}</DialogTitle>
-                        <DialogDescription>
-                            {t(`${dialogMsg}.description`)}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                                location.href = "/"
-                            }}
-                        >
-                            <span
-                                className={
-                                    "material-symbols-outlined text-[1.6em]!"
-                                }
+                <Dialog open={dialogOpen}>
+                    <DialogContent showCloseButton={false}>
+                        <DialogHeader>
+                            <DialogTitle>{t(`${dialogMsg}.title`)}</DialogTitle>
+                            <DialogDescription>
+                                {t(`${dialogMsg}.description`)}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    location.href = "/"
+                                }}
                             >
-                                arrow_back
-                            </span>
-                            {t("button_back_to_home")}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                                <span
+                                    className={
+                                        "material-symbols-outlined text-[1.6em]!"
+                                    }
+                                >
+                                    arrow_back
+                                </span>
+                                {t("button_back_to_home")}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            </AdminUserContext.Provider>
         </ThemeProvider>
     )
 }
 
 function Content({ t }: { t: ReturnType<typeof useTranslation>["t"] }) {
+    const { currentUser } = useContext(AdminUserContext)
+    const manage = !!currentUser?.descriptor.includes("Manage")
     const [activeTab, setActiveTab] = useState("overview")
 
     return (
@@ -174,6 +181,17 @@ function Content({ t }: { t: ReturnType<typeof useTranslation>["t"] }) {
                 <div className="flex items-center">
                     <Button
                         variant={
+                            activeTab === "user_profile" ? "secondary" : "ghost"
+                        }
+                        onClick={() => setActiveTab("user_profile")}
+                    >
+                        {t("button_user_profile")}
+                    </Button>
+                </div>
+
+                <div className="flex items-center">
+                    <Button
+                        variant={
                             activeTab === "shared_content"
                                 ? "secondary"
                                 : "ghost"
@@ -184,45 +202,52 @@ function Content({ t }: { t: ReturnType<typeof useTranslation>["t"] }) {
                     </Button>
                 </div>
 
-                <div className="flex items-center">
-                    <Button
-                        variant={
-                            activeTab === "user_management"
-                                ? "secondary"
-                                : "ghost"
-                        }
-                        onClick={() => setActiveTab("user_management")}
-                    >
-                        {t("button_user_management")}
-                    </Button>
-                </div>
+                {manage && (
+                    <>
+                        <div className="flex items-center">
+                            <Button
+                                variant={
+                                    activeTab === "user_management"
+                                        ? "secondary"
+                                        : "ghost"
+                                }
+                                onClick={() => setActiveTab("user_management")}
+                            >
+                                {t("button_user_management")}
+                            </Button>
+                        </div>
 
-                <div className="flex items-center">
-                    <Button
-                        variant={
-                            activeTab === "system_settings"
-                                ? "secondary"
-                                : "ghost"
-                        }
-                        onClick={() => setActiveTab("system_settings")}
-                    >
-                        {t("button_system_settings")}
-                    </Button>
-                </div>
+                        <div className="flex items-center">
+                            <Button
+                                variant={
+                                    activeTab === "system_settings"
+                                        ? "secondary"
+                                        : "ghost"
+                                }
+                                onClick={() => setActiveTab("system_settings")}
+                            >
+                                {t("button_system_settings")}
+                            </Button>
+                        </div>
 
-                <div className="flex items-center">
-                    <Button
-                        variant={
-                            activeTab === "debug_info" ? "secondary" : "ghost"
-                        }
-                        onClick={() => setActiveTab("debug_info")}
-                    >
-                        {t("button_debug_info")}
-                    </Button>
-                </div>
+                        <div className="flex items-center">
+                            <Button
+                                variant={
+                                    activeTab === "debug_info"
+                                        ? "secondary"
+                                        : "ghost"
+                                }
+                                onClick={() => setActiveTab("debug_info")}
+                            >
+                                {t("button_debug_info")}
+                            </Button>
+                        </div>
+                    </>
+                )}
             </div>
 
             {activeTab === "overview" && <Overview />}
+            {activeTab === "user_profile" && <UserProfile />}
             {activeTab === "shared_content" && <SharedContent />}
             {activeTab === "user_management" && <UserManagement />}
             {activeTab === "system_settings" && <Settings />}

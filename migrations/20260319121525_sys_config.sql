@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS sys_config (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);

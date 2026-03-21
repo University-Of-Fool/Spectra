@@ -1,8 +1,8 @@
 import { useContext, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
+import { TransitionHeight } from "../../components/HeightTransition"
 import { wfetch } from "../fetch"
-import { TransitionHeight } from "../HeightTransition"
 import { AccountCtx } from "../main"
 
 const PAGE_SIZE = 10

@@ -1,0 +1,51 @@
+{
+    "common": {
+        "loading": "加载中",
+        "next_step": "下一步",
+        "back": "上一步",
+        "submit": "提交",
+        "submitting": "提交中..."
+    },
+    "errors": {
+        "unknown": "未知错误",
+        "invalid_domain": "请输入有效的域名 URL",
+        "invalid_cron": "请输入有效的 Cron 表达式",
+        "admin_required": "姓名、邮箱和密码是必填项",
+        "submit_failed": "提交失败: {{reason}}"
+    },
+    "step1": {
+        "title": "Spectra 初始设置",
+        "description": "填写额外信息，以完成 Spectra 的安装。",
+        "domain_label": "Base URL",
+        "domain_placeholder": "https://yourdomain.com",
+        "domain_description": "请填入外部访问此 Spectra 实例时的 Base URL，通常来说，可以直接使用以上的默认值。",
+        "refresh_time_label": "数据库刷新时间",
+        "refresh_time_placeholder": "请填入 Cron 表达式",
+        "refresh_time_description_bold": "除非您对您的行为有十足的把握，否则请不要改动此项。",
+        "refresh_time_description": "Spectra 周期性地遍历数据库来清理过期数据。默认值 \"0 0 4 * * ?\" 表示每天凌晨 4 点。",
+        "turnstile_title": "允许访客上传",
+        "turnstile_description": "允许访客在您的站点上传项目。如果启用，您的站点将受到 Cloudflare Turnstile 的反滥用保护。",
+        "turnstile_site_key_label": "Turnstile Site Key",
+        "turnstile_secret_key_label": "Turnstile Secret Key",
+        "turnstile_hint_before": "您可以免费从 ",
+        "turnstile_hint_link": "Cloudflare 的官方页面",
+        "turnstile_hint_after": "获取它们。注意，默认值仅应用于测试，不应在生产环境中使用。",
+        "previous_installation_title": "您是刚刚从 v0.1.5 或更早版本更新上来的吗？",
+        "previous_installation_description": "以下是之前的 config.toml 文件内容，以供参考。",
+        "previous_installation_failed": "由于 {{reason}}，加载 config.toml 失败。"
+    },
+    "step2": {
+        "title": "管理员设置",
+        "description": "管理员用户，即根用户，表示此 Spectra 实例的所有者，并拥有最高的权限。",
+        "avatar_pick": "点击此处或拖拽上传管理员的头像。（可选）",
+        "avatar_invalid": "仅支持 gif、bmp、jpg、png 和 webp 文件。",
+        "name_label": "名称",
+        "name_placeholder": "您的昵称",
+        "email_label": "电子邮件",
+        "email_placeholder": "youraddress@example.com",
+        "password_label": "密码",
+        "password_placeholder": "必填",
+        "password_description": "设置管理员的密码。",
+        "submit_success": "设置完成"
+    }
+}
