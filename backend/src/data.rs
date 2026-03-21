@@ -39,10 +39,9 @@ impl DatabaseAccessor {
     }
 
     pub async fn get_sys_config(&self, key: &str) -> anyhow::Result<Option<String>> {
-        let result = sqlx::query_scalar!(
-            r#"SELECT value FROM sys_config WHERE key = $1"#,
-            key
-        ).fetch_optional(&self.pool).await?;
+        let result = sqlx::query_scalar!(r#"SELECT value FROM sys_config WHERE key = $1"#, key)
+            .fetch_optional(&self.pool)
+            .await?;
         Ok(result)
     }
 
@@ -132,8 +131,14 @@ impl DatabaseAccessor {
             WHERE id = $5
             RETURNING *
             "#,
-            name, email, avatar, password, id
-        ).fetch_one(&self.pool).await?;
+            name,
+            email,
+            avatar,
+            password,
+            id
+        )
+        .fetch_one(&self.pool)
+        .await?;
         Ok(user)
     }
 

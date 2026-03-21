@@ -259,50 +259,60 @@ pub async fn update_user(
     if token.is_none() {
         crate::fail!(401, "Unauthorized");
     }
-    let current_user = state.database_accessor.get_user_by_id(&token.unwrap().user_id).await.unwrap_or(None);
+    let current_user = state
+        .database_accessor
+        .get_user_by_id(&token.unwrap().user_id)
+        .await
+        .unwrap_or(None);
     if current_user.is_none() {
         crate::fail!(401, "Unauthorized");
     }
     let current_user = current_user.unwrap();
-    
+
     let root_id = "00000000-0000-0000-0000-000000000000";
     if id == root_id && current_user.id != root_id {
         crate::fail!(403, "Cannot modify root user");
     }
-    
+
     if current_user.id != id && !current_user.descriptor.contains(UserPermission::Manage) {
         crate::fail!(403, "No sufficient permissions");
     }
-    
-    let target_user = state.database_accessor.get_user_by_id(&id).await.unwrap_or(None);
+
+    let target_user = state
+        .database_accessor
+        .get_user_by_id(&id)
+        .await
+        .unwrap_or(None);
     if target_user.is_none() {
         crate::fail!(404, "Target user not found");
     }
     let target_user = target_user.unwrap();
-    
+
     let name = payload.name.unwrap_or(target_user.name);
     let email = payload.email.unwrap_or(target_user.email);
-    let avatar = if payload.avatar.is_some() { payload.avatar } else { target_user.avatar };
+    let avatar = if payload.avatar.is_some() {
+        payload.avatar
+    } else {
+        target_user.avatar
+    };
     let password_hash = if let Some(p) = payload.password {
         format!("{:x}", Sha256::digest(p.as_bytes()))
     } else {
         target_user.password
     };
-    
-    match state.database_accessor.update_user_info(
-        &id,
-        &name,
-        &email,
-        avatar,
-        &password_hash
-    ).await {
+
+    match state
+        .database_accessor
+        .update_user_info(&id, &name, &email, avatar, &password_hash)
+        .await
+    {
         Ok(updated_user) => {
             if let Ok(api_user) = ApiUser::from_user(updated_user, &state.database_accessor).await {
                 crate::success!(api_user)
             } else {
                 crate::fail!(500, "Internal error converting user")
             }
-        },
+        }
         Err(e) => {
             tracing::error!("Failed to update user: {}", e);
             crate::fail!(500, "Database error")
