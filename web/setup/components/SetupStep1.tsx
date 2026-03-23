@@ -1,3 +1,7 @@
+import { CronExpressionParser } from "cron-parser"
+import { render, Suspense, useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -15,10 +19,6 @@ import {
     FieldTitle,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { toast } from "sonner"
-import { CronExpressionParser } from "cron-parser"
-import { render, Suspense, useEffect, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { TransitionHeight } from "../../components/HeightTransition"
 import type { SetupConfigPayload } from "../interface"
 import { apiRequest } from "../utils"

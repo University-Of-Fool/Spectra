@@ -1,14 +1,19 @@
+import { render, Suspense, useEffect, useState } from "react"
 import { ThemeProvider } from "@/components/ThemeProvider"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
-import { render, Suspense, useEffect, useState } from "react"
 import "../components/i18n"
 import "../public/style.css"
-import type { AdminSetupPayload, SetupConfigPayload } from "./interface"
+import {
+    TopBarDiv,
+    TopBarLogo,
+    TopBarRightButtons,
+    TopBarRightDiv,
+} from "../components/TopBar"
 
 import { SetupStep1 } from "./components/SetupStep1"
 import { SetupStep2 } from "./components/SetupStep2"
-import { TopBarDiv, TopBarLogo, TopBarRightButtons, TopBarRightDiv } from "../components/TopBar"
+import type { AdminSetupPayload, SetupConfigPayload } from "./interface"
 
 function StepTransition(props: {
     step: number

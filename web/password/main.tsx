@@ -1,7 +1,15 @@
 import "../public/style.css"
 import { render, Suspense } from "react"
 import { ThemeProvider } from "@/components/ThemeProvider.tsx"
-import { TopBarDiv, TopBarLogo, TopBarRightAvatar, TopBarRightButtons, TopBarRightCol, TopBarRightDiv, TopBarRightSharedBy } from "../components/TopBar.tsx"
+import {
+    TopBarDiv,
+    TopBarLogo,
+    TopBarRightAvatar,
+    TopBarRightButtons,
+    TopBarRightCol,
+    TopBarRightDiv,
+    TopBarRightSharedBy,
+} from "../components/TopBar.tsx"
 import { AuthCard } from "./components/AuthCard"
 import "../components/i18n"
 
@@ -24,10 +32,14 @@ export function PasswordInput() {
                     <TopBarLogo pageName="Auth"></TopBarLogo>
                     <TopBarRightDiv>
                         <TopBarRightCol>
-                            <TopBarRightSharedBy name={backendData.creator_name} ></TopBarRightSharedBy>
+                            <TopBarRightSharedBy
+                                name={backendData.creator_name}
+                            ></TopBarRightSharedBy>
                             <TopBarRightButtons></TopBarRightButtons>
                         </TopBarRightCol>
-                        <TopBarRightAvatar avatar={backendData.creator_avatar}></TopBarRightAvatar>
+                        <TopBarRightAvatar
+                            avatar={backendData.creator_avatar}
+                        ></TopBarRightAvatar>
                     </TopBarRightDiv>
                 </TopBarDiv>
                 <AuthCard error={backendData.error} />

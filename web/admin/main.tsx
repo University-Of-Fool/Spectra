@@ -16,6 +16,12 @@ import {
 } from "@/components/ui/dialog"
 import { Toaster } from "@/components/ui/sonner"
 import { SpectraLogo } from "../components/Logo"
+import {
+    TopBarDiv,
+    TopBarLogo,
+    TopBarRightBackButton,
+    TopBarRightButtons,
+} from "../components/TopBar"
 import { DebugInfo } from "./components/DebugInfo"
 import { Overview } from "./components/Overview"
 import { Settings } from "./components/Settings"
@@ -23,7 +29,6 @@ import { SharedContent } from "./components/SharedContent"
 import { UserManagement } from "./components/UserManagement"
 import { UserProfile } from "./components/UserProfile"
 import { AdminUserContext, type ApiUser } from "./context/AdminUserContext"
-import { TopBarDiv, TopBarLogo, TopBarRightBackButton, TopBarRightButtons } from "../components/TopBar"
 
 const root = document.getElementById("app")
 if (!root) throw new Error("Launch failed: Root element not found")

@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils.ts"
 import { LanguageSwitcher } from "../../components/LanguageSwitcher.tsx"
-import { AccountCtx } from "../main.tsx"
 import { TopBarDiv, TopBarLogo } from "../../components/TopBar.tsx"
+import { AccountCtx } from "../main.tsx"
 
 export function TopBar() {
     const context = useContext(AccountCtx)
@@ -47,7 +47,6 @@ export function TopBar() {
 
     return (
         <TopBarDiv>
-
             <TopBarLogo></TopBarLogo>
             <div
                 className={cn(
@@ -59,13 +58,13 @@ export function TopBar() {
                     className={cn(
                         "opacity-90",
                         context.value.loading &&
-                        "h-2 bg-black/10 rounded text-black/0",
+                            "h-2 bg-black/10 rounded text-black/0",
                     )}
                 >
                     {context.value.loading
                         ? "username (loading)"
                         : context.value.isLoggedIn
-                            ? t("top_bar.greeting.message", {
+                          ? t("top_bar.greeting.message", {
                                 time: t(
                                     t(
                                         (() => {
@@ -89,13 +88,13 @@ export function TopBar() {
                                 ),
                                 username: context.value.name || "user",
                             })
-                            : t("top_bar.greeting.message_guest")}
+                          : t("top_bar.greeting.message_guest")}
                 </div>
                 <div
                     className={cn(
                         "opacity-50 text-xs flex gap-1.5 items-center",
                         context.value.loading &&
-                        " h-2 bg-black/10 rounded text-black/0",
+                            " h-2 bg-black/10 rounded text-black/0",
                     )}
                 >
                     {context.value.isLoggedIn ? (
@@ -150,7 +149,6 @@ export function TopBar() {
         </TopBarDiv>
     )
 }
-
 
 function LoginPopover() {
     const context = useContext(AccountCtx)
@@ -285,18 +283,14 @@ function LoginPopover() {
     return (
         <Popover>
             <PopoverTrigger>
-                <div className={"cursor-pointer"}>
-                    {t("top_bar.login")}
-                </div>
+                <div className={"cursor-pointer"}>{t("top_bar.login")}</div>
             </PopoverTrigger>
             <PopoverContent className="w-90 mr-10 mt-1">
                 <div className={"flex flex-col p-3"}>
                     <div className={"flex items-center"}>
                         <span
                             id="dark-mode-icon"
-                            className={
-                                "material-symbols-outlined"
-                            }
+                            className={"material-symbols-outlined"}
                         >
                             login
                         </span>
@@ -304,27 +298,17 @@ function LoginPopover() {
                             {t("top_bar.login_msg")}
                         </span>
                     </div>
-                    <div
-                        className={
-                            "text-sm opacity-75 mt-6"
-                        }
-                    >
+                    <div className={"text-sm opacity-75 mt-6"}>
                         {t("top_bar.email")}
                     </div>
                     <Input
                         className={"mt-2"}
                         onChange={(e) => {
                             references.email.current =
-                                (
-                                    e.target as HTMLInputElement
-                                )?.value || ""
+                                (e.target as HTMLInputElement)?.value || ""
                         }}
                     ></Input>
-                    <div
-                        className={
-                            "text-sm opacity-75 mt-4"
-                        }
-                    >
+                    <div className={"text-sm opacity-75 mt-4"}>
                         {t("top_bar.password")}
                     </div>
                     <Input
@@ -338,22 +322,15 @@ function LoginPopover() {
                         }}
                         onInput={(e) => {
                             references.password.current =
-                                (
-                                    e.target as HTMLInputElement
-                                )?.value || ""
+                                (e.target as HTMLInputElement)?.value || ""
                         }}
                     ></Input>
-                    <div
-                        className={
-                            "flex-row flex gap-2 mt-7"
-                        }
-                    >
+                    <div className={"flex-row flex gap-2 mt-7"}>
                         <Checkbox
                             id={"remember-password"}
                             defaultChecked
                             onCheckedChange={(e) => {
-                                references.remember.current =
-                                    !!e
+                                references.remember.current = !!e
                             }}
                         />
                         <Label
@@ -363,10 +340,7 @@ function LoginPopover() {
                             {t("top_bar.remember_me")}
                         </Label>
                     </div>
-                    <Button
-                        className={"mt-4"}
-                        onClick={login}
-                    >
+                    <Button className={"mt-4"} onClick={login}>
                         {t("top_bar.login_action")}
                     </Button>
                     <div

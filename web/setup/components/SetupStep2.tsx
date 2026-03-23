@@ -1,3 +1,6 @@
+import { useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
     Field,
@@ -8,9 +11,6 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
-import { toast } from "sonner"
 import "../../components/i18n"
 import type { AdminSetupPayload, SetupConfigPayload } from "../interface"
 
@@ -133,7 +133,7 @@ export function SetupStep2({
                             className={cn(
                                 "text-xs w-full border-2 rounded-lg pt-4 pb-4 text-muted-foreground flex justify-center items-center cursor-pointer",
                                 isAvatarDragging &&
-                                "border-foreground bg-foreground/10",
+                                    "border-foreground bg-foreground/10",
                             )}
                             onClick={() => {
                                 avatarInputRef.current?.click()
