@@ -23,6 +23,7 @@ import { SharedContent } from "./components/SharedContent"
 import { UserManagement } from "./components/UserManagement"
 import { UserProfile } from "./components/UserProfile"
 import { AdminUserContext, type ApiUser } from "./context/AdminUserContext"
+import { TopBarDiv, TopBarLogo, TopBarRightBackButton, TopBarRightButtons } from "../components/TopBar"
 
 const root = document.getElementById("app")
 if (!root) throw new Error("Launch failed: Root element not found")
@@ -93,36 +94,11 @@ function Admin() {
                 }}
             >
                 <div className="h-screen">
-                    <div
-                        className={
-                            "fixed flex items-center p-10 px-15 bg-linear-to-b from-background to-transparent from-25% top-0 left-0 w-full z-50"
-                        }
-                    >
-                        <SpectraLogo className="h-12 mr-4" />
-
-                        <div className="text-xl font-mono font-medium">
-                            Spectra.Admin
-                        </div>
-
-                        <div className="ml-auto">
-                            <Button
-                                variant="outline"
-                                onClick={() => {
-                                    location.href = "/"
-                                }}
-                            >
-                                <span
-                                    className={
-                                        "material-symbols-outlined text-[1.6em]!"
-                                    }
-                                >
-                                    arrow_back
-                                </span>
-                                {t("button_back_to_home")}
-                            </Button>
-                        </div>
-                    </div>
-                    <div className="mt-36 pb-36 flex justify-center">
+                    <TopBarDiv>
+                        <TopBarLogo pageName="Admin"></TopBarLogo>
+                        <TopBarRightBackButton></TopBarRightBackButton>
+                    </TopBarDiv>
+                    <div className="mt-8 pb-36 flex justify-center">
                         <Content t={t} />
                     </div>
                 </div>

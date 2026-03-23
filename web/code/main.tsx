@@ -1,16 +1,16 @@
-import "../public/style.css"
-import { render } from "preact"
-import { Suspense, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { ThemeProvider } from "@/components/ThemeProvider.tsx"
 import { Toaster } from "@/components/ui/sonner.tsx"
 import { cn } from "@/lib/utils.ts"
+import { render } from "preact"
+import { Suspense, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { TransitionHeight } from "../components/HeightTransition.tsx"
+import "../components/i18n"
 import { emptyLanguage, LANGS } from "../components/languages.ts"
-import { TopBar } from "../components/TopBar.tsx"
+import { TopBarDiv, TopBarLogo, TopBarRightAvatar, TopBarRightButtons, TopBarRightCol, TopBarRightDiv, TopBarRightSharedBy } from "../components/TopBar.tsx"
+import "../public/style.css"
 import CodeBlock from "./components/CodeBlock.tsx"
 import { PreviewBlock } from "./components/PreviewBlock.tsx"
-import "../components/i18n"
 
 // 将任意字符串转写成 Title Case，虽然我不知道它可能有什么用但以防万一
 function capitalizeWords(str: string): string {
@@ -62,11 +62,17 @@ function Main() {
     return (
         <ThemeProvider>
             <Suspense fallback={<div></div>}>
-                <TopBar
-                    name={backendData.creator_name}
-                    avatar={backendData.creator_avatar}
-                    page={"Clipboard"}
-                />
+
+                <TopBarDiv>
+                    <TopBarLogo pageName="Clipboard"></TopBarLogo>
+                    <TopBarRightDiv>
+                        <TopBarRightCol>
+                            <TopBarRightSharedBy name={backendData.creator_name} ></TopBarRightSharedBy>
+                            <TopBarRightButtons></TopBarRightButtons>
+                        </TopBarRightCol>
+                        <TopBarRightAvatar avatar={backendData.creator_avatar}></TopBarRightAvatar>
+                    </TopBarRightDiv>
+                </TopBarDiv>
                 <div className={"flex justify-center"}>
                     <div className={"mx-10 mb-10 w-280"}>
                         <div
@@ -99,10 +105,10 @@ function Main() {
                                         code={backendData.content}
                                         language={
                                             extraData.language as
-                                                | "html"
-                                                | "latex"
-                                                | "markdown"
-                                                | "typst"
+                                            | "html"
+                                            | "latex"
+                                            | "markdown"
+                                            | "typst"
                                         }
                                     />
                                     <div className={"h-4"}></div>
@@ -137,21 +143,21 @@ function Main() {
                                             <div>
                                                 {preview
                                                     ? t("preview_collapse", {
-                                                          language: t(
-                                                              languageDef.displayName,
-                                                              {
-                                                                  ns: "languages",
-                                                              },
-                                                          ),
-                                                      })
+                                                        language: t(
+                                                            languageDef.displayName,
+                                                            {
+                                                                ns: "languages",
+                                                            },
+                                                        ),
+                                                    })
                                                     : t("preview_expand", {
-                                                          language: t(
-                                                              languageDef.displayName,
-                                                              {
-                                                                  ns: "languages",
-                                                              },
-                                                          ),
-                                                      })}
+                                                        language: t(
+                                                            languageDef.displayName,
+                                                            {
+                                                                ns: "languages",
+                                                            },
+                                                        ),
+                                                    })}
                                             </div>
                                         </div>
                                     </div>

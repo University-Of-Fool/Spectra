@@ -72,7 +72,7 @@ export function SetupStep1({
     }
 
     return (
-        <div className={"pt-36 flex justify-center"}>
+        <div className={"pt-8 flex justify-center"}>
             <div className={"w-lg"}>
                 <div className={"mb-15"}>
                     <h1 className={"text-xl font-medium"}>

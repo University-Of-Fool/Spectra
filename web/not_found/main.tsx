@@ -1,10 +1,10 @@
 import { ThemeProvider } from "@/components/ThemeProvider"
 import "../public/style.css"
 import { render } from "preact"
-import { SpectraLogo } from "../components/Logo"
 import "../components/i18n"
 import { Suspense } from "react"
 import { useTranslation } from "react-i18next"
+import { TopBarDiv, TopBarLogo } from "../components/TopBar"
 
 const root = document.getElementById("app")
 if (!root) throw new Error("Launch failed: Root element not found")
@@ -14,17 +14,9 @@ function NotFound() {
     return (
         <ThemeProvider>
             <div className={"h-screen"}>
-                <div
-                    className={
-                        "fixed flex items-center p-10 px-15 bg-gradient-to-b from-background to-transparent from-25% top-0 left-0 w-full z-50"
-                    }
-                >
-                    <SpectraLogo className={"h-12 mr-4"} />
-
-                    <div className={"text-xl font-mono font-medium"}>
-                        Spectra
-                    </div>
-                </div>
+                <TopBarDiv className="fixed">
+                    <TopBarLogo></TopBarLogo>
+                </TopBarDiv>
 
                 <div className={"h-full flex items-center justify-center"}>
                     <div

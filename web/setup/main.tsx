@@ -1,15 +1,14 @@
-import { ThemeProvider, ThemeSwitcher } from "@/components/ThemeProvider"
+import { ThemeProvider } from "@/components/ThemeProvider"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 import { render, Suspense, useEffect, useState } from "react"
-import { LanguageSwitcher } from "../components/LanguageSwitcher"
-import { SpectraLogo } from "../components/Logo"
 import "../components/i18n"
 import "../public/style.css"
 import type { AdminSetupPayload, SetupConfigPayload } from "./interface"
 
 import { SetupStep1 } from "./components/SetupStep1"
 import { SetupStep2 } from "./components/SetupStep2"
+import { TopBarDiv, TopBarLogo, TopBarRightButtons, TopBarRightDiv } from "../components/TopBar"
 
 function StepTransition(props: {
     step: number
@@ -69,19 +68,12 @@ export function App() {
         <ThemeProvider>
             <Toaster richColors />
             <div className="h-screen">
-                <div
-                    className={
-                        "fixed flex items-center p-10 px-15 bg-linear-to-b from-background to-transparent from-25% top-0 left-0 w-full z-50"
-                    }
-                >
-                    <SpectraLogo className="h-12 mr-4" />
-                    <div
-                        className={"text-sm text-muted-foreground ml-auto flex"}
-                    >
-                        <ThemeSwitcher></ThemeSwitcher>
-                        <LanguageSwitcher></LanguageSwitcher>
-                    </div>
-                </div>
+                <TopBarDiv>
+                    <TopBarLogo pageName={"Setup"}></TopBarLogo>
+                    <TopBarRightDiv>
+                        <TopBarRightButtons></TopBarRightButtons>
+                    </TopBarRightDiv>
+                </TopBarDiv>
                 <StepTransition step={step}>
                     {(displayStep) =>
                         displayStep === 1 ? (
