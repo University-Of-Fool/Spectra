@@ -22,6 +22,7 @@ import { useTranslation } from "react-i18next"
 import { TransitionHeight } from "../../components/HeightTransition"
 import type { SetupConfigPayload } from "../interface"
 import { apiRequest } from "../utils"
+import { Switch } from "@/components/ui/switch"
 
 export function SetupStep1({
     setStep,
@@ -74,7 +75,7 @@ export function SetupStep1({
     return (
         <div className={"pt-8 flex justify-center"}>
             <div className={"w-lg"}>
-                <div className={"mb-15"}>
+                <div className={"mb-12"}>
                     <h1 className={"text-xl font-medium"}>
                         {t("step1.title")}
                     </h1>
@@ -136,21 +137,11 @@ export function SetupStep1({
                             </FieldDescription>
                         </Field>
                     </FieldGroup>
-                    <div className={"border-b"}></div>
-                    <div className={"border p-4 rounded-xl"}>
-                        <TransitionHeight>
+
+                    <div className={"border rounded-xl"}>
+                        <TransitionHeight className="p-4">
                             <FieldGroup>
-                                <Field orientation={"horizontal"}>
-                                    <Checkbox
-                                        checked={setupConfig.turnstile_enabled}
-                                        onCheckedChange={(checked) => {
-                                            setSetupConfig({
-                                                ...setupConfig,
-                                                turnstile_enabled: !!checked,
-                                            })
-                                        }}
-                                        id="turnstile_enabled"
-                                    ></Checkbox>
+                                <Field orientation={"horizontal"} className={"flex items-center!"}>
                                     <FieldContent>
                                         <FieldTitle>
                                             {t("step1.turnstile_title")}
@@ -159,6 +150,17 @@ export function SetupStep1({
                                             {t("step1.turnstile_description")}
                                         </FieldDescription>
                                     </FieldContent>
+                                    <Switch
+                                        className={"ml-auto"}
+                                        id="turnstile_enabled"
+                                        checked={setupConfig.turnstile_enabled}
+                                        onCheckedChange={(checked) => {
+                                            setSetupConfig({
+                                                ...setupConfig,
+                                                turnstile_enabled: !!checked,
+                                            })
+                                        }}
+                                    />
                                 </Field>
                             </FieldGroup>
                             {setupConfig.turnstile_enabled && (
@@ -238,7 +240,7 @@ export function SetupStep1({
                     </FieldGroup>
                 </FieldSet>
 
-                <Collapsible className="rounded-md data-[state=open]:bg-muted">
+                <Collapsible className={"mt-8"}>
                     <CollapsibleTrigger asChild>
                         <Button variant="ghost" className="group w-full mt-4">
                             {t("step1.previous_installation_title")}

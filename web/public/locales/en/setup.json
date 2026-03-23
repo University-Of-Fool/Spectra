@@ -15,10 +15,10 @@
     },
     "step1": {
         "title": "Setup Spectra",
-        "description": "Fill in some additional information to finish your Spectra installation.",
+        "description": "Welcome to Spectra! Please complete the following setup steps to get started.",
         "domain_label": "Base URL",
         "domain_placeholder": "https://yourdomain.com",
-        "domain_description": "Enter the base URL for your Spectra installation. Usually you can just use the default value above.",
+        "domain_description": "Enter the public accessible URL for your Spectra installation. Usually you can just use the default value above.",
         "refresh_time_label": "Database Refreshing Pattern",
         "refresh_time_placeholder": "Must be a valid Cron expression",
         "refresh_time_description_bold": "Do not change this unless you know what you are doing. ",
