@@ -19,10 +19,10 @@ import {
     FieldTitle,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
 import { TransitionHeight } from "../../components/HeightTransition"
 import type { SetupConfigPayload } from "../interface"
 import { apiRequest } from "../utils"
-import { Switch } from "@/components/ui/switch"
 
 export function SetupStep1({
     setStep,
@@ -141,7 +141,10 @@ export function SetupStep1({
                     <div className={"border rounded-xl"}>
                         <TransitionHeight className="p-4">
                             <FieldGroup>
-                                <Field orientation={"horizontal"} className={"flex items-center!"}>
+                                <Field
+                                    orientation={"horizontal"}
+                                    className={"flex items-center!"}
+                                >
                                     <FieldContent>
                                         <FieldTitle>
                                             {t("step1.turnstile_title")}
