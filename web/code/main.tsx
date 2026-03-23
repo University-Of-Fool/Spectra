@@ -1,13 +1,21 @@
-import { ThemeProvider } from "@/components/ThemeProvider.tsx"
-import { Toaster } from "@/components/ui/sonner.tsx"
-import { cn } from "@/lib/utils.ts"
 import { render } from "preact"
 import { Suspense, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { ThemeProvider } from "@/components/ThemeProvider.tsx"
+import { Toaster } from "@/components/ui/sonner.tsx"
+import { cn } from "@/lib/utils.ts"
 import { TransitionHeight } from "../components/HeightTransition.tsx"
 import "../components/i18n"
 import { emptyLanguage, LANGS } from "../components/languages.ts"
-import { TopBarDiv, TopBarLogo, TopBarRightAvatar, TopBarRightButtons, TopBarRightCol, TopBarRightDiv, TopBarRightSharedBy } from "../components/TopBar.tsx"
+import {
+    TopBarDiv,
+    TopBarLogo,
+    TopBarRightAvatar,
+    TopBarRightButtons,
+    TopBarRightCol,
+    TopBarRightDiv,
+    TopBarRightSharedBy,
+} from "../components/TopBar.tsx"
 import "../public/style.css"
 import CodeBlock from "./components/CodeBlock.tsx"
 import { PreviewBlock } from "./components/PreviewBlock.tsx"
@@ -62,15 +70,18 @@ function Main() {
     return (
         <ThemeProvider>
             <Suspense fallback={<div></div>}>
-
                 <TopBarDiv>
                     <TopBarLogo pageName="Clipboard"></TopBarLogo>
                     <TopBarRightDiv>
                         <TopBarRightCol>
-                            <TopBarRightSharedBy name={backendData.creator_name} ></TopBarRightSharedBy>
+                            <TopBarRightSharedBy
+                                name={backendData.creator_name}
+                            ></TopBarRightSharedBy>
                             <TopBarRightButtons></TopBarRightButtons>
                         </TopBarRightCol>
-                        <TopBarRightAvatar avatar={backendData.creator_avatar}></TopBarRightAvatar>
+                        <TopBarRightAvatar
+                            avatar={backendData.creator_avatar}
+                        ></TopBarRightAvatar>
                     </TopBarRightDiv>
                 </TopBarDiv>
                 <div className={"flex justify-center"}>
@@ -105,10 +116,10 @@ function Main() {
                                         code={backendData.content}
                                         language={
                                             extraData.language as
-                                            | "html"
-                                            | "latex"
-                                            | "markdown"
-                                            | "typst"
+                                                | "html"
+                                                | "latex"
+                                                | "markdown"
+                                                | "typst"
                                         }
                                     />
                                     <div className={"h-4"}></div>
@@ -143,21 +154,21 @@ function Main() {
                                             <div>
                                                 {preview
                                                     ? t("preview_collapse", {
-                                                        language: t(
-                                                            languageDef.displayName,
-                                                            {
-                                                                ns: "languages",
-                                                            },
-                                                        ),
-                                                    })
+                                                          language: t(
+                                                              languageDef.displayName,
+                                                              {
+                                                                  ns: "languages",
+                                                              },
+                                                          ),
+                                                      })
                                                     : t("preview_expand", {
-                                                        language: t(
-                                                            languageDef.displayName,
-                                                            {
-                                                                ns: "languages",
-                                                            },
-                                                        ),
-                                                    })}
+                                                          language: t(
+                                                              languageDef.displayName,
+                                                              {
+                                                                  ns: "languages",
+                                                              },
+                                                          ),
+                                                      })}
                                             </div>
                                         </div>
                                     </div>

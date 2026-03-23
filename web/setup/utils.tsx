@@ -1,6 +1,9 @@
 import type { ApiResponse } from "./interface"
 
-export async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
+export async function apiRequest<T>(
+    url: string,
+    init?: RequestInit,
+): Promise<T> {
     const resp = await fetch(url, init)
     let data: ApiResponse<T> | null = null
     try {
@@ -19,4 +22,3 @@ export async function apiRequest<T>(url: string, init?: RequestInit): Promise<T>
 
     return data.payload
 }
-
