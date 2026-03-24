@@ -473,7 +473,7 @@ function NewUserDialog({
             let avatarUrl: string | null = null
             if (avatarFile) {
                 const uploaded = await uploadAvatarFileForUser(avatarFile)
-                uploadedAvatarPath = uploaded.shortPath
+                uploadedAvatarPath = `/${uploaded.shortPath}`
                 avatarUrl = uploaded.url
             }
 
@@ -778,7 +778,7 @@ function EditUserDialog({
         try {
             if (avatarFile) {
                 const uploaded = await uploadAvatarFileForUser(avatarFile)
-                uploadedAvatarPath = uploaded.shortPath
+                uploadedAvatarPath = `/${uploaded.shortPath}`
                 payload.avatar = uploaded.url
             } else if (removeAvatar) {
                 payload.avatar = null

@@ -15,12 +15,10 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Toaster } from "@/components/ui/sonner"
-import { SpectraLogo } from "../components/Logo"
 import {
     TopBarDiv,
     TopBarLogo,
     TopBarRightBackButton,
-    TopBarRightButtons,
 } from "../components/TopBar"
 import { DebugInfo } from "./components/DebugInfo"
 import { Overview } from "./components/Overview"

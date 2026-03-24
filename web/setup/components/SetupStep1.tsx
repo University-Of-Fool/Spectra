@@ -1,9 +1,13 @@
 import { CronExpressionParser } from "cron-parser"
-import { render, Suspense, useEffect, useRef, useState } from "react"
+import hljs from "highlight.js/lib/core"
+import toml from "highlight.js/lib/languages/ini"
+import githubLight from "highlight.js/styles/github.min.css?url"
+import githubDark from "highlight.js/styles/github-dark.min.css?url"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
+import { useTheme } from "@/components/ThemeProvider"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
     Collapsible,
     CollapsibleContent,
@@ -24,6 +28,8 @@ import { TransitionHeight } from "../../components/HeightTransition"
 import type { SetupConfigPayload } from "../interface"
 import { apiRequest } from "../utils"
 
+hljs.registerLanguage("toml", toml)
+
 export function SetupStep1({
     setStep,
     setupConfig,
@@ -36,6 +42,26 @@ export function SetupStep1({
     const { t } = useTranslation("setup")
     const [legacyConfig, setLegacyConfig] = useState("")
     const [legacyLoading, setLegacyLoading] = useState(true)
+    const [legacyConfigExpanded, setLegacyConfigExpanded] = useState(false)
+    const codeRef = useRef<HTMLElement>(null)
+    const { theme: _theme } = useTheme()
+    const theme =
+        _theme === "system"
+            ? window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light"
+            : _theme
+
+    useEffect(() => {
+        if (
+            codeRef.current &&
+            legacyConfigExpanded &&
+            !legacyLoading &&
+            legacyConfig
+        ) {
+            hljs.highlightElement(codeRef.current)
+        }
+    }, [legacyLoading, legacyConfigExpanded, legacyConfig])
 
     useEffect(() => {
         void (async () => {
@@ -243,7 +269,12 @@ export function SetupStep1({
                     </FieldGroup>
                 </FieldSet>
 
-                <Collapsible className={"mt-8"}>
+                <Collapsible
+                    className={"mt-8"}
+                    onOpenChange={() =>
+                        setLegacyConfigExpanded(!legacyConfigExpanded)
+                    }
+                >
                     <CollapsibleTrigger asChild>
                         <Button variant="ghost" className="group w-full mt-4">
                             {t("step1.previous_installation_title")}
@@ -267,7 +298,10 @@ export function SetupStep1({
                                 }
                             >
                                 <pre>
-                                    <code className={""}>
+                                    <code
+                                        ref={codeRef}
+                                        className={"language-toml"}
+                                    >
                                         {legacyLoading
                                             ? t("common.loading")
                                             : legacyConfig}
@@ -277,6 +311,10 @@ export function SetupStep1({
                         </TransitionHeight>
                     </CollapsibleContent>
                 </Collapsible>
+                <link
+                    rel={"stylesheet"}
+                    href={theme === "light" ? githubLight : githubDark}
+                />
             </div>
         </div>
     )

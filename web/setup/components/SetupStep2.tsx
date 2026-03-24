@@ -98,7 +98,7 @@ export function SetupStep2({
                 body: JSON.stringify({
                     ...adminPayload,
                     password: adminPayload.password.trim(),
-                    avatar: avatarPath,
+                    avatar: `/${avatarPath}`,
                 }),
             })
 
