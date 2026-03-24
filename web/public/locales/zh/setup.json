@@ -16,7 +16,7 @@
     "step1": {
         "title": "Spectra 初始设置",
         "description": "欢迎使用 Spectra！在开始之前，我们需要完成一些设置。",
-        "domain_label": "Base URL",
+        "domain_label": "外部访问链接",
         "domain_placeholder": "https://yourdomain.com",
         "domain_description": "请填入外部可访问的指向此 Spectra 实例的链接，通常来说，可以直接使用以上的默认值。",
         "refresh_time_label": "数据库刷新时间",
@@ -35,8 +35,8 @@
         "previous_installation_failed": "由于 {{reason}}，加载 config.toml 失败。"
     },
     "step2": {
-        "title": "管理员设置",
-        "description": "管理员用户，即根用户，表示此 Spectra 实例的所有者，并拥有最高的权限。",
+        "title": "创建管理员用户",
+        "description": "管理员用户将拥有最高的权限，能够修改系统设置、管理分享项目、创建管理其他用户等。",
         "avatar_pick": "点击此处或拖拽上传管理员的头像。（可选）",
         "avatar_invalid": "仅支持 gif、bmp、jpg、png 和 webp 文件。",
         "name_label": "名称",
@@ -45,7 +45,6 @@
         "email_placeholder": "youraddress@example.com",
         "password_label": "密码",
         "password_placeholder": "必填",
-        "password_description": "设置管理员的密码。",
         "submit_success": "设置完成"
     }
 }

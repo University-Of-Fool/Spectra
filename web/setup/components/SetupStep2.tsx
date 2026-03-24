@@ -117,8 +117,8 @@ export function SetupStep2({
 
     return (
         <div className={"pt-8 flex justify-center"}>
-            <div className={"w-lg"}>
-                <div className={"mb-15"}>
+            <div className={"w-150"}>
+                <div className={"mb-12"}>
                     <h1 className={"text-xl font-medium"}>
                         {t("step2.title")}
                     </h1>
@@ -131,9 +131,9 @@ export function SetupStep2({
                     {!avatarFile ? (
                         <div
                             className={cn(
-                                "text-xs w-full border-2 rounded-lg pt-4 pb-4 text-muted-foreground flex justify-center items-center cursor-pointer",
+                                "w-full h-20 border-2 border-border flex items-center justify-center transition-colors rounded-md",
                                 isAvatarDragging &&
-                                    "border-foreground bg-foreground/10",
+                                "border-foreground bg-foreground/30",
                             )}
                             onClick={() => {
                                 avatarInputRef.current?.click()
@@ -156,10 +156,16 @@ export function SetupStep2({
                                 pickAvatar(e.dataTransfer?.files ?? null)
                             }}
                         >
-                            <span className="material-symbols-outlined mr-1">
-                                upload
-                            </span>
-                            {t("step2.avatar_pick")}
+                            <div className="flex items-center justify-center opacity-50 text-sm">
+                                <span className="material-symbols-outlined mr-1">
+                                    upload
+                                </span>
+                                <span className="text-center">
+                                    {t(
+                                        "step2.avatar_pick",
+                                    )}
+                                </span>
+                            </div>
                         </div>
                     ) : (
                         <div className=" border-2 rounded-lg p-4 flex items-center justify-between text-xs text-muted-foreground">
@@ -247,19 +253,17 @@ export function SetupStep2({
                                     })
                                 }}
                             />
-                            <FieldDescription>
-                                {t("step2.password_description")}
-                            </FieldDescription>
+
                         </Field>
                     </FieldGroup>
-                    <div className={"gap-2 flex flex-col"}>
-                        <Button disabled={submitting} onClick={handleSubmit}>
+                    <div className={"gap-4 flex mt-2"}>
+                        <Button className={"flex-1"} variant={"outline"} onClick={() => setStep(1)}>
+                            {t("common.back")}
+                        </Button>
+                        <Button className={"flex-6"} disabled={submitting} onClick={handleSubmit}>
                             {submitting
                                 ? t("common.submitting")
                                 : t("common.submit")}
-                        </Button>
-                        <Button variant={"outline"} onClick={() => setStep(1)}>
-                            {t("common.back")}
                         </Button>
                     </div>
                 </FieldSet>

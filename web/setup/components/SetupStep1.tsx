@@ -99,13 +99,13 @@ export function SetupStep1({
     }
 
     return (
-        <div className={"pt-8 flex justify-center"}>
-            <div className={"w-lg"}>
+        <div className={"pt-8 flex justify-center pb-16"}>
+            <div className={"w-150"}>
                 <div className={"mb-12"}>
                     <h1 className={"text-xl font-medium"}>
                         {t("step1.title")}
                     </h1>
-                    <span className={"text-sm text-muted-foreground mb-8"}>
+                    <span className={"text-sm text-muted-foreground"}>
                         {t("step1.description")}
                     </span>
                 </div>
@@ -165,7 +165,7 @@ export function SetupStep1({
                     </FieldGroup>
 
                     <div className={"border rounded-xl"}>
-                        <TransitionHeight className="p-4">
+                        <TransitionHeight className="p-5">
                             <FieldGroup>
                                 <Field
                                     orientation={"horizontal"}
@@ -263,41 +263,41 @@ export function SetupStep1({
                         </TransitionHeight>
                     </div>
                     <FieldGroup>
-                        <Button onClick={goNext}>
+                        <Button onClick={goNext} className={"mt-2"}>
                             {t("common.next_step")}
                         </Button>
                     </FieldGroup>
                 </FieldSet>
-
-                <Collapsible
-                    className={"mt-8"}
-                    onOpenChange={() =>
-                        setLegacyConfigExpanded(!legacyConfigExpanded)
+                <div
+                    className={
+                        "rounded-lg border overflow-auto p-5 py-3 mt-12 mb-12"
                     }
                 >
-                    <CollapsibleTrigger asChild>
-                        <Button variant="ghost" className="group w-full mt-4">
-                            {t("step1.previous_installation_title")}
-                            <span
-                                className={
-                                    "material-symbols-outlined ml-auto group-data-[state=open]:rotate-180 transition-transform"
-                                }
-                            >
-                                keyboard_arrow_down
-                            </span>
-                        </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="text-sm text-muted-foreground mt-4 mb-12">
+
+                    <Collapsible
+                        onOpenChange={() =>
+                            setLegacyConfigExpanded(!legacyConfigExpanded)
+                        }
+                    >
+                        <CollapsibleTrigger asChild>
+                            <Button variant="ghost" className="group w-full p-0 hover:bg-transparent">
+                                {t("step1.previous_installation_title")}
+                                <span
+                                    className={
+                                        "material-symbols-outlined ml-auto group-data-[state=open]:rotate-180 transition-transform"
+                                    }
+                                >
+                                    keyboard_arrow_down
+                                </span>
+                            </Button>
+                        </CollapsibleTrigger>
                         <TransitionHeight>
-                            <div className={"ml-4 mr-4"}>
-                                {t("step1.previous_installation_description")}
-                            </div>
-                            <div
-                                className={
-                                    "rounded-lg border overflow-auto p-6 mt-4"
-                                }
-                            >
-                                <pre>
+                            <CollapsibleContent className="text-sm text-muted-foreground">
+                                <div className={"h-4"}></div>
+                                <div>
+                                    {t("step1.previous_installation_description")}
+                                </div>
+                                <pre className={"mt-2"}>
                                     <code
                                         ref={codeRef}
                                         className={"language-toml"}
@@ -307,10 +307,11 @@ export function SetupStep1({
                                             : legacyConfig}
                                     </code>
                                 </pre>
-                            </div>
+                                <div className={"h-2"}></div>
+                            </CollapsibleContent>
                         </TransitionHeight>
-                    </CollapsibleContent>
-                </Collapsible>
+                    </Collapsible>
+                </div>
                 <link
                     rel={"stylesheet"}
                     href={theme === "light" ? githubLight : githubDark}

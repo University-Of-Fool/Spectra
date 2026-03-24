@@ -36,7 +36,7 @@
     },
     "step2": {
         "title": "Administrator Setup",
-        "description": "The administrator or the Root user indicates the instance's owner who has the highest privileges.",
+        "description": "The administrator user will have the highest level of permissions, including modifying system settings, managing share items, creating and managing other users, etc.",
         "avatar_pick": "Click or drag a file here to upload avatar (optional)",
         "avatar_invalid": "Only gif, bmp, jpg, png and webp image files are allowed",
         "name_label": "Name",
@@ -45,7 +45,6 @@
         "email_placeholder": "youraddress@example.com",
         "password_label": "Password",
         "password_placeholder": "Required",
-        "password_description": "Set the initial root password.",
         "submit_success": "Setup completed successfully"
     }
 }
