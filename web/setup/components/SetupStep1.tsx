@@ -273,14 +273,16 @@ export function SetupStep1({
                         "rounded-lg border overflow-auto p-5 py-3 mt-12 mb-12"
                     }
                 >
-
                     <Collapsible
                         onOpenChange={() =>
                             setLegacyConfigExpanded(!legacyConfigExpanded)
                         }
                     >
                         <CollapsibleTrigger asChild>
-                            <Button variant="ghost" className="group w-full p-0 hover:bg-transparent">
+                            <Button
+                                variant="ghost"
+                                className="group w-full p-0 hover:bg-transparent"
+                            >
                                 {t("step1.previous_installation_title")}
                                 <span
                                     className={
@@ -295,7 +297,9 @@ export function SetupStep1({
                             <CollapsibleContent className="text-sm text-muted-foreground">
                                 <div className={"h-4"}></div>
                                 <div>
-                                    {t("step1.previous_installation_description")}
+                                    {t(
+                                        "step1.previous_installation_description",
+                                    )}
                                 </div>
                                 <pre className={"mt-2"}>
                                     <code

@@ -133,7 +133,7 @@ export function SetupStep2({
                             className={cn(
                                 "w-full h-20 border-2 border-border flex items-center justify-center transition-colors rounded-md",
                                 isAvatarDragging &&
-                                "border-foreground bg-foreground/30",
+                                    "border-foreground bg-foreground/30",
                             )}
                             onClick={() => {
                                 avatarInputRef.current?.click()
@@ -161,9 +161,7 @@ export function SetupStep2({
                                     upload
                                 </span>
                                 <span className="text-center">
-                                    {t(
-                                        "step2.avatar_pick",
-                                    )}
+                                    {t("step2.avatar_pick")}
                                 </span>
                             </div>
                         </div>
@@ -253,14 +251,21 @@ export function SetupStep2({
                                     })
                                 }}
                             />
-
                         </Field>
                     </FieldGroup>
                     <div className={"gap-4 flex mt-2"}>
-                        <Button className={"flex-1"} variant={"outline"} onClick={() => setStep(1)}>
+                        <Button
+                            className={"flex-1"}
+                            variant={"outline"}
+                            onClick={() => setStep(1)}
+                        >
                             {t("common.back")}
                         </Button>
-                        <Button className={"flex-6"} disabled={submitting} onClick={handleSubmit}>
+                        <Button
+                            className={"flex-6"}
+                            disabled={submitting}
+                            onClick={handleSubmit}
+                        >
                             {submitting
                                 ? t("common.submitting")
                                 : t("common.submit")}
