@@ -3,6 +3,7 @@
     <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/University-Of-Fool/Spectra/main.yml">
     <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/University-Of-Fool/Spectra">
     <img alt="GitHub License" src="https://img.shields.io/github/license/University-Of-Fool/Spectra">
+    <a href="https://ferris.love/University-Of-Fool/Spectra"><img src="https://ferris.love/badge/University-Of-Fool/Spectra?show=call_fn%2Ccall_method%2Cdef_var%2Cdef_fn%2Cdef_method&variant=mini" alt="Badge showing this repository's Rust code analysis"></a>
 </p>
 <p align="center">Spectrum of online tools</p>
 <img align="center" src="/assets/screenshot.png" alt="Spectra Screenshot">
