@@ -162,7 +162,6 @@ impl From<String> for ItemType {
     }
 }
 
-// 修改后
 #[derive(Debug, Clone, Copy, PartialEq, Eq, sqlx::Type, Serialize, Deserialize)]
 #[sqlx(type_name = "operation_type", rename_all = "snake_case")]
 pub enum OperationType {
@@ -196,7 +195,7 @@ pub struct Item {
     pub creator: Option<String>,
     pub available: bool,
     pub should_drop_at: Option<NaiveDateTime>,
-    pub img: bool,
+    //pub img: bool,
 }
 
 // 访问日志结构
@@ -210,4 +209,19 @@ pub struct AccessLog {
     pub success: bool,
     pub ip_address: String,
     pub initiator: Option<String>,
+}
+
+#[derive(Debug, sqlx::FromRow, Serialize, Deserialize)]
+pub struct VersionHistory {
+    pub id: i64,
+    pub name: String,
+    pub applied: bool,
+}
+
+#[derive(Debug, sqlx::FromRow, Serialize, Deserialize)]
+pub struct FileMetadata {
+    pub id: i64,
+    pub item_id: String,
+    pub img: bool,
+    pub size: i64,
 }

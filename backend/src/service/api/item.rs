@@ -383,7 +383,7 @@ pub async fn upload_file(
         .await?;
     state
         .database_accessor
-        .update_item_img(&item.id, img)
+        .create_file_item_metadata(&item.id, img, data.len() as u64)
         .await?;
 
     if !token_temporary {

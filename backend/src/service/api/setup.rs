@@ -12,6 +12,7 @@ use axum::{Json, extract::State};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use std::str::FromStr;
+use tracing::warn;
 
 pub async fn setup_interceptor(
     State(state): State<AppState>,
@@ -19,6 +20,7 @@ pub async fn setup_interceptor(
     next: Next,
 ) -> Response {
     if state.runtime_config.load().setup {
+        warn!("Server is already set up. Blocking access to setup endpoints.");
         ApiError::new(
             410,
             "This server is already set up. Access to setup api endpoints is forbidden."
@@ -48,13 +50,6 @@ pub async fn update_config(
     State(state): State<AppState>,
     Json(payload): Json<ConfigUpdatePayload>,
 ) -> ApiResult {
-    if state.runtime_config.load().setup {
-        fail!(
-            410,
-            "This server is already set up. Access to setup api endpoints is forbidden."
-        );
-    }
-
     let mut new_config = (**state.runtime_config.load()).clone();
     let da = &state.database_accessor;
 
@@ -66,10 +61,7 @@ pub async fn update_config(
     //     .await;
 
     // new_config.cookie_key = payload.cookie_key.clone();
-    let cookie_key = crate::util::random_string(
-        64,
-        Some("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"),
-    );
+    let cookie_key = crate::util::random_string(64, None);
     let _ = da.set_sys_config("cookie_key", &cookie_key).await;
     state
         .cookie_key
@@ -150,13 +142,6 @@ pub async fn admin_setup(
     State(state): State<AppState>,
     Json(payload): Json<AdminSetupPayload>,
 ) -> ApiResult {
-    if state.runtime_config.load().setup {
-        fail!(
-            410,
-            "This server is already set up. Access to setup api endpoints is forbidden."
-        );
-    }
-
     let root_id = "00000000-0000-0000-0000-000000000000";
     let existing_user = state
         .database_accessor
@@ -272,7 +257,7 @@ pub async fn upload_setup_avatar(
 
     let _ = state
         .database_accessor
-        .update_item_img(&item.id, true)
+        .create_file_item_metadata(&item.id, true, data.len() as u64)
         .await;
 
     #[derive(serde::Serialize)]

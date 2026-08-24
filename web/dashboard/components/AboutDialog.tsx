@@ -1,3 +1,4 @@
+import { DialogDescription } from "@radix-ui/react-dialog"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
@@ -5,7 +6,6 @@ import { Badge } from "@/components/ui/badge"
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -71,73 +71,75 @@ export function AboutDialog() {
                     {t("dashboard.footer_button_about")}
                 </div>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className={"gap-0"}>
                 <DialogHeader>
                     <DialogTitle>{t("about.dialog_title")}</DialogTitle>
-                    <DialogDescription>
-                        {t("about.description")}
-                        {loading && <p>Loading...</p>}
-                        {about && (
-                            <div className="mt-4 space-y-2">
-                                <p>
-                                    <strong>{t("about.version")}</strong>{" "}
-                                    {about.version} (
-                                    <a
-                                        className={
-                                            "text-foreground hover:underline"
-                                        }
-                                        href={`https://github.com/University-Of-Fool/Spectra/commit/${about.commit}`}
-                                    >
-                                        {about.commit}
-                                    </a>
-                                    )
-                                    {!about.clean && (
-                                        <Badge
-                                            variant="outline"
-                                            className={
-                                                "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300 cursor-help ml-2"
-                                            }
-                                            title={t("about.dirty_tooltip")}
-                                        >
-                                            Dirty
-                                        </Badge>
-                                    )}
-                                </p>
-                                <p>
-                                    <strong>{t("about.build_date")}</strong>{" "}
-                                    {new Date(
-                                        about.build_date,
-                                    ).toLocaleString()}
-                                </p>
-
-                                <p>
-                                    <strong>{t("about.debug_mode")}</strong>{" "}
-                                    {about.debug
-                                        ? t("about.debug_mode_enabled")
-                                        : t("about.debug_mode_disabled")}
-                                </p>
-
-                                <p>{buildLocText(about.code)}</p>
-
-                                <p>
-                                    <a
-                                        href="https://github.com/University-Of-Fool/Spectra"
-                                        className="text-foreground hover:underline"
-                                    >
-                                        GitHub
-                                    </a>
-                                    {" · "}
-                                    <a
-                                        href="https://uof.edu.kg"
-                                        className="text-foreground hover:underline"
-                                    >
-                                        University of Fool
-                                    </a>
-                                </p>
-                            </div>
-                        )}
-                    </DialogDescription>
                 </DialogHeader>
+                <DialogDescription
+                    className={"text-sm text-muted-foreground mt-2"}
+                >
+                    {t("about.description")}
+                </DialogDescription>
+                <div className={"text-sm text-muted-foreground"}>
+                    {loading && <p>Loading...</p>}
+                    {about && (
+                        <div className="mt-4 space-y-2">
+                            <div>
+                                <strong>{t("about.version")}</strong>{" "}
+                                {about.version} (
+                                <a
+                                    className={
+                                        "text-foreground hover:underline"
+                                    }
+                                    href={`https://github.com/University-Of-Fool/Spectra/commit/${about.commit}`}
+                                >
+                                    {about.commit}
+                                </a>
+                                )
+                                {!about.clean && (
+                                    <Badge
+                                        variant="outline"
+                                        className={
+                                            "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300 cursor-help ml-2"
+                                        }
+                                        title={t("about.dirty_tooltip")}
+                                    >
+                                        Dirty
+                                    </Badge>
+                                )}
+                            </div>
+                            <div>
+                                <strong>{t("about.build_date")}</strong>{" "}
+                                {new Date(about.build_date).toLocaleString()}
+                            </div>
+
+                            <div>
+                                <strong>{t("about.debug_mode")}</strong>{" "}
+                                {about.debug
+                                    ? t("about.debug_mode_enabled")
+                                    : t("about.debug_mode_disabled")}
+                            </div>
+
+                            <div>{buildLocText(about.code)}</div>
+
+                            <div>
+                                <a
+                                    href="https://github.com/University-Of-Fool/Spectra"
+                                    className="text-foreground hover:underline"
+                                >
+                                    GitHub
+                                </a>
+                                {" · "}
+                                <a
+                                    href="https://uof.edu.kg"
+                                    className="text-foreground hover:underline"
+                                >
+                                    University of Fool
+                                </a>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </DialogContent>
         </Dialog>
     )

@@ -22,6 +22,7 @@ mod data;
 mod service;
 mod types;
 mod util;
+mod versions;
 
 use crate::data::{DatabaseAccessor, FileAccessor};
 use crate::service::frontend::make_frontend_router;
@@ -48,10 +49,6 @@ struct AppConfig {
 
 #[tokio::main]
 async fn main() {
-    // 解析命令行参数
-    // 因为 mut 是为了在 debug 模式下添加 Turnstile 相关参数
-    // 所以在 release 模式下会有未使用的 mut 警告
-    #[allow(unused_mut)]
     let mut cmd_builder = Command::new("Spectra")
         .version(crate_version!())
         .long_version(shadow::CLAP_LONG_VERSION)
@@ -75,20 +72,8 @@ async fn main() {
                         .default_value("config.toml"),
                 ),
         )
-        .subcommand(Command::new("reset-admin-password").about("Reset the admin password"))
-        .subcommand(
-            Command::new("generate-cookie-key")
-                .about("Generate a random string appropriate to use as cookie key"),
-        );
-    #[cfg(debug_assertions)]
-    {
-        cmd_builder = cmd_builder.arg(
-            arg!(-T --turnstile <TOKEN> "Turnstile secret token")
-                .value_parser(value_parser!(String))
-                .required(false)
-                .default_value("1x0000000000000000000000000000000AA"),
-        );
-    }
+        .subcommand(Command::new("reset-admin-password").about("Reset the admin password"));
+
     if std::env::consts::OS == "linux" {
         cmd_builder = cmd_builder.subcommand(
             Command::new("systemd")
@@ -135,15 +120,6 @@ async fn main() {
             error!("Error happened during writing to config file: {:?}", e);
             std::process::exit(1);
         });
-        std::process::exit(0);
-    }
-
-    if let Some(("generate-cookie-key", _)) = matches.subcommand() {
-        eprintln!("New cookie key generated below:\n");
-        println!("{}", util::random_string(64, None));
-        eprintln!(
-            "\nNote that this command did not modify the configuration.\nYou may need to manually edit the file to use the new key."
-        );
         std::process::exit(0);
     }
 
@@ -225,7 +201,12 @@ async fn main() {
     };
 
     // keep config residence in memory for later use (i.e. for /api/setup/get_existing_config)
-    CONFIG_STR.get_or_init(|| config_str.clone());
+    CONFIG_STR.get_or_init(|| {
+        format!(
+            "# WARN: This is generated at runtime and may provide\n# no context of what you are doing.\n{}",
+            config_str
+        )
+    });
 
     let app_config: AppConfig = match toml::from_str(&config_str) {
         Ok(config) => config,
@@ -324,11 +305,7 @@ async fn main() {
         let turnstile_config = crate::types::TurnstileConfig {
             enabled: turnstile_enabled,
             site_key: turnstile_site_key,
-            secret_key: if cfg!(debug_assertions) {
-                matches.get_one::<String>("turnstile").unwrap().to_string()
-            } else {
-                turnstile_secret_key
-            },
+            secret_key: turnstile_secret_key,
         };
 
         let runtime_config = crate::types::AppRuntimeConfig {
@@ -442,6 +419,18 @@ async fn main() {
         if let Err(e) = scheduler.start().await {
             error!("Failed to start scheduler: {}", e);
         }
+    }
+
+    {
+        let da_clone = state.database_accessor.clone();
+        let fa_clone = state.file_accessor.clone();
+        tokio::spawn(async move {
+            let da = da_clone;
+            let fa = fa_clone;
+            if let Err(e) = versions::perform_updates(&da, &fa).await {
+                error!("Failed to perform version updates: {}", e);
+            }
+        });
     }
 
     let domain = state.runtime_config.load().domain.clone();

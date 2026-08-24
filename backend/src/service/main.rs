@@ -121,6 +121,10 @@ pub async fn main_service(
             return redirect_to_setup;
         }
         return resp;
+    } else {
+        if request.uri().path().starts_with("/setup") {
+            return (StatusCode::FOUND, [(header::LOCATION, "/".to_string())]).into_response();
+        }
     }
 
     let item = state

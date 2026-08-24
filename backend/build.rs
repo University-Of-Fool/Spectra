@@ -24,7 +24,7 @@ fn hook_tokei(mut file: &File) -> SdResult<()> {
         let excluded = &["target", "data", ".sqlx", "dist"];
         let output_languages = vec![
             LanguageType::Rust,
-            LanguageType::JavaScript,
+            // LanguageType::JavaScript, // js 大部分是编译脚本，剩下没有用到，不显示为好
             LanguageType::TypeScript,
             LanguageType::Html,
             LanguageType::Jsx,

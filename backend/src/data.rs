@@ -12,7 +12,7 @@ use crate::types::*;
 // 数据库访问器
 #[derive(Clone)]
 pub struct DatabaseAccessor {
-    pool: Pool<Sqlite>,
+    pub pool: Pool<Sqlite>,
 }
 
 impl std::fmt::Debug for DatabaseAccessor {
@@ -196,6 +196,7 @@ impl DatabaseAccessor {
         // 因为 Spectra 不是分布式的，使用 UUID v7 是一个十分经济、完全保证唯一并且有序的选择
         let id = Uuid::now_v7().to_string();
         let now = Local::now().naive_local();
+
         let item = sqlx::query_as!(
             Item,
             r#"
@@ -281,7 +282,12 @@ impl DatabaseAccessor {
             Item,
             r#"
             SELECT * FROM items
-            WHERE creator = $1 AND img = TRUE
+            WHERE creator = $1 
+            AND EXISTS(
+                SELECT 1 FROM file_metadata
+                WHERE items.id = file_metadata.item_id
+                AND file_metadata.img = TRUE
+            )
             ORDER BY created_at DESC
             LIMIT $2 OFFSET $3
             "#,
@@ -298,7 +304,12 @@ impl DatabaseAccessor {
         let total = sqlx::query_scalar!(
             r#"
             SELECT COUNT(*) as "count!: i64" FROM items
-            WHERE creator = $1 AND img = TRUE
+            WHERE creator = $1 
+            AND EXISTS(
+                SELECT 1 FROM file_metadata
+                WHERE items.id = file_metadata.item_id
+                AND file_metadata.img = TRUE
+            )
             "#,
             user_id
         )
@@ -407,15 +418,21 @@ impl DatabaseAccessor {
         Ok(())
     }
 
-    pub async fn update_item_img(&self, id: &str, img: bool) -> anyhow::Result<()> {
+    pub async fn create_file_item_metadata(
+        &self,
+        item_id: &str,
+        img: bool,
+        size: u64,
+    ) -> anyhow::Result<()> {
+        let size = size as i64;
         sqlx::query!(
             r#"
-            UPDATE items
-            SET img = $1
-            WHERE id = $2
+            INSERT INTO file_metadata (item_id, img, size)
+            VALUES ($1, $2, $3)
             "#,
+            item_id,
             img,
-            id
+            size
         )
         .execute(&self.pool)
         .await?;
@@ -538,6 +555,32 @@ impl DatabaseAccessor {
         for data in result {
             fa.remove_file(&data.data).await?;
         }
+        Ok(())
+    }
+
+    pub async fn get_pending_version_updates(&self) -> anyhow::Result<Vec<VersionHistory>> {
+        let updates = sqlx::query_as!(
+            VersionHistory,
+            r#"
+            SELECT * FROM version_history
+            WHERE applied = FALSE
+            "#
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(updates)
+    }
+    pub async fn mark_version_as_applied(&self, version_name: &str) -> anyhow::Result<()> {
+        sqlx::query!(
+            r#"
+            UPDATE version_history
+            SET applied = TRUE
+            WHERE name = $1
+            "#,
+            version_name
+        )
+        .execute(&self.pool)
+        .await?;
         Ok(())
     }
 }

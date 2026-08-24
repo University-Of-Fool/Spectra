@@ -36,7 +36,7 @@ sudo systemctl enable --now spectra
 
 > [!IMPORTANT]
 > For security reasons, it is highly recommended to run the server as a non-root user like `spectra`.
-> This is not required and can be ignored, but you'll take risks.
+> This is not required and can be ignored, but there will be risks.
 
 You can add `spectra` user like this:
 
