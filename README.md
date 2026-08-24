@@ -38,6 +38,21 @@ sudo systemctl enable --now spectra
 > For security reasons, it is highly recommended to run the server as a non-root user like `spectra`.
 > This is not required and can be ignored, but there will be risks.
 
+You can add `spectra` user like this:
+
+```bash
+sudo useradd -M -U spectra
+# don't forget to replace /opt/spectra with your own path
+sudo chown -R spectra:spectra /opt/spectra
+```
+
+And then uncomment the `User` line in the unit file created above:
+
+```diff
+- # User=spectra
++ User=spectra
+```
+
 ## Container Deployment
 
 The [public Quay image](https://quay.io/repository/lingrottin/spectra) uses
@@ -75,21 +90,6 @@ podman run --detach \
   --publish 3000:3000 \
   --volume ./spectra-data:/var/lib/spectra/data:Z,U \
   quay.io/lingrottin/spectra:latest
-```
-
-You can add `spectra` user like this:
-
-```bash
-sudo useradd -M -U spectra
-# don't forget to replace /opt/spectra with your own path
-sudo chown -R spectra:spectra /opt/spectra 
-```
-
-And then uncomment the `User` line in the unit file created above:
-
-```diff
-- # User=spectra
-+ User=spectra
 ```
 
 ## Reverse Proxy
