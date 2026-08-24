@@ -38,6 +38,45 @@ sudo systemctl enable --now spectra
 > For security reasons, it is highly recommended to run the server as a non-root user like `spectra`.
 > This is not required and can be ignored, but there will be risks.
 
+## Container Deployment
+
+The [public Quay image](https://quay.io/repository/lingrottin/spectra) uses
+Alpine Linux and is published as `quay.io/lingrottin/spectra:latest`. It
+contains the prebuilt static musl binary and a configuration that listens on
+`0.0.0.0:3000`.
+
+Run it with Podman and a named volume so the SQLite database and uploaded
+files persist:
+
+```bash
+podman run --detach \
+  --name spectra \
+  --publish 3000:3000 \
+  --volume spectra-data:/var/lib/spectra/data \
+  quay.io/lingrottin/spectra:latest
+```
+
+Open <http://127.0.0.1:3000>. Persistent application data is stored in
+`/var/lib/spectra/data`.
+
+To build the image locally, first build the frontend and the static musl
+binary at `target/x86_64-unknown-linux-musl/release/Spectra`, then run:
+
+```bash
+podman build --tag spectra:latest .
+```
+
+To use a host directory instead of a named volume on SELinux-enabled systems:
+
+```bash
+mkdir -p spectra-data
+podman run --detach \
+  --name spectra \
+  --publish 3000:3000 \
+  --volume ./spectra-data:/var/lib/spectra/data:Z,U \
+  quay.io/lingrottin/spectra:latest
+```
+
 You can add `spectra` user like this:
 
 ```bash
