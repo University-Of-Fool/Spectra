@@ -1,0 +1,62 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            INSERT INTO access_logs (id, item_id, accessed_at, path, operation, success, ip_address, initiator)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)\n            RETURNING *\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "item_id",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "accessed_at",
+        "ordinal": 2,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "path",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "operation",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "success",
+        "ordinal": 5,
+        "type_info": "Bool"
+      },
+      {
+        "name": "ip_address",
+        "ordinal": 6,
+        "type_info": "Text"
+      },
+      {
+        "name": "initiator",
+        "ordinal": 7,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 8
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "6abc26aae269d13c5d9fc728dffb7107b9e903b615042625e2e5aecae11fde92"
+}

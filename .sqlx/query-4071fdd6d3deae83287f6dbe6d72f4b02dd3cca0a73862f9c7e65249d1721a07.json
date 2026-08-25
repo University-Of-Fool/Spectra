@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            UPDATE items\n            SET available = $1, should_drop_at = NULL\n            WHERE id = $2\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "4071fdd6d3deae83287f6dbe6d72f4b02dd3cca0a73862f9c7e65249d1721a07"
+}

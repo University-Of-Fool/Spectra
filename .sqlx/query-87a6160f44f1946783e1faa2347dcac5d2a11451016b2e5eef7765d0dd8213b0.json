@@ -1,0 +1,56 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            UPDATE users\n            SET name = $1, email = $2, avatar = $3, password = $4\n            WHERE id = $5\n            RETURNING *\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "name",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "email",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "password",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_at",
+        "ordinal": 4,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "descriptor",
+        "ordinal": 5,
+        "type_info": "Integer"
+      },
+      {
+        "name": "avatar",
+        "ordinal": 6,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 5
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "87a6160f44f1946783e1faa2347dcac5d2a11451016b2e5eef7765d0dd8213b0"
+}

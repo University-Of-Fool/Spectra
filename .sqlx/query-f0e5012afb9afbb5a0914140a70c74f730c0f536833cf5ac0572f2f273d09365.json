@@ -1,0 +1,92 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            SELECT * FROM items\n            WHERE creator = $1 \n            AND EXISTS(\n                SELECT 1 FROM file_metadata\n                WHERE items.id = file_metadata.item_id\n                AND file_metadata.img = TRUE\n            )\n            ORDER BY created_at DESC\n            LIMIT $2 OFFSET $3\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "short_path",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "item_type",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "data",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "expires_at",
+        "ordinal": 4,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "max_visits",
+        "ordinal": 5,
+        "type_info": "Integer"
+      },
+      {
+        "name": "visits",
+        "ordinal": 6,
+        "type_info": "Integer"
+      },
+      {
+        "name": "password_hash",
+        "ordinal": 7,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_at",
+        "ordinal": 8,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "extra_data",
+        "ordinal": 9,
+        "type_info": "Text"
+      },
+      {
+        "name": "creator",
+        "ordinal": 10,
+        "type_info": "Text"
+      },
+      {
+        "name": "available",
+        "ordinal": 11,
+        "type_info": "Bool"
+      },
+      {
+        "name": "should_drop_at",
+        "ordinal": 12,
+        "type_info": "Datetime"
+      }
+    ],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      true,
+      false,
+      true,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "f0e5012afb9afbb5a0914140a70c74f730c0f536833cf5ac0572f2f273d09365"
+}

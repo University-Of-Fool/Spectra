@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            UPDATE version_history\n            SET applied = TRUE\n            WHERE name = $1\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "f89ca575ffabc882a927f98c6992bbe535f9cccfb96ebe68fda0ede77df38711"
+}

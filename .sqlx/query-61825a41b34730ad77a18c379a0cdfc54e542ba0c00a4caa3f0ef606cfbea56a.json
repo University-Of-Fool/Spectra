@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n          INSERT INTO file_metadata (item_id, img, size)\n          VALUES ($1, $2, $3)\n          ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "61825a41b34730ad77a18c379a0cdfc54e542ba0c00a4caa3f0ef606cfbea56a"
+}

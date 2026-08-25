@@ -35,7 +35,7 @@ function getCargoVersion() {
         const parsed = toml.parse(content)
         return parsed.package?.version || "0.0.0"
     } catch (e) {
-        console.warn("[!] 无法解析 Cargo.toml:", e.message)
+        console.warn("[!] Failed to parse Cargo.toml:", e.message)
         return "0.0.0"
     }
 }
@@ -48,49 +48,51 @@ function getNativeRustTarget() {
         const match = output.match(/-(\S+)\s/)
         return match ? match[1] : null
     } catch (e) {
-        console.warn("[!] 无法获取原生 Rust target:", e.message)
+        console.warn("[!] Failed to get the native Rust target:", e.message)
         return null
     }
 }
 
 ;(async () => {
-    console.warn("[!] 正在安装 npm 依赖...")
+    console.warn("[!] Installing npm dependencies...")
     try {
         await (isWindows
             ? runCommand("cmd.exe", ["/c", "npx.cmd", "pnpm", "install"])
             : runCommand("pnpm", ["install"]))
-        console.warn("[!] npm 依赖安装完成。")
+        console.warn("[!] npm dependencies installed.")
     } catch (installError) {
-        console.error(`[!] 安装 npm 依赖失败: ${installError.message}`)
+        console.error(`[!] Failed to install npm dependencies: ${installError.message}`)
         process.exit(1)
     }
 
-    console.warn("[!] 正在构建前端文件...")
+    console.warn("[!] Building frontend files...")
     try {
         await (isWindows
             ? runCommand("cmd.exe", ["/c", "npx.cmd", "pnpm", "vite", "build"])
             : runCommand("pnpm", ["vite", "build"]))
-        console.warn("[!] 前端文件构建完成。")
+        console.warn("[!] Frontend files built.")
     } catch (e) {
-        console.error(`[!] 构建前端文件失败: ${e.message}`)
+        console.error(`[!] Failed to build frontend files: ${e.message}`)
         process.exit(1)
     }
 
-    console.warn("[!] 正在构建 Rust 程序...")
+    console.warn("[!] Building the Rust application...")
     const cargoArgs = ["build", "--release"]
     if (target) cargoArgs.push(`--target=${target}`)
-    const options = {}
-    if (target?.includes("musl")) {
-        options.env = {
+    const options = {
+        env: {
             ...process.env,
-            OPENSSL_STATIC: "1",
-        }
+            SQLX_OFFLINE: "true",
+        },
+    }
+    if (target?.includes("musl")) {
+        options.env.OPENSSL_STATIC = "1"
     }
     try {
         await runCommand("cargo", cargoArgs, options)
-        console.warn("✅ Rust 程序构建完成。")
+        console.warn("✅ Rust application built.")
     } catch (e) {
-        console.error(`[!] Rust 构建失败: ${e.message}`)
+        console.error(`[!] Failed to build Rust application: ${e.message}`)
         process.exit(1)
     }
 
@@ -101,11 +103,11 @@ function getNativeRustTarget() {
     )
 
     if (!existsSync(binaryPath)) {
-        console.error(`[!] 未找到构建好的二进制文件: ${binaryPath}`)
+        console.error(`[!] Built binary not found: ${binaryPath}`)
         process.exit(1)
     }
 
-    console.warn("[!] 正在打包为 zip 文件...")
+    console.warn("[!] Packaging the ZIP file...")
     try {
         const zipPath = join(
             distDir,
@@ -120,7 +122,7 @@ function getNativeRustTarget() {
             output.on("close", resolve)
             archive.on("error", reject)
         }).then(() => {
-            console.warn(`✅ 打包完成：${zipPath}`)
+            console.warn(`✅ Packaging complete: ${zipPath}`)
         })
         archive.file(binaryPath, {
             name: binaryName + (isWindows ? ".exe" : ""),
@@ -130,7 +132,7 @@ function getNativeRustTarget() {
         await archive.finalize()
     } catch (e) {
         console.log(e)
-        console.error(`[!] 打包失败: ${e.message}`)
+        console.error(`[!] Packaging failed: ${e.message}`)
         process.exit(1)
     }
 })()

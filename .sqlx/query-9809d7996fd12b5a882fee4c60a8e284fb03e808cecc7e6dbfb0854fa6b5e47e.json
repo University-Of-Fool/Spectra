@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            DELETE FROM items\n            WHERE\n              available = 0 AND should_drop_at <= datetime(?)\n            RETURNING data;\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "data",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "9809d7996fd12b5a882fee4c60a8e284fb03e808cecc7e6dbfb0854fa6b5e47e"
+}

@@ -15,7 +15,7 @@ export function runCommand(command, args, options = {}) {
             if (code !== 0) {
                 reject(
                     new Error(
-                        `命令 "${command} ${args.join(" ")}" 退出码为 ${code}`,
+                        `Command "${command} ${args.join(" ")}" exited with code ${code}`,
                     ),
                 )
                 return
@@ -26,7 +26,7 @@ export function runCommand(command, args, options = {}) {
         child.on("error", (err) => {
             reject(
                 new Error(
-                    `执行命令 "${command} ${args.join(" ")}" 时发生错误: ${err.message}`,
+                    `Error while executing command "${command} ${args.join(" ")}": ${err.message}`,
                 ),
             )
         })

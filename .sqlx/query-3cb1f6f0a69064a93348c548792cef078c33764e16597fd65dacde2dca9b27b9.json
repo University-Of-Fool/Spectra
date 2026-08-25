@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            SELECT COUNT(*) as \"count!: i64\" FROM items\n            WHERE creator = $1 \n            AND EXISTS(\n                SELECT 1 FROM file_metadata\n                WHERE items.id = file_metadata.item_id\n                AND file_metadata.img = TRUE\n            )\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "count!: i64",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "3cb1f6f0a69064a93348c548792cef078c33764e16597fd65dacde2dca9b27b9"
+}

@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            UPDATE items\n            SET visits = visits + 1\n            WHERE short_path = $1\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "9971de78cf94db99e338e9bec3a92ec84705921fe66e8baa473ee839daf15f1a"
+}

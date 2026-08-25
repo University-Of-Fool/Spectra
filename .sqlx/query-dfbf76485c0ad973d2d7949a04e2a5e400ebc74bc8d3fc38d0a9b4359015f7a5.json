@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "\n      SELECT id, data\n      FROM items\n      WHERE (item_type = 'file')\n      AND NOT EXISTS (\n        SELECT 1 FROM file_metadata \n        WHERE item_id = items.id\n      )\n      ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "data",
+        "ordinal": 1,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "dfbf76485c0ad973d2d7949a04e2a5e400ebc74bc8d3fc38d0a9b4359015f7a5"
+}

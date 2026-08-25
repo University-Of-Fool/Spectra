@@ -1,0 +1,62 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            SELECT al.*\n            FROM access_logs al\n            JOIN items i ON al.item_id = i.id\n            WHERE i.short_path = $1\n            ORDER BY al.accessed_at DESC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "item_id",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "accessed_at",
+        "ordinal": 2,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "path",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "operation",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "success",
+        "ordinal": 5,
+        "type_info": "Bool"
+      },
+      {
+        "name": "ip_address",
+        "ordinal": 6,
+        "type_info": "Text"
+      },
+      {
+        "name": "initiator",
+        "ordinal": 7,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "85d06faa02813d489898ea3898a1304df7fb593ff3b35dc9b77952df5710c7e4"
+}

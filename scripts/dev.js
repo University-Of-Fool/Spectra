@@ -13,12 +13,12 @@ async function checkCommandExists(command) {
     const isWindows = process.platform === "win32"
     try {
         if (isWindows) {
-            // Windows 使用 where 查找可执行文件
+            // Use where to find executables on Windows
             await runCommand("cmd.exe", ["/c", "where", command], {
                 stdio: "ignore",
             })
         } else {
-            // POSIX 使用 shell 内建的 `command -v`
+            // Use the POSIX shell builtin `command -v`
             await runCommand("sh", ["-c", `command -v ${command}`], {
                 stdio: "ignore",
             })
@@ -31,45 +31,45 @@ async function checkCommandExists(command) {
 ;(async () => {
     const isWindows = process.platform === "win32"
 
-    // 检测并安装 Bacon (在所有系统上都需要)
+    // Check for and install Bacon (required on all systems)
     if (!(await checkCommandExists("bacon"))) {
-        console.warn("[!] 正在安装 Bacon...")
+        console.warn("[!] Installing Bacon...")
         try {
             await runCommand("cargo", ["install", "--locked", "bacon"])
-            console.warn("[!] Bacon 安装完成。")
+            console.warn("[!] Bacon installed.")
         } catch (installError) {
-            console.error(`[!] 安装 Bacon 失败: ${installError.message}`)
+            console.error(`[!] Failed to install Bacon: ${installError.message}`)
             process.exit(1)
         }
     }
 
-    console.warn("[!] 正在安装 npm 依赖...")
+    console.warn("[!] Installing npm dependencies...")
     try {
         await (isWindows
             ? runCommand("cmd.exe", ["/c", "npx.cmd", "pnpm", "install"])
             : runCommand("pnpm", ["install"]))
-        console.warn("[!] npm 依赖安装完成。")
+        console.warn("[!] npm dependencies installed.")
     } catch (installError) {
-        console.error(`[!] 安装 npm 依赖失败: ${installError.message}`)
+        console.error(`[!] Failed to install npm dependencies: ${installError.message}`)
         process.exit(1)
     }
 
     if (!isWindows) {
-        // 检测 tmux
+        // Check for tmux
         if (!(await checkCommandExists("tmux"))) {
-            console.error("[!] 未检测到 tmux，请先安装:")
+            console.error("[!] tmux not found. Please install it first:")
             console.error("    Ubuntu/Debian: sudo apt install tmux")
             console.error("    Fedora: sudo dnf install tmux")
             console.error("    macOS: brew install tmux")
             process.exit(1)
         }
 
-        // 启动 tmux 会话，左右分屏
-        console.warn("[!] 使用 Ctrl+B 然后按 D 退出 tmux 会话（detach）")
-        console.warn("[!] 使用 'tmux attach' 重新连接到会话")
+        // Start a tmux session with split panes
+        console.warn("[!] Press Ctrl+B, then D to detach from the tmux session")
+        console.warn("[!] Run 'tmux attach' to reconnect to the session")
         await sleep(1500)
 
-        // 创建 tmux 会话并设置左右分屏
+        // Create a tmux session with split panes
         await runCommand("tmux", [
             "new-session",
             "-s",
@@ -86,7 +86,7 @@ async function checkCommandExists(command) {
         ])
         await runCommand("tmux", ["attach-session", "-t", "spectra-dev"])
     } else {
-        console.warn("[!] 启动 Windows Terminal...")
+        console.warn("[!] Starting Windows Terminal...")
         await runCommand("wt", [
             "new-tab",
             "-d",

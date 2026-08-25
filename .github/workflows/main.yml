@@ -100,17 +100,10 @@ jobs:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bins-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Setup sqlx cli
-        run: |
-          if ! command -v sqlx &> /dev/null; then
-            cargo install sqlx-cli --no-default-features --features sqlite-unbundled
-          fi
-
       - name: Run cargo check
         env:
           DATABASE_URL: "sqlite:./data.db"
         run: |
-          sqlx database setup
           cargo check --all --all-targets
 
       # biome check will throw error if there are any formatting issues

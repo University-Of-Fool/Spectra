@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            UPDATE items\n            SET\n              available = 0,\n              should_drop_at = datetime(?, '+7 days')\n            WHERE\n              available = 1 AND (\n                expires_at <= datetime(?)\n                OR (max_visits IS NOT NULL AND visits >= max_visits)\n              )\n          ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "749bbdd96ebbbc854916df764e50a573a325b7151faf4c153a1cd8f10131e611"
+}
