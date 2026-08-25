@@ -56,8 +56,8 @@ export function AreaPasteBin() {
                 expires === "permanent"
                     ? undefined
                     : new Date(
-                        Date.now() + parseInt(expires, 10) * 1000,
-                    ).toISOString(),
+                          Date.now() + parseInt(expires, 10) * 1000,
+                      ).toISOString(),
             max_visits: maxvisit || undefined,
             password: password || undefined,
             extra_data: JSON.stringify({
@@ -301,7 +301,9 @@ export function AreaPasteBin() {
                 </>
             )}
             <FinishedCard
-                className={"mt-8 w-full md:w-150 flex flex-col items-center px-8 md:px-0"}
+                className={
+                    "mt-8 w-full md:w-150 flex flex-col items-center px-8 md:px-0"
+                }
                 finalUrl={finalUrl}
             />
         </div>

@@ -33,21 +33,21 @@ export const AccountCtx = createContext({
         avatar_url: string
         turnstile_enabled: boolean
         turnstile_site_key: string
-    }) => { },
-    sharedListUpdTrigger: (_: number) => { },
+    }) => {},
+    sharedListUpdTrigger: (_: number) => {},
     sharedListUpd: 0,
-    handleTabClick: (_: string) => { },
+    handleTabClick: (_: string) => {},
     // 通过 Ctrl-V 全局粘贴时待填入的数据，由 main 监听 paste 事件写入，
     // 各 area 组件消费后置空
     pasteFile: null as File | null,
-    setPasteFile: (_: File | null) => { },
+    setPasteFile: (_: File | null) => {},
     pasteText: "",
-    setPasteText: (_: string) => { },
+    setPasteText: (_: string) => {},
     // 子组件当前是否已有内容（用于判断是否响应 Ctrl-V 覆盖）
     hasFileContent: false,
-    setHasFileContent: (_: boolean) => { },
+    setHasFileContent: (_: boolean) => {},
     hasTextContent: false,
-    setHasTextContent: (_: boolean) => { },
+    setHasTextContent: (_: boolean) => {},
 })
 
 export function Dashboard() {

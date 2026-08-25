@@ -21,16 +21,13 @@ export function TopBarDiv(props: {
     )
 }
 
-export function TopBarLogo(props: {
-    pageName?: string
-    onClick?: () => void
-}) {
+export function TopBarLogo(props: { pageName?: string; onClick?: () => void }) {
     // 所有页面均可点击：若未传入 onClick，则默认跳转到 dashboard（真实地址为 "/"）
     const handleClick = props.onClick
         ? props.onClick
         : () => {
-            location.href = "/"
-        }
+              location.href = "/"
+          }
 
     return (
         <div

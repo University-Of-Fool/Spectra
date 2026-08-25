@@ -175,7 +175,9 @@ export function AreaShared() {
                                             ? t("shared.valid")
                                             : t("shared.invalid")}
                                     </td>
-                                    <td className="px-4 py-2 hidden md:table-cell">{item.visits}</td>
+                                    <td className="px-4 py-2 hidden md:table-cell">
+                                        {item.visits}
+                                    </td>
                                     <td className="px-4 py-2 hidden md:table-cell">
                                         {new Date(
                                             item.created_at,

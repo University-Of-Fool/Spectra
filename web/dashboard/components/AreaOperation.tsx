@@ -27,15 +27,29 @@ export function AreaOperation() {
     const { t } = useTranslation("dashboard")
     return (
         <div className={"flex flex-col items-center"}>
-            <div className={"font-thin dark:font-light text-2xl mt-18 md:mt-6 mb-12"}>
+            <div
+                className={
+                    "font-thin dark:font-light text-2xl mt-18 md:mt-6 mb-12"
+                }
+            >
                 {t("dashboard.tabs.welcome_msg")}
             </div>
-            <div className={"flex flex-col md:flex-row gap-4 md:gap-8 w-full justify-center p-8 md:p-0"}>
+            <div
+                className={
+                    "flex flex-col md:flex-row gap-4 md:gap-8 w-full justify-center p-8 md:p-0"
+                }
+            >
                 <Card
-                    className={"w-full md:w-60 h-30 md:h-75 flex flex-row-reverse md:flex-col items-center md:items-start p-6 md:p-5 hover-float"}
+                    className={
+                        "w-full md:w-60 h-30 md:h-75 flex flex-row-reverse md:flex-col items-center md:items-start p-6 md:p-5 hover-float"
+                    }
                     onClick={() => context.handleTabClick("fileShare")}
                 >
-                    <div className={"flex flex-1 items-center justify-end md:justify-center w-full"}>
+                    <div
+                        className={
+                            "flex flex-1 items-center justify-end md:justify-center w-full"
+                        }
+                    >
                         <span
                             className={
                                 "material-symbols-outlined dashboard-operation-large-icon opacity-100 text-[#f7d063]"
@@ -58,10 +72,16 @@ export function AreaOperation() {
                     </div>
                 </Card>
                 <Card
-                    className={"w-full md:w-60 h-30 md:h-75 flex flex-row-reverse md:flex-col items-center md:items-start p-6 md:p-5 hover-float"}
+                    className={
+                        "w-full md:w-60 h-30 md:h-75 flex flex-row-reverse md:flex-col items-center md:items-start p-6 md:p-5 hover-float"
+                    }
                     onClick={() => context.handleTabClick("pasteBin")}
                 >
-                    <div className={"flex flex-1 items-center justify-end md:justify-center w-full"}>
+                    <div
+                        className={
+                            "flex flex-1 items-center justify-end md:justify-center w-full"
+                        }
+                    >
                         <span
                             className={
                                 "material-symbols-outlined dashboard-operation-large-icon opacity-100 text-[#6F76E1]"
@@ -84,10 +104,16 @@ export function AreaOperation() {
                     </div>
                 </Card>
                 <Card
-                    className={"w-full md:w-60 h-30 md:h-75 flex flex-row-reverse md:flex-col items-center md:items-start p-6 md:p-5 hover-float"}
+                    className={
+                        "w-full md:w-60 h-30 md:h-75 flex flex-row-reverse md:flex-col items-center md:items-start p-6 md:p-5 hover-float"
+                    }
                     onClick={() => context.handleTabClick("shortUrl")}
                 >
-                    <div className={"flex flex-1 items-center justify-end md:justify-center w-full"}>
+                    <div
+                        className={
+                            "flex flex-1 items-center justify-end md:justify-center w-full"
+                        }
+                    >
                         <span
                             className={
                                 "material-symbols-outlined dashboard-operation-large-icon opacity-100 text-[#E65B5B]"
