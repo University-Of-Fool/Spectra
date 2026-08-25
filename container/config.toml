@@ -1,0 +1,8 @@
+# Configuration bundled with the container image.
+#
+# Persistent application data is stored in /var/lib/spectra/data. Mount this
+# directory as a Podman volume to retain data across container replacement.
+[service]
+data_dir = "/var/lib/spectra/data"
+host = "0.0.0.0"
+port = 3000
