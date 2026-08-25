@@ -102,7 +102,7 @@ jobs:
 
       - name: Run cargo check
         env:
-          DATABASE_URL: "sqlite:./data.db"
+          SQLX_OFFLINE: "true"
         run: |
           cargo check --all --all-targets
 
