@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  CARGO_TERM_COLOR: always
+  SQLX_OFFLINE: true
 
 jobs:
   build:
@@ -47,12 +47,6 @@ jobs:
         with:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bins-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Setup sqlx cli
-        run: |
-          if ! command -v sqlx &> /dev/null; then
-            cargo install sqlx-cli --no-default-features --features sqlite-unbundled
-          fi
 
       - name: Build
         run: pnpm build
