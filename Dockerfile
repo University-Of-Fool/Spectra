@@ -1,3 +1,37 @@
+# Build the frontend and backend from source.
+FROM node:22-alpine AS frontend-build
+
+WORKDIR /src
+
+RUN npm install --global pnpm@11
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
+
+COPY web ./web
+COPY src ./src
+COPY vite.config.ts tsconfig.json tailwind.config.ts ./
+RUN pnpm vite build
+
+
+FROM rust:alpine AS backend-build
+
+WORKDIR /src
+
+RUN apk add --no-cache \
+    build-base \
+    perl \
+    pkgconfig
+
+ENV SQLX_OFFLINE=true
+
+COPY . .
+COPY --from=frontend-build /src/web/dist ./web/dist
+
+RUN cargo build --release --manifest-path backend/Cargo.toml
+
+
+# Keep the runtime image small and free of build tools.
 FROM alpine:3.22
 
 RUN addgroup -S spectra \
@@ -5,7 +39,8 @@ RUN addgroup -S spectra \
     && mkdir -p /var/lib/spectra/data \
     && chown -R spectra:spectra /var/lib/spectra
 
-COPY --chown=spectra:spectra target/x86_64-unknown-linux-musl/release/Spectra /usr/local/bin/Spectra
+COPY --from=backend-build --chown=spectra:spectra \
+    /src/target/release/Spectra /usr/local/bin/Spectra
 COPY --chown=spectra:spectra container/config.toml /etc/spectra/config.toml
 
 USER spectra:spectra
