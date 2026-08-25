@@ -4,7 +4,6 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
     Field,
-    FieldDescription,
     FieldGroup,
     FieldLabel,
     FieldSet,
@@ -105,7 +104,7 @@ export function SetupStep2({
             await apiRequest<null>("/api/setup/finish")
             toast.success(t("step2.submit_success"))
             window.setTimeout(() => {
-                window.location.href = "/dashboard/"
+                window.location.href = "/"
             }, 600)
         } catch (e) {
             const reason = e instanceof Error ? e.message : t("errors.unknown")
@@ -133,7 +132,7 @@ export function SetupStep2({
                             className={cn(
                                 "w-full h-20 border-2 border-border flex items-center justify-center transition-colors rounded-md",
                                 isAvatarDragging &&
-                                    "border-foreground bg-foreground/30",
+                                "border-foreground bg-foreground/30",
                             )}
                             onClick={() => {
                                 avatarInputRef.current?.click()
