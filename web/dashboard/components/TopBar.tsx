@@ -47,7 +47,9 @@ export function TopBar() {
 
     return (
         <TopBarDiv>
-            <TopBarLogo></TopBarLogo>
+            <TopBarLogo
+                onClick={() => context.handleTabClick("operation")}
+            ></TopBarLogo>
             <div
                 className={cn(
                     "flex flex-col items-end ml-auto mr-4 gap-1",
@@ -58,13 +60,13 @@ export function TopBar() {
                     className={cn(
                         "opacity-90",
                         context.value.loading &&
-                            "h-2 bg-black/10 rounded text-black/0",
+                        "h-2 bg-black/10 rounded text-black/0",
                     )}
                 >
                     {context.value.loading
                         ? "username (loading)"
                         : context.value.isLoggedIn
-                          ? t("top_bar.greeting.message", {
+                            ? t("top_bar.greeting.message", {
                                 time: t(
                                     t(
                                         (() => {
@@ -88,13 +90,13 @@ export function TopBar() {
                                 ),
                                 username: context.value.name || "user",
                             })
-                          : t("top_bar.greeting.message_guest")}
+                            : t("top_bar.greeting.message_guest")}
                 </div>
                 <div
                     className={cn(
                         "opacity-50 text-xs flex gap-1.5 items-center",
                         context.value.loading &&
-                            " h-2 bg-black/10 rounded text-black/0",
+                        " h-2 bg-black/10 rounded text-black/0",
                     )}
                 >
                     {context.value.isLoggedIn ? (
