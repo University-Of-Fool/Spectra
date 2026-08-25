@@ -1,4 +1,4 @@
-import { useContext, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -35,6 +35,14 @@ export function AreaPasteBin() {
     const context = useContext(AccountCtx)
     const { t } = useTranslation(["dashboard", "languages"])
 
+    // 消费通过 Ctrl-V 粘贴的文本
+    useEffect(() => {
+        if (context.pasteText) {
+            setContent(context.pasteText)
+            context.setPasteText("")
+        }
+    }, [context.pasteText])
+
     async function handleUpload() {
         const body = {
             item_type: "Code",
@@ -43,8 +51,8 @@ export function AreaPasteBin() {
                 expires === "permanent"
                     ? undefined
                     : new Date(
-                          Date.now() + parseInt(expires, 10) * 1000,
-                      ).toISOString(),
+                        Date.now() + parseInt(expires, 10) * 1000,
+                    ).toISOString(),
             max_visits: maxvisit || undefined,
             password: password || undefined,
             extra_data: JSON.stringify({

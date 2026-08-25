@@ -1,5 +1,5 @@
 import { X } from "lucide-react"
-import { useContext, useRef, useState } from "react"
+import { useContext, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button.tsx"
@@ -37,6 +37,23 @@ export function AreaFileShare() {
         xhr: useRef<XMLHttpRequest>(null),
     }
     const { t } = useTranslation(["dashboard"])
+
+    // 消费通过 Ctrl-V 粘贴的文件
+    useEffect(() => {
+        if (context.pasteFile) {
+            const newFile = context.pasteFile
+            setSelectedFiles((prev) => {
+                const isDuplicate = prev.some(
+                    (selected) =>
+                        selected.name === newFile.name &&
+                        selected.size === newFile.size &&
+                        selected.lastModified === newFile.lastModified,
+                )
+                return isDuplicate ? prev : [newFile]
+            })
+            context.setPasteFile(null)
+        }
+    }, [context.pasteFile])
 
     const references = {
         path: useRef(""),
@@ -111,9 +128,9 @@ export function AreaFileShare() {
                 references.expires.current === "permanent"
                     ? undefined
                     : new Date(
-                          Date.now() +
-                              parseInt(references.expires.current, 10) * 1000,
-                      ).toISOString(),
+                        Date.now() +
+                        parseInt(references.expires.current, 10) * 1000,
+                    ).toISOString(),
             max_visits: parseInt(references.maxvisit.current, 10) || undefined,
             password: references.password.current || undefined,
             extra_data: references.no_filename.current
@@ -270,7 +287,7 @@ export function AreaFileShare() {
                                 className={cn(
                                     "w-full h-40 border-2 border-border flex items-center justify-center transition-colors rounded-md",
                                     isDragging &&
-                                        "border-foreground bg-foreground/30",
+                                    "border-foreground bg-foreground/30",
                                 )}
                                 onClick={handleClickSelect}
                                 onDragEnter={handleDragEnter}
