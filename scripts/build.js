@@ -61,7 +61,9 @@ function getNativeRustTarget() {
             : runCommand("pnpm", ["install"]))
         console.warn("[!] npm dependencies installed.")
     } catch (installError) {
-        console.error(`[!] Failed to install npm dependencies: ${installError.message}`)
+        console.error(
+            `[!] Failed to install npm dependencies: ${installError.message}`,
+        )
         process.exit(1)
     }
 

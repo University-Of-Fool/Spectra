@@ -38,7 +38,9 @@ async function checkCommandExists(command) {
             await runCommand("cargo", ["install", "--locked", "bacon"])
             console.warn("[!] Bacon installed.")
         } catch (installError) {
-            console.error(`[!] Failed to install Bacon: ${installError.message}`)
+            console.error(
+                `[!] Failed to install Bacon: ${installError.message}`,
+            )
             process.exit(1)
         }
     }
@@ -50,7 +52,9 @@ async function checkCommandExists(command) {
             : runCommand("pnpm", ["install"]))
         console.warn("[!] npm dependencies installed.")
     } catch (installError) {
-        console.error(`[!] Failed to install npm dependencies: ${installError.message}`)
+        console.error(
+            `[!] Failed to install npm dependencies: ${installError.message}`,
+        )
         process.exit(1)
     }
 
