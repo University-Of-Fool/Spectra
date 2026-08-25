@@ -1,5 +1,5 @@
 # Build the frontend and backend from source.
-FROM node:22-alpine AS frontend-build
+FROM node:26-alpine AS frontend-build
 
 WORKDIR /src
 
@@ -20,6 +20,7 @@ WORKDIR /src
 
 RUN apk add --no-cache \
     build-base \
+    git \
     perl \
     pkgconfig
 
