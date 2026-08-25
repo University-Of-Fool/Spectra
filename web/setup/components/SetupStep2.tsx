@@ -2,12 +2,7 @@ import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import {
-    Field,
-    FieldGroup,
-    FieldLabel,
-    FieldSet,
-} from "@/components/ui/field"
+import { Field, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import "../../components/i18n"
@@ -132,7 +127,7 @@ export function SetupStep2({
                             className={cn(
                                 "w-full h-20 border-2 border-border flex items-center justify-center transition-colors rounded-md",
                                 isAvatarDragging &&
-                                "border-foreground bg-foreground/30",
+                                    "border-foreground bg-foreground/30",
                             )}
                             onClick={() => {
                                 avatarInputRef.current?.click()
