@@ -209,7 +209,7 @@ export function Dashboard() {
                     />
 
                     <div className="flex justify-center">
-                        <div className="w-100 mt-20 mb-20 border-t border-foreground/20"></div>
+                        <div className="w-50 md:w-100 mt-20 mb-20 border-t border-foreground/20"></div>
                     </div>
 
                     {!value.loading && !value.isLoggedIn && (

@@ -13,7 +13,7 @@ function Card({ children, className = "", onClick }: CardProps) {
     return (
         <div
             className={cn(
-                "bg-white hover:bg-neutral-100 shadow-lg border-1 border-border rounded-lg cursor-pointer transition-colors dark:bg-foreground/10 dark:hover:bg-foreground/18",
+                "bg-white hover:bg-neutral-100 shadow-lg border border-border rounded-lg cursor-pointer transition-colors dark:bg-foreground/10 dark:hover:bg-foreground/18",
                 className,
             )}
             onClick={onClick}
@@ -27,15 +27,15 @@ export function AreaOperation() {
     const { t } = useTranslation("dashboard")
     return (
         <div className={"flex flex-col items-center"}>
-            <div className={"font-thin dark:font-light text-2xl mt-6 mb-12"}>
+            <div className={"font-thin dark:font-light text-2xl mt-18 md:mt-6 mb-12"}>
                 {t("dashboard.tabs.welcome_msg")}
             </div>
-            <div className={"flex gap-8"}>
+            <div className={"flex flex-col md:flex-row gap-4 md:gap-8 w-full justify-center p-8 md:p-0"}>
                 <Card
-                    className={"w-60 h-75 flex flex-col p-5 hover-float"}
+                    className={"w-full md:w-60 h-30 md:h-75 flex flex-row-reverse md:flex-col items-center md:items-start p-6 md:p-5 hover-float"}
                     onClick={() => context.handleTabClick("fileShare")}
                 >
-                    <div className={"flex flex-1 items-center justify-center"}>
+                    <div className={"flex flex-1 items-center justify-end md:justify-center w-full"}>
                         <span
                             className={
                                 "material-symbols-outlined dashboard-operation-large-icon opacity-100 text-[#f7d063]"
@@ -44,22 +44,24 @@ export function AreaOperation() {
                             drive_file_move
                         </span>
                     </div>
-                    <div
-                        className={
-                            "mt-auto mb-2 text-lg font-semibold opacity-75"
-                        }
-                    >
-                        {t("dashboard.tabs.file_share")}
-                    </div>
-                    <div className={"text-sm opacity-50"}>
-                        {t("dashboard.tabs.file_share_desc")}
+                    <div>
+                        <div
+                            className={
+                                "mt-auto mb-2 text-lg font-semibold opacity-75"
+                            }
+                        >
+                            {t("dashboard.tabs.file_share")}
+                        </div>
+                        <div className={"text-sm opacity-50"}>
+                            {t("dashboard.tabs.file_share_desc")}
+                        </div>
                     </div>
                 </Card>
                 <Card
-                    className={"w-60 h-75 flex flex-col p-5 hover-float"}
+                    className={"w-full md:w-60 h-30 md:h-75 flex flex-row-reverse md:flex-col items-center md:items-start p-6 md:p-5 hover-float"}
                     onClick={() => context.handleTabClick("pasteBin")}
                 >
-                    <div className={"flex flex-1 items-center justify-center"}>
+                    <div className={"flex flex-1 items-center justify-end md:justify-center w-full"}>
                         <span
                             className={
                                 "material-symbols-outlined dashboard-operation-large-icon opacity-100 text-[#6F76E1]"
@@ -68,22 +70,24 @@ export function AreaOperation() {
                             content_paste
                         </span>
                     </div>
-                    <div
-                        className={
-                            "mt-auto mb-2 text-lg font-semibold opacity-75"
-                        }
-                    >
-                        {t("dashboard.tabs.pastebin")}
-                    </div>
-                    <div className={"text-sm opacity-50"}>
-                        {t("dashboard.tabs.pastebin_desc")}
+                    <div>
+                        <div
+                            className={
+                                "mt-auto mb-2 text-lg font-semibold opacity-75"
+                            }
+                        >
+                            {t("dashboard.tabs.pastebin")}
+                        </div>
+                        <div className={"text-sm opacity-50"}>
+                            {t("dashboard.tabs.pastebin_desc")}
+                        </div>
                     </div>
                 </Card>
                 <Card
-                    className={"w-60 h-75 flex flex-col p-5 hover-float"}
+                    className={"w-full md:w-60 h-30 md:h-75 flex flex-row-reverse md:flex-col items-center md:items-start p-6 md:p-5 hover-float"}
                     onClick={() => context.handleTabClick("shortUrl")}
                 >
-                    <div className={"flex flex-1 items-center justify-center"}>
+                    <div className={"flex flex-1 items-center justify-end md:justify-center w-full"}>
                         <span
                             className={
                                 "material-symbols-outlined dashboard-operation-large-icon opacity-100 text-[#E65B5B]"
@@ -92,15 +96,17 @@ export function AreaOperation() {
                             link
                         </span>
                     </div>
-                    <div
-                        className={
-                            "mt-auto mb-2 text-lg font-semibold opacity-75"
-                        }
-                    >
-                        {t("dashboard.tabs.short_url")}
-                    </div>
-                    <div className={"text-sm opacity-50"}>
-                        {t("dashboard.tabs.short_url_desc")}
+                    <div>
+                        <div
+                            className={
+                                "mt-auto mb-2 text-lg font-semibold opacity-75"
+                            }
+                        >
+                            {t("dashboard.tabs.short_url")}
+                        </div>
+                        <div className={"text-sm opacity-50"}>
+                            {t("dashboard.tabs.short_url_desc")}
+                        </div>
                     </div>
                 </Card>
             </div>

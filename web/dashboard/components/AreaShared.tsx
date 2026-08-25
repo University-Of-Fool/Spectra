@@ -123,13 +123,13 @@ export function AreaShared() {
     }, [context.sharedListUpd, i18n.language])
     return (
         <>
-            <div className={"flex flex-col items-center"}>
+            <div className={"flex flex-col items-center p-2 md:p-0"}>
                 <div className={"font-thin text-2xl mb-12"}>
                     {t("shared.title")}
                 </div>
 
                 <TransitionHeight>
-                    <table className="w-200 text-sm text-left text-neutral-700 dark:text-neutral-200">
+                    <table className="w-full md:w-200 text-sm text-left text-neutral-700 dark:text-neutral-200">
                         <thead className="text-sm uppercase border-b border-neutral-200 dark:border-neutral-700">
                             <tr>
                                 <th className="px-4 py-3">
@@ -138,13 +138,13 @@ export function AreaShared() {
                                 <th className="px-4 py-3">
                                     {t("shared.link")}
                                 </th>
-                                <th className="px-4 py-3">
+                                <th className="px-4 py-3 hidden md:table-cell">
                                     {t("shared.status")}
                                 </th>
-                                <th className="px-4 py-3">
+                                <th className="px-4 py-3 hidden md:table-cell">
                                     {t("shared.visits")}
                                 </th>
-                                <th className="px-4 py-3">
+                                <th className="px-4 py-3 hidden md:table-cell">
                                     {t("shared.created_at")}
                                 </th>
                                 <th className="px-4 py-3">
@@ -170,13 +170,13 @@ export function AreaShared() {
                                             {item.short_path}
                                         </a>
                                     </td>
-                                    <td className="px-4 py-2">
+                                    <td className="px-4 py-2 hidden md:table-cell">
                                         {item.available
                                             ? t("shared.valid")
                                             : t("shared.invalid")}
                                     </td>
-                                    <td className="px-4 py-2">{item.visits}</td>
-                                    <td className="px-4 py-2">
+                                    <td className="px-4 py-2 hidden md:table-cell">{item.visits}</td>
+                                    <td className="px-4 py-2 hidden md:table-cell">
                                         {new Date(
                                             item.created_at,
                                         ).toLocaleString()}

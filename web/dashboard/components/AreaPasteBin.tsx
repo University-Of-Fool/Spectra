@@ -104,13 +104,13 @@ export function AreaPasteBin() {
     ))
     return (
         <div className="flex flex-col items-center">
-            <div className="font-thin dark:font-light text-2xl mt-6 mb-12">
+            <div className="font-thin dark:font-light text-2xl mt-18 md:mt-6 mb-12">
                 {t("pastebin.title")}
             </div>
 
             {finalUrl === "" && (
                 <>
-                    <div className="flex gap-2 items-center">
+                    <div className="flex gap-2 items-center w-full md:w-auto mx-4 md:mx-0 justify-center">
                         <div className="opacity-50">
                             {window.location.origin}/
                         </div>
@@ -118,6 +118,7 @@ export function AreaPasteBin() {
                             disabled={random}
                             value={random ? t("common.[random]") : path}
                             onChange={(e) => setPath(e.currentTarget.value)}
+                            className="w-18 md:w-auto"
                         />
                         <div className="flex items-center gap-2 ml-2">
                             <Checkbox
@@ -146,7 +147,7 @@ export function AreaPasteBin() {
                             </Label>
                         </div>
                     </div>
-                    <div className="w-150 mt-4">
+                    <div className="w-full md:w-150 mt-4 px-8 md:mx-0">
                         <div className="flex gap-4 mt-4">
                             <div className="flex-3">
                                 <div className="mb-2 text-sm">
@@ -300,7 +301,7 @@ export function AreaPasteBin() {
                 </>
             )}
             <FinishedCard
-                className={"mt-8 w-150 flex flex-col items-center"}
+                className={"mt-8 w-full md:w-150 flex flex-col items-center px-8 md:px-0"}
                 finalUrl={finalUrl}
             />
         </div>

@@ -229,12 +229,12 @@ export function AreaFileShare() {
 
     return (
         <div className="flex flex-col items-center">
-            <div className="font-thin dark:font-light text-2xl mt-6 mb-12">
+            <div className="font-thin dark:font-light text-2xl mt-18 md:mt-6 mb-12">
                 {t("file_share.title")}
             </div>
 
             {progress === 0 && (
-                <div className="flex gap-2 items-center">
+                <div className="flex gap-2 items-center w-full md:w-auto mx-4 md:mx-0 justify-center">
                     <div className="opacity-50">{window.location.origin}/</div>
 
                     <Input
@@ -248,6 +248,7 @@ export function AreaFileShare() {
                                 ? t("common.[random]")
                                 : references.path.current
                         }
+                        className="w-18 md:w-auto"
                     />
                     <div className="flex items-center gap-2 ml-2">
                         <Checkbox
@@ -279,7 +280,7 @@ export function AreaFileShare() {
                 </div>
             )}
 
-            <div className="w-150 mt-4">
+            <div className="w-full md:w-150 mt-4 px-8 md:mx-0">
                 {progress === 0 && (
                     <>
                         <div className="mt-4 mb-2 text-sm">
@@ -340,7 +341,7 @@ export function AreaFileShare() {
                                                 </span>
                                             </div>
                                             <div>
-                                                <div className="text-sm truncate max-w-[200px]">
+                                                <div className="text-sm truncate max-w-50">
                                                     {selectedFiles[0].name}
                                                 </div>
                                                 <div className="text-xs text-muted-foreground">
@@ -435,8 +436,8 @@ export function AreaFileShare() {
                             />
                         </div>
 
-                        <div className="mt-8 flex items-center border-1 border-border rounded-md p-4 shadow-sm">
-                            <div>
+                        <div className="mt-8 flex items-center border border-border rounded-md p-4 shadow-sm">
+                            <div className={"mr-2"}>
                                 <Label htmlFor="inline-mode">
                                     {t("file_share.inline_mode")}
                                 </Label>
@@ -458,7 +459,7 @@ export function AreaFileShare() {
 
                         <div className={"flex gap-4 mt-8"}>
                             <Button
-                                className={"flex-1 cursor-pointer"}
+                                className={"flex-1"}
                                 variant={"outline"}
                                 onClick={() =>
                                     context.handleTabClick("operation")
@@ -467,7 +468,7 @@ export function AreaFileShare() {
                                 {t("common.cancel")}
                             </Button>
                             <Button
-                                className={"flex-5 cursor-pointer"}
+                                className={"flex-5"}
                                 onClick={handleUpload}
                                 disabled={
                                     selectedFiles.length === 0 ||
@@ -565,8 +566,11 @@ export function AreaFileShare() {
                     </div>
                 )}
 
-                <FinishedCard finalUrl={finalUrl} filePage />
             </div>
+            <FinishedCard
+                className={"mt-8 w-full md:w-150 flex flex-col items-center px-8 md:px-0"}
+                finalUrl={finalUrl}
+            />
         </div>
     )
 }

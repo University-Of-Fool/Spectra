@@ -70,8 +70,8 @@ export function AreaShortUrl() {
                 expires === "permanent"
                     ? undefined
                     : new Date(
-                          Date.now() + parseInt(expires, 10) * 1000,
-                      ).toISOString(),
+                        Date.now() + parseInt(expires, 10) * 1000,
+                    ).toISOString(),
             max_visits: maxvisit || undefined,
             password: password || undefined,
         }
@@ -129,13 +129,13 @@ export function AreaShortUrl() {
 
     return (
         <div className={"flex flex-col items-center"}>
-            <div className="font-thin dark:font-light text-2xl mt-6 mb-12">
+            <div className="font-thin dark:font-light text-2xl mt-18 md:mt-6 mb-12">
                 {t("short_url.title")}
             </div>
 
             {finalUrl === "" && (
                 <>
-                    <div className="flex gap-2 items-center">
+                    <div className="flex gap-2 items-center w-full md:w-auto mx-4 md:mx-0 justify-center">
                         <div className="opacity-50">
                             {window.location.origin}/
                         </div>
@@ -143,6 +143,7 @@ export function AreaShortUrl() {
                             disabled={random}
                             value={random ? t("common.[random]") : path}
                             onChange={(e) => setPath(e.currentTarget.value)}
+                            className="w-18 md:w-auto"
                         />
                         <div className="flex items-center gap-2 ml-2">
                             <Checkbox
@@ -171,7 +172,8 @@ export function AreaShortUrl() {
                             </Label>
                         </div>
                     </div>
-                    <div className="w-150 mt-4">
+
+                    <div className="w-full md:w-150 mt-4 px-8 md:mx-0">
                         <div className="mt-4">
                             <div className="mb-2 text-sm">
                                 {t("short_url.target_url")}
@@ -292,8 +294,8 @@ export function AreaShortUrl() {
                                         className={cn(
                                             "flex-5",
                                             (uploadDisabled() || !urlValid) &&
-                                                !shiftDown &&
-                                                " opacity-50 cursor-default hover:bg-primary/100",
+                                            !shiftDown &&
+                                            " opacity-50 cursor-default hover:bg-primary/100",
                                         )}
                                         onClick={handleUpload}
                                     >
@@ -323,7 +325,7 @@ export function AreaShortUrl() {
                 </>
             )}
             <FinishedCard
-                className={"mt-8 w-150 flex flex-col items-center"}
+                className={"mt-8 w-full md:w-150 flex flex-col items-center px-8 md:px-0"}
                 finalUrl={finalUrl}
             />
         </div>

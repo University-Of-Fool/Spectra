@@ -12,7 +12,7 @@ export function TopBarDiv(props: {
     return (
         <div
             className={cn(
-                "flex items-center p-10 px-15 bg-gradient-to-b from-background to-transparent from-70% to-100% sticky top-0 left-0 w-full z-50",
+                "flex items-center p-8 md:p-10 px-6 md:px-15 bg-linear-to-b from-background to-transparent from-80% md:from-70% to-100% opacity-95 md:opacity-100 sticky top-0 left-0 w-full z-50",
                 props.className,
             )}
         >
@@ -38,7 +38,7 @@ export function TopBarLogo(props: {
             onClick={handleClick}
             className={"items-center cursor-pointer select-none"}
         >
-            <SpectraLogo className={"h-12 mr-4"} />
+            <SpectraLogo className={"h-12 mr-4 ml-2 md:ml-0"} />
             <div className={"text-xl font-mono font-medium"}>
                 Spectra{props.pageName ? `.${props.pageName}` : ""}
             </div>

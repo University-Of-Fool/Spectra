@@ -19,7 +19,7 @@
 }
 
 .dashboard-operation-large-icon {
-    @apply text-[128px];
+    @apply text-[80px] md:text-[128px] opacity-50 md:opacity-100;
     font-variation-settings:
         "FILL" 0,
         "wght" 400,
