@@ -43,6 +43,11 @@ export function AreaPasteBin() {
         }
     }, [context.pasteText])
 
+    // 同步当前是否已有文本，供 main 判断是否允许 Ctrl-V 覆盖
+    useEffect(() => {
+        context.setHasTextContent(content.length > 0)
+    }, [content])
+
     async function handleUpload() {
         const body = {
             item_type: "Code",
@@ -51,8 +56,8 @@ export function AreaPasteBin() {
                 expires === "permanent"
                     ? undefined
                     : new Date(
-                          Date.now() + parseInt(expires, 10) * 1000,
-                      ).toISOString(),
+                        Date.now() + parseInt(expires, 10) * 1000,
+                    ).toISOString(),
             max_visits: maxvisit || undefined,
             password: password || undefined,
             extra_data: JSON.stringify({

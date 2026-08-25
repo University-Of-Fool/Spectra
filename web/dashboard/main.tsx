@@ -43,6 +43,11 @@ export const AccountCtx = createContext({
     setPasteFile: (_: File | null) => { },
     pasteText: "",
     setPasteText: (_: string) => { },
+    // 子组件当前是否已有内容（用于判断是否响应 Ctrl-V 覆盖）
+    hasFileContent: false,
+    setHasFileContent: (_: boolean) => { },
+    hasTextContent: false,
+    setHasTextContent: (_: boolean) => { },
 })
 
 export function Dashboard() {
@@ -65,6 +70,9 @@ export function Dashboard() {
     // 通过 Ctrl-V 粘贴时，根据剪贴板内容自动切换到对应 tab 并传入数据
     const [pasteFile, setPasteFile] = useState<File | null>(null)
     const [pasteText, setPasteText] = useState("")
+    // 记录子组件当前是否已有内容，用于决定 Ctrl-V 是否允许覆盖
+    const [hasFileContent, setHasFileContent] = useState(false)
+    const [hasTextContent, setHasTextContent] = useState(false)
 
     // 拖拽文件到页面上时，自动切换到文件传输tab
     useEffect(() => {
@@ -99,10 +107,6 @@ export function Dashboard() {
     // 全局监听 Ctrl-V，根据剪贴板内容切换 tab 并填入
     useEffect(() => {
         const handlePaste = async (e: ClipboardEvent) => {
-            // 只在最外层的选择界面(operation)响应快捷操作
-            if (activeTab !== "operation") {
-                return
-            }
             // 如果在输入框/文本域等可编辑元素内粘贴，交由浏览器原生处理
             const target = e.target as HTMLElement | null
             const tag = target?.tagName?.toLowerCase()
@@ -132,8 +136,13 @@ export function Dashboard() {
                     if (entry?.isDirectory) {
                         continue
                     }
-                    setActiveTab("fileShare")
-                    setPasteFile(file)
+                    if (activeTab === "fileShare" && !hasFileContent) {
+                        setActiveTab("fileShare")
+                        setPasteFile(file)
+                    } else if (activeTab === "operation") {
+                        setActiveTab("fileShare")
+                        setPasteFile(file)
+                    }
                     return
                 }
             }
@@ -141,15 +150,20 @@ export function Dashboard() {
             // 否则读取文本
             const text = e.clipboardData?.getData("text") ?? ""
             if (text) {
-                setActiveTab("pasteBin")
-                setPasteText(text)
+                if (activeTab === "pasteBin" && !hasTextContent) {
+                    setActiveTab("pasteBin")
+                    setPasteText(text)
+                } else if (activeTab === "operation") {
+                    setActiveTab("pasteBin")
+                    setPasteText(text)
+                }
             }
         }
         window.addEventListener("paste", handlePaste)
         return () => {
             window.removeEventListener("paste", handlePaste)
         }
-    }, [activeTab])
+    }, [activeTab, hasFileContent, hasTextContent])
     return (
         <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
             <AccountCtx.Provider
@@ -163,6 +177,10 @@ export function Dashboard() {
                     setPasteFile,
                     pasteText,
                     setPasteText,
+                    hasFileContent,
+                    setHasFileContent,
+                    hasTextContent,
+                    setHasTextContent,
                 }}
             >
                 <div>
