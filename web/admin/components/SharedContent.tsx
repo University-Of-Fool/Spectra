@@ -264,8 +264,10 @@ export function SharedContent() {
     }, [])
 
     useEffect(() => {
-        manage && loadItems(0, selectedUser?.id)
-    }, [selectedUser])
+        if (!currentUser) return
+
+        loadItems(0, manage ? selectedUser?.id : currentUser.id)
+    }, [currentUser, manage, selectedUser])
 
     return (
         <div className="ml-8 w-full px-4 mt-4">
