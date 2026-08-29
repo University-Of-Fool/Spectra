@@ -331,12 +331,18 @@ async fn main() {
 
     info!("Successfully initialized application state");
 
-    if state
+    let admin_user_exists = state
         .database_accessor
         .admin_user_exists()
         .await
-        .is_ok_and(|x| !x)
-    {
+        .is_ok_and(|x| x);
+
+    if !admin_user_exists && matches.subcommand_name() == Some("reset-admin-password") {
+        warn!("Cannot reset the admin password before the admin user has been initialized.");
+        std::process::exit(1);
+    }
+
+    if !admin_user_exists {
         // 使用固定密码，方便自动化 API 测试
         let new_password = if cfg!(debug_assertions) {
             "1234567890".to_string()
