@@ -21,7 +21,6 @@ WORKDIR /src
 RUN apk add --no-cache \
     build-base \
     git \
-    perl \
     pkgconfig
 
 ENV SQLX_OFFLINE=true

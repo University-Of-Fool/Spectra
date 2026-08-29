@@ -5,7 +5,7 @@ edition = "2024"
 build = "build.rs"
 
 [dependencies]
-axum-reverse-proxy = "1.0"
+axum-reverse-proxy = { version = "1.0", default-features = false }
 axum = { version = "0.8", features = ["query", "multipart", "macros"] }
 axum-extra = { version = "0.10", features = ["cookie", "cookie-private"] }
 tokio = { version = "1.0", features = ["full"] }
@@ -48,9 +48,11 @@ async-recursion = "1.1.1"
 tokio-cron-scheduler = "0.14.0"
 cookie = "0.18.1"
 infer = "0.19.0"
-reqwest = { version = "0.12.22", features = ["json"] }
+reqwest = { version = "0.12.22", default-features = false, features = [
+    "json",
+    "rustls-tls-webpki-roots",
+] }
 croner = "3.0.0"
-openssl = { version = "0.10", features = ["vendored"] }
 arc-swap = "1.8.2"
 
 
