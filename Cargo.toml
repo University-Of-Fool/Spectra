@@ -1,3 +1,6 @@
 [workspace]
 members = ["backend/"]
 resolver = "3"
+
+[profiles.release]
+strip = true
