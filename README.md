@@ -5,8 +5,8 @@
     <img alt="GitHub License" src="https://img.shields.io/github/license/University-Of-Fool/Spectra">
     <a href="https://ferris.love/University-Of-Fool/Spectra"><img src="https://ferris.love/badge/University-Of-Fool/Spectra?show=call_fn%2Ccall_method%2Cdef_var%2Cdef_fn%2Cdef_method&variant=mini" alt="Badge showing this repository's Rust code analysis"></a>
 </p>
-<p align="center">Spectrum of online tools</p>
-<img align="center" src="/assets/screenshot.png" alt="Spectra Screenshot">
+<p align="center">A beautifully simple, self-hosted sharing service.</p>
+<img align="center" src="/assets/screenshot.webp" alt="Spectra Screenshot">
 
 ## Quickstart
 
@@ -17,6 +17,16 @@
 5. Run `./Spectra init` to generate the configuration file.
 6. Edit the configuration file to your liking.
 7. Run `./Spectra` to start the server.
+
+## Multi-language Support
+
+You can switch languages by clicking the globe icon in the top-right corner. Spectra currently supports the following languages:
+
+- 简体中文
+
+- English
+
+Contributions of additional translations are welcome.
 
 ## Linux Deployment
 
