@@ -18,12 +18,17 @@
 6. Edit the configuration file to your liking.
 7. Run `./Spectra` to start the server.
 
+## Try it Online
+
+Before deploying your own instance, you can try Spectra on the demo site hosted by RLt. The demo site uses Cloudflare Turnstile to prevent abuse. You can disable it when deploying your own instance.
+
+[s.akyuu.cn](https://s.akyuu.cn)
+
 ## Multi-language Support
 
 You can switch languages by clicking the globe icon in the top-right corner. Spectra currently supports the following languages:
 
 - 简体中文
-
 - English
 
 Contributions of additional translations are welcome.
